@@ -1,0 +1,10 @@
+:~  title+'Studio'
+    info+'Tools for making money.'
+    color+0xa0.e2a7
+    base+'studio'
+    image+'https://tirrel.io/assets/stool.svg'
+    glob-http+['https://tirrel.io/assets/glob-0vc3265.v3ofc.mtuln.fh454.ltoss.glob' 0vc3265.v3ofc.mtuln.fh454.ltoss]
+    version+[1 0 0]
+    website+'https://tirrel.io'
+    license+'MIT'
+==

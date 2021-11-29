@@ -1,0 +1,61 @@
+<!doctype html>
+<html class="w-100 h-100">
+  <head>
+    <title>Planet Market</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <link rel="stylesheet" href="/main.css"/>
+  </head>
+  <body class="f4 sans-serif w-100 h-100 pa2 flex justify-center">
+    <div class="flex flex-column w-80 h5 mw6 pa2">
+      <h1 class="f2 tc lh-title">Planet Market</h1>
+      <div id="step1" class="flex w-100 justify-center" style="display:none;">
+        <button id="step1-button" class="w-100 w-80-ns button-reset br0 bg-black b--none mt4 pa3 white pointer dim">
+          Buy a Planet
+        </button>
+      </div>
+      <div id="step2" class="h-75 flex flex-column items-center" style="display:none;">
+        <p class="lh-copy mb3 w-100">Enter Card Details: </p>
+        <form id="step2-form" class="w-100" method="POST" action="">
+          <span class="flex flex-wrap justify-start justify-between-ns w-100 items-center">
+            <input
+              class="w-100 w-50-ns pa3 ba bw1 mb3 br0"
+              id="cardNumber"
+              name="billing-cc-number"
+              type="text"
+              placeholder="4111111111111111"
+              autocomplete="cc-number"
+              pattern="\b\d{13,16}\b"
+              required
+            />
+            <input
+              class="input-reset w-30 w-20-ns pa3 ba bw1 mw4 mb3 mr3 mr0-ns br0"
+              name="billing-cc-exp"
+              type="text"
+              placeholder="10/12"
+              maxlength="5"
+              autocomplete="cc-exp"
+              pattern="\b\d{2}/\d{2}\b"
+              required
+            />
+            <input
+              class="input-reset w-30 w-20-ns pa3 ba bw1 mw4 mb3 br0"
+              name="cvv"
+              type="text"
+              placeholder="999"
+              autocomplete="cc-csc"
+              pattern="\b\d{3,4}\b"
+              required
+            />
+          </span>
+          <input class="input-reset br0 bg-black b--none w-100 pa3 white pointer dim" type="submit" value="Submit" />
+        </form>
+      </div>
+      <div id="step3" style="display:none;">
+        <p id="step3-status" class="mt4 lh-copy mb3 tc"></p>
+      </div>
+    </div>
+    <script type="text/javascript" src="/main.js"></script>
+  </body>
+</html>
