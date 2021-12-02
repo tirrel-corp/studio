@@ -33,10 +33,11 @@
         ; {(trip title)}
       ==
     ==
-  =/  home-url  (spud path.u.site-binding)
+  =/  home-url
+    (trip (cat 3 (need site.u.site-binding) (spat path.u.site-binding)))
   ;div
     =style  "border-bottom: 1px solid #aaaaaa; margin-bottom: 2rem;"
-    ;a(href "{home-url}", class "link")
+    ;a(href "{home-url}", class "link", style "text-decoration: none")
       ;h1
         =style  "color: #000000; font-size: 1.5rem; line-height: 1.25;"
         ; {(trip title)}

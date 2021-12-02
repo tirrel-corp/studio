@@ -229,7 +229,6 @@
     ?.  ?=(%finished -.res)  `state
     ?+    wire  ~|('unknown request type coming from mailer' !!)
         [%send-email @ ~]
-      ~&  res
       ?~  full-file.res
         `state
       [~ state]
@@ -276,7 +275,6 @@
       ~|("No domain name set up" !!)
     =*  name  i.t.wire
     =+  !<(=update:pipe q.cage.sign)
-    ~&  update
     ?.  ?=(%email -.update)
       `this
     =/  content=(list [@t @t])
@@ -351,7 +349,6 @@
 ++  send-email
   |=  =email
   ^-  request:http
-  ~&  %send-email
   ?>  ?=(^ api-key.creds)
   :^  %'POST'  'https://api.sendgrid.com/v3/mail/send'
     :~  ['Content-type' 'application/json']
