@@ -188,14 +188,38 @@
     %reference  ~ :: (reference-to-manx content)
   ==
 ::
+++  text-preprocess  :: jank as fuck
+  |=  text=@t
+  ^-  @t
+  =/  mod  (rap 3 ';>\0a' text '\0a\0a' ~)
+  =/  lines  (to-wain:format mod)
+  =/  [full=wain flag=?]
+    %+  roll  lines
+    |=  [line=@t full=wain flag=_|]
+    =/  tics  (rush line ;~(plug (star ace) tic tic tic (star ace)))
+    ?:  !flag
+      ?~  tics
+        [(snoc full line) |]
+      [(snoc full '```') &]
+    ?~  tics
+      =/  pars
+        %+  rush  line
+        %+  cook
+          |=(t=tape (cat 3 '    ' (crip t)))
+        ;~(pfix (star ace) (star prn))
+      ?~  pars
+        [full flag]
+      [(snoc full u.pars) flag]
+    [(snoc full '```') |]
+  (of-wain:format full)
+::
 ++  text-to-manx
   |=  text=@t
   ^-  manx
   ?:  =('' text)
     ;br;
-  =/  mod  (rap 3 ';>\0a' text '\0a' ~)
-  ~|  text
-  elm:(static:cram (ream mod))
+  =/  p  (text-preprocess text)
+  elm:(static:cram (ream p))
 ::
 ++  url-to-manx
   |=  url=@t
