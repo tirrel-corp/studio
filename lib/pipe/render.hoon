@@ -103,41 +103,30 @@
     ~
   ==
 ::
-::
-:: cord escape with hep instead of dot
-++  escape
-  |=  a=@t
-  ^-  @ta
-  %+  rap  3
-  |-  ^-  (list @)
-  ?:  =(`@`0 a)
-    ~
-  =+  b=(teff a)
-  =+  c=(taft (end [3 b] a))
-  =+  d=$(a (rsh [3 b] a))
-  ?:  ?|  &((gte c 'a') (lte c 'z'))
-          &((gte c '0') (lte c '9'))
-          =(`@`'-' c)
+++  en-url-strip  :: url-encode, stripping strange characters
+  |=  tep=tape
+  ^-  tape
+  %-  zing
+  %+  murn  tep
+  |=  tap=char
+  =+  xen=|=(tig=@ ?:((gte tig 10) (add tig 55) (add tig '0')))
+  ?:  ?|  &((gte tap 'a') (lte tap 'z'))
+          &((gte tap 'A') (lte tap 'Z'))
+          &((gte tap '0') (lte tap '9'))
+          =('.' tap)
+          =('-' tap)
+          =('~' tap)
+          =('_' tap)
       ==
-    [c d]
-  ?+  c
-    :-  '~'
-    =+  e=(met 2 c)
-    |-  ^-  tape
-    ?:  =(0 e)
-      ['.' d]
-    =.  e  (dec e)
-    =+  f=(rsh [2 e] c)
-    [(add ?:((lte f 9) 48 87) f) $(c (end [2 e] c))]
-  ::
-    %' '  ['-' d]
-    %'.'  ['-' d]
-::    %'~'  ['~' '~' d]
-  ==
+    `[tap ~]
+  ?:  ?|  =(' ' tap)
+      ==
+    `['-' ~]
+  ~
 ::
 ++  strip-title
   |=  title=cord
-  `@ta`(crip (en-urlt:html (trip (escape (crip (cass (trip title)))))))
+  (crip (en-url-strip (cass (trip title))))
 ::
 ++  title-to-url
   |=  title=cord
