@@ -10,21 +10,14 @@
     server,
     *pipe-templates,
     pipe-render,
+    pipe-upgrade,
     resource,
     meta-lib=metadata-store
 |%
 +$  card  card:agent:gall
-+$  template  $-(update:store:graph website)
-+$  state-0
-  $:  %0
-      flows=(map name=term flow)
-      sites=(map name=term website)
-      uid-to-name=(jug uid name=term)
-      host-to-name=(map @t name=term)
-  ==
 --
 ::
-=|  state-0
+=|  state-1
 =*  state  -
 ::
 %-  agent:dbug
@@ -38,17 +31,21 @@
 ::
 ++  on-init
   ^-  (quip card _this)
-  :_  this(state *state-0)
+  :_  this(state *state-1)
   [%pass /graph %agent [our.bowl %graph-store] %watch /updates]~
 ::
 ++  on-save  !>(state)
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
-::  `this(state *state-0)
-  =/  old  !<(state-0 old-vase)
-  :_  this(state old)
-  [give-templates:pc]~
+  =+  !<(old=versioned-state old-vase)
+  =/  cards=(list card)
+    [give-templates:pc]~
+  |-
+  ?-  -.old
+    %1  [cards this(state old)]
+    %0  $(old (state-0-to-1:pipe-upgrade old))
+  ==
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -398,9 +395,25 @@
 ::
 ++  orm  ((on atom node:store:graph) gth)
 ::
+++  get-comments
+  |=  =node:store:graph
+  ^-  (list post:store:graph)
+  ?.  ?=(%graph -.children.node)
+    ~
+  %+  turn  ~(val by p.children.node)
+  |=  n=node:store:graph
+  ?>  ?=(%graph -.children.n)
+  =/  com  (got:orm p.children.n 1)
+  ?>  ?=(%& -.post.com)
+  p.post.com
+::
 ++  get-posts
-  |=  res=resource
-  ^-  (list [initial-date=@da latest-post=post:store:graph])
+  |=  [res=resource comments=?]
+  ^-  %-  list
+      $:  initial-date=@da
+          latest-post=post:store:graph
+          comments=(list post:store:graph)
+      ==
   =/  =update:store:graph
     %+  scry-for:gra  update:store:graph
     /graph/(scot %p entity.res)/[name.res]/node/children/kith/'~'/'~'
@@ -410,6 +423,7 @@
     |=  [=index =node:store:graph]
     ?>  ?=(%graph -.children.node)
     =/  arc=node:store:graph  (got:orm p.children.node 1)
+    =/  com=node:store:graph  (got:orm p.children.node 2)
     ?>  ?=(%graph -.children.arc)
     =/  latest=(unit [@ node:store:graph])  (pry:orm p.children.arc)
     =/  first=(unit [@ node:store:graph])   (ram:orm p.children.arc)
@@ -419,9 +433,10 @@
     ?>  ?=(%& -.post.+.u.first)
     :*  time-sent.p.post.+.u.first
         p.post.+.u.latest
+        ?.(comments ~ (get-comments com))
     ==
-  |=  $:  a=[t=@da post:store:graph]
-          b=[t=@da post:store:graph]
+  |=  $:  a=[t=@da *]
+          b=[t=@da *]
       ==
   (gth t.a t.b)
 ::
@@ -436,10 +451,12 @@
 ++  get-site-inputs
   |=  [name=term =flow]
   ^-  site-inputs
+  =/  s  (need site.flow)
   :*  name
-      binding:(need site.flow)
-      (get-posts resource.flow)
+      binding.s
+      (get-posts resource.flow comments.s)
       (get-metadata resource.flow)
+      comments.s
   ==
 ::
 ++  get-email-inputs

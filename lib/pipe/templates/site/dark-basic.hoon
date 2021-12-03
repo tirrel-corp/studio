@@ -6,12 +6,13 @@
 |^  %-  ~(gas by *website)
     :-  (index-page sinp)
     %+  turn  posts.sinp
-    |=  [initial=@da =post]
+    |=  [initial=@da =post comments=(list post)]
     %:  article-page
         name.sinp
         binding.sinp
         initial
         post
+        comments
         association.sinp
     ==
 
@@ -21,6 +22,7 @@
       =binding:eyre
       initial=@da
       =post
+      comments=(list post)
       =association:metadata-store
   ==
 ::
@@ -46,13 +48,14 @@
     ;+  %-  frame
     :*  (header binding.si title.metadatum.association.si)
         %+  turn  posts.si
-        |=  [initial=@da =post]
+        |=  [initial=@da =post comments=(list post)]
         ^-  manx
         %:  article-preview
             name.si
             binding.si
             initial
             post
+            comments
             association.si
         ==
     ==
@@ -138,8 +141,31 @@
         ;article(class "w-100")
           ;*  (contents-to-marl (slag 1 contents.post.ai))
         ==
+        ;*  ?~  comments.ai  ;br;
+        ;div(class "pt3 pl3 bt b--gray")
+          ;h4(class "ma0"): Comments
+          ;*  (turn comments.ai single-comment)
+        ==
     ==
   ==
+::
+++  single-comment
+  |=  p=post
+  ^-  manx
+  =/  deets=tape
+    %-  trip
+    %:  rap  3
+      (print-date time-sent.p)  ' • '
+      (scot %p author.p)
+      ~
+    ==
+  =/  body  (snag 0 contents.p)
+  ?>  ?=(%text -.body)
+  ;div(class "flex flex-column w-100 ml3")
+    ;p(class "gray f7 ma0 mt3", style "margin-block-end: 0;"): {deets}
+    ;p(class "f6 ma0 mt1"): {(trip text.body)}
+  ==
+::
 ::
 ++  custom-style
   ^-  manx

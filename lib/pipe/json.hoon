@@ -23,6 +23,7 @@
     %-  ot
     :~  template+so
         binding+binding
+        comments+bo
     ==
   ::
   ++  binding
@@ -78,12 +79,13 @@
     ==
   ::
   ++  site
-    |=  s=(unit [template=term =binding:eyre])
+    |=  s=(unit [template=term =binding:eyre comments=?])
     ^-  json
     ?~  s  ~
     %-  pairs
     :~  template+s+template.u.s
         binding+(binding binding.u.s)
+        comments+b+comments.u.s
     ==
   ::
   ++  binding
