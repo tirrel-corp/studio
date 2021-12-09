@@ -4,7 +4,7 @@
     base+'studio'
     image+'https://tirrel.io/assets/stool.svg'
     glob-http+['https://tirrel.io/assets/glob-0v5.n1059.kuc3l.pd4lv.v7sbn.cqnak.glob' 0v5.n1059.kuc3l.pd4lv.v7sbn.cqnak]
-    version+[1 0 2]
+    version+[1 0 3]
     website+'https://tirrel.io'
     license+'MIT'
 ==
