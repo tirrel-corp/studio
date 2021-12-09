@@ -330,6 +330,10 @@
   ?+    path  (on-peek:def path)
       [%x %export ~]
     ``noun+!>(state)
+  ::
+      [%x %has-list @ ~]
+    =*  li  i.t.t.path
+    ``noun+!>((~(has by ml) li))
   ==
 ::
 ++  on-agent
