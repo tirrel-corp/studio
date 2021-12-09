@@ -10,14 +10,13 @@
     server,
     *pipe-templates,
     pipe-render,
-    pipe-upgrade,
     resource,
     meta-lib=metadata-store
 |%
 +$  card  card:agent:gall
 --
 ::
-=|  state-1
+=|  state-2
 =*  state  -
 ::
 %-  agent:dbug
@@ -31,21 +30,65 @@
 ::
 ++  on-init
   ^-  (quip card _this)
-  :_  this(state *state-1)
+  :_  this(state *state-2)
   [%pass /graph %agent [our.bowl %graph-store] %watch /updates]~
 ::
 ++  on-save  !>(state)
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
+  |^
   =+  !<(old=versioned-state old-vase)
   =/  cards=(list card)
     [give-templates:pc]~
   |-
   ?-  -.old
-    %1  [cards this(state old)]
-    %0  $(old (state-0-to-1:pipe-upgrade old))
+    %2  [cards this(state old)]
+    %1  $(old (state-1-to-2 old))
+    %0  $(old (state-0-to-1 old))
   ==
+  ++  state-1-to-2
+    |=  s=state-1
+    ^-  state-2
+    %=  s
+      -  %2
+    ::
+        flows
+      %-  ~(rut by flows.s)
+      |=  [name=term f=flow]
+      ^-  flow
+      %=  f
+        email
+        ?~  email.f  ~
+        ?.  (scry:pc %mailer ? /has-list/[name]/noun)
+          ~
+        email.f
+      ==
+    ==
+  ::
+  ++  state-0-to-1
+    |=  s=state-0
+    ^-  state-1
+    %=  s
+      -  %1
+    ::
+        flows
+      %-  ~(run by flows.s)
+      |=  f=flow-0
+      ^-  flow
+      :*  resource.f
+          index.f
+          (site-0-to-1 site.f)
+          email.f
+      ==
+    ==
+  ::
+  ++  site-0-to-1
+    |=  old=(unit [t=term b=binding:eyre])
+    ^-  (unit [term binding:eyre ?])
+    ?~  old  ~
+    `[t.u.old b.u.old %.n]
+  --
 ::
 ++  on-poke
   |=  [=mark =vase]

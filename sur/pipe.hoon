@@ -3,14 +3,18 @@
 +$  versioned-state
   $%  state-0
       state-1
+      state-2
   ==
-+$  state-1
-  $:  %1
-      flows=(map name=term flow)
+::
++$  state-base
+  $:  flows=(map name=term flow)
       sites=(map name=term website)
       uid-to-name=(jug uid name=term)
       host-to-name=(map @t name=term)
   ==
+::
++$  state-2  [%2 state-base]
++$  state-1  [%1 state-base]
 ::
 +$  flow
   $:  =resource
