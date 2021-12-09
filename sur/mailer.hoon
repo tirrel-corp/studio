@@ -27,5 +27,5 @@
   $%  [%initial creds=[(unit @t) (unit @t) (unit @t)] ml=(map term mailing-list)]
   ==
 ::
-+$  mailing-list  (map @t @uv)
++$  mailing-list  (map @t [token=@uv confirmed=?])
 --

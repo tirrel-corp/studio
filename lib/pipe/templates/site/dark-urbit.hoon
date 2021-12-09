@@ -14,8 +14,8 @@
         post
         comments
         association.sinp
+        email.sinp
     ==
-
 ::
 +$  article-inputs
   $:  name=term
@@ -24,6 +24,7 @@
       =post
       comments=(list post)
       =association:metadata-store
+      email=?
   ==
 ::
 ++  index-page
@@ -48,6 +49,8 @@
     ==
     ;+  %-  frame
     :*  (header binding.si title.metadatum.association.si)
+        %-  snoc
+        :_  (subscribe-box name.si title.metadatum.association.si email.si)
         %+  turn  posts.si
         |=  [initial=@da =post comments=(list post)]
         ^-  manx
@@ -58,6 +61,7 @@
             post
             comments
             association.si
+            email.si
         ==
     ==
   ==
@@ -80,7 +84,32 @@
     ;a(href "{home-url}", class "link near-white")
       ;h3: {(trip title)}
     ==
-::    ;a(id "subscribe-button", class "fw4 ph3 pv2 bg-white near-black pointer br2"): Subscribe
+  ==
+::
+++  subscribe-box
+  |=  [book=@tas title=@t email=?]
+  ^-  manx
+  ?.  email  ;br;
+  ;form
+    =id  "subscribe"
+    =method  "post"
+    =action  "/mailer/subscribe"
+    =class   "db w-100 flex flex-column items-center br3 bw2 ba b--near-white pa2 mb4"
+    ;p(style "margin-block-end: 0;"): Subscribe to {(trip title)}
+    ;input(name "book", type "hidden", value "{(trip book)}");
+    ;input
+      =name   "who"
+      =class  "db pa2 input-reset ba mv3 br3"
+      =type   "email"
+      =placeholder  "your@email.com"
+    ;
+    ==
+    ;button
+      =id     "subscribe"
+      =type   "submit"
+      =class  "mb3 db fw4 ph3 pv2 bg-white near-black pointer bt3 bn"
+    ; Subscribe
+    ==
   ==
 ::
 ++  details
@@ -143,16 +172,12 @@
         ;article(class "w-100")
           ;*  (contents-to-marl (slag 1 contents.post.ai))
         ==
-::        ;form(id "subscribe", method "post", class "db w-100 flex flex-column items-center br3 bw2 ba b--near-white pa2 mb4")
-::          ;p(style "margin-block-end: 0;"): Subscribe to {(trip title.metadatum.association.ai)}:
-::          ;input(name "email-address", class "db pa2 input-reset bn mv3 br2", type "email", placeholder "your@email.com");
-::          ;button(id "subscribe-button", type "submit", class "mb3 db fw4 ph3 pv2 bg-white near-black pointer br2 bn"): Sign Up
-::        ==
         ;*  ?~  comments.ai  ;br;
         ;div(class "pt3 pl3 bt b--gray")
           ;h4(class "ma0"): Comments
           ;*  (turn comments.ai single-comment)
         ==
+        (subscribe-box name.ai title.metadatum.association.ai email.ai)
     ==
   ==
 ::

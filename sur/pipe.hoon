@@ -29,6 +29,7 @@
       posts=(list [@da post (list post)])
       =association:meta
       comments=?
+      email=?
   ==
 ::
 +$  email-inputs

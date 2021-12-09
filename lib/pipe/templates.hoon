@@ -1,9 +1,9 @@
 /-  *pipe
 /+  pipe-templates-site-light-basic,
     pipe-templates-site-dark-basic,
-    pipe-templates-email-light,
     pipe-templates-site-dark-urbit,
-    pipe-templates-site-light-urbit
+    pipe-templates-site-light-urbit,
+    pipe-templates-email-light
 |%
 ++  site-templates
   ^-  (map term site-template)

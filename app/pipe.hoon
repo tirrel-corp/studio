@@ -457,6 +457,7 @@
       (get-posts resource.flow comments.s)
       (get-metadata resource.flow)
       comments.s
+      ?=(^ email.flow)
   ==
 ::
 ++  get-email-inputs

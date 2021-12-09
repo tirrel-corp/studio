@@ -1,12 +1,22 @@
 :: mailer [tirrel]
 ::
 ::
-/-  *mailer, pipe
+/-  *mailer, pipe, meta=metadata-store
 /+  default-agent, dbug, verb, server, mailer, multipart
 |%
 +$  card  card:agent:gall
++$  mailing-list-0  (map @t @uv)
 +$  state-0
   $:  %0
+      $=  creds
+      $:  api-key=(unit @t)
+          email=(unit @t)
+          ship-url=(unit @t)
+      ==
+      ml=(map term mailing-list-0)
+  ==
++$  state-1
+  $:  %1
       $=  creds
       $:  api-key=(unit @t)
           email=(unit @t)
@@ -16,10 +26,11 @@
   ==
 +$  versioned-state
   $%  state-0
+      state-1
   ==
 --
 ::
-=|  state-0
+=|  state-1
 =*  state  -
 ::
 %-  agent:dbug
@@ -39,11 +50,30 @@
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
-::  `this(state *state-0)
+  |^
   =+  !<(old=versioned-state old-vase)
+  =|  cards=(list card)
+  |-
   ?-  -.old
-    %0  `this(state [%0 +.old])
+    %1  [cards this(state old)]
+    %0  $(old (state-0-to-1 old))
   ==
+  ::
+  ++  state-0-to-1
+    |=  s=state-0
+    ^-  state-1
+    %=  s
+      -   %1
+      ml  (~(run by ml.s) list-0-to-1)
+    ==
+  ::
+  ++  list-0-to-1
+    |=  m=mailing-list-0
+    ^-  mailing-list
+    %-  ~(run by m)
+    |=  t=@uv
+    [t %.y]
+  --
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -58,60 +88,107 @@
   ::
       %handle-http-request
     =+  !<([eyre-id=@ta =inbound-request:eyre] vase)
-    =^  sim  state
+    =^  cards  state
       (handle-http-request eyre-id inbound-request)
-    :_  this
-    (give-simple-payload:app:server eyre-id sim)
+    [cards this]
   ==
   ::
   ++  handle-http-request
     |=  [eyre-id=@ta inbound-request:eyre]
-    ^-  [simple-payload:http _state]
+    ^-  (quip card _state)
     |^
     =/  req-line=request-line:server
       %-  parse-request-line:server
       url.request
     ?+  site.req-line
       :_  state
-      not-found:gen:server
+      (give-simple-payload:app:server eyre-id not-found:gen:server)
     ::
-        [%mailer %unsubscribe @ ~]
-      ?~  ext.req-line
+        [%mailer %unsubscribe ~]
+      =/  args=(map @t @t)  (~(gas by *(map @t @t)) args.req-line)
+      =/  b64tok=(unit @t)  (~(get by args) 'token')
+      ?~  b64tok
         :_  state
-        not-found:gen:server
-      =/  del-token=@uv
-        (slav %uv (rap 3 i.t.t.site.req-line '.' u.ext.req-line ~))
-      =.  ml
-        %-  ~(rep by ml)
-        |=  [[=term =mailing-list] bs=_ml]
-        =.  mailing-list
-          %-  ~(rep by mailing-list)
-          |=  [[addr=@t token=@uv] ml2=_mailing-list]
-          ^-  ^mailing-list
-          ?.  =(token del-token)
-            ml2
-          (~(del by ml2) addr)
-        (~(put by bs) term mailing-list)
-      =/  res=manx
-        ;div: Unsubscribed successfully
-      :_  state
-      (manx-response:gen:server res)
+        (give-simple-payload:app:server eyre-id not-found:gen:server)
+      =/  details=(unit [=term email=@t token=@uv confirmed=?])
+        (get-user-by-token:do u.b64tok)
+      ?~  details
+        :_  state
+        (give-simple-payload:app:server eyre-id not-found:gen:server)
+      =/  old-ml  (~(got by ml) term.u.details)
+      =/  new-ml  (~(del by old-ml) email.u.details)
+      :_  state(ml (~(put by ml) term.u.details new-ml))
+      %+  give-simple-payload:app:server  eyre-id
+      (manx-response:gen:server (unsubscribe-landing:do term.u.details))
+    ::
+        [%mailer %subscribe ~]
+      ?.  ?=(%'POST' method.request)
+        :_  state
+        (give-simple-payload:app:server eyre-id not-found:gen:server)
+      =/  headers=(map @t @t)  (~(gas by *(map @t @t)) header-list.request)
+      =/  type=(unit @t)       (~(get by headers) 'content-type')
+      ?:  ?|(?=(~ body.request) ?=(~ type))
+        :_  state
+        (give-simple-payload:app:server eyre-id not-found:gen:server)
+      =/  parsed-form  (rush q.u.body.request yquy:de-purl:html)
+      ?~  parsed-form
+        :_  state
+        (give-simple-payload:app:server eyre-id not-found:gen:server)
+      =/  args=(map @t @t)   (~(gas by *(map @t @t)) u.parsed-form)
+      =/  who=(unit @t)      (~(get by args) 'who')
+      =/  book=(unit @t)     (~(get by args) 'book')
+      ?:  ?|(?=(~ who) ?=(~ book))
+        :_  state
+        (give-simple-payload:app:server eyre-id not-found:gen:server)
+      =/  old-ml=(unit mailing-list)  (~(get by ml) u.book)
+      ?~  old-ml
+        :_  state
+        (give-simple-payload:app:server eyre-id not-found:gen:server)
+      ?:  (~(has by u.old-ml) u.who)
+        :_  state
+        %+  give-simple-payload:app:server  eyre-id
+        (manx-response:gen:server (subscribe-landing:do u.book))
+      =/  token=@uv  (sham u.who eny.bowl)
+      =/  new-ml  (~(put by u.old-ml) u.who token %.n)
+      :_  state(ml (~(put by ml) u.book new-ml))
+      :*  (confirm-email:do u.who u.book token)
+          %+  give-simple-payload:app:server  eyre-id
+          (manx-response:gen:server (subscribe-landing:do u.book))
+      ==
+    ::
+        [%mailer %confirm ~]
+      =/  args=(map @t @t)  (~(gas by *(map @t @t)) args.req-line)
+      =/  b64tok=(unit @t)  (~(get by args) 'token')
+      ?~  b64tok
+        :_  state
+        (give-simple-payload:app:server eyre-id not-found:gen:server)
+      =/  details=(unit [=term email=@t token=@uv confirmed=?])
+        (get-user-by-token:do u.b64tok)
+      ?~  details
+        :_  state
+        (give-simple-payload:app:server eyre-id not-found:gen:server)
+      =/  new-token  (sham email.u.details eny.bowl)
+      =/  old-ml     (~(got by ml) term.u.details)
+      =/  new-ml     (~(put by old-ml) email.u.details new-token %.y)
+      :_  state(ml (~(put by ml) term.u.details new-ml))
+      %+  give-simple-payload:app:server  eyre-id
+      (manx-response:gen:server (confirm-landing:do term.u.details))
     ::
         [%mailer %upload ~]
       ?.  ?=(%'POST' method.request)
         :_  state
-        not-found:gen:server
+        (give-simple-payload:app:server eyre-id not-found:gen:server)
       ?~  parts=(de-request:multipart [header-list body]:request)
         ~|("failed to parse submitted data" !!)
       =/  parts-map  (~(gas by *(map @t part:multipart)) u.parts)
       =/  name  (~(get by parts-map) 'name')
       ?~  name
         :_  state
-        not-found:gen:server
+        (give-simple-payload:app:server eyre-id not-found:gen:server)
       =/  csv  (~(get by parts-map) 'csv')
       ?~  csv
         :_  state
-        not-found:gen:server
+        (give-simple-payload:app:server eyre-id not-found:gen:server)
       ::
       =/  addresses=(set @t)  (parse-csv:do body.u.csv)
       ::
@@ -120,11 +197,11 @@
       =/  recipients=mailing-list
         %-  ~(run in addresses)
         |=  email=@t
-        [email (sham email eny.bowl)]
+        [email (sham email eny.bowl) %.y]
       =/  new=mailing-list  (~(uni by u.old) recipients)
       =.  ml  (~(put by ml) body.u.name new)
       :_  state
-      not-found:gen:server
+      (give-simple-payload:app:server eyre-id not-found:gen:server)
       ::[give-update:do]~
     ==
     ::
@@ -168,7 +245,7 @@
       =/  recipients=mailing-list
         %-  ~(run in mailing-list.act)
         |=  email=@t
-        [email (sham email eny.bowl)]
+        [email (sham email eny.bowl) %.y]
       =.  ml  (~(put by ml) name.act recipients)
       :_  state
       :~  give-update:do
@@ -190,7 +267,7 @@
       =/  recipients=mailing-list
         %-  ~(run in mailing-list.act)
         |=  email=@t
-        [email (sham email eny.bowl)]
+        [email (sham email eny.bowl) %.y]
       =/  new=mailing-list  (~(uni by u.old) recipients)
       =.  ml  (~(put by ml) name.act new)
       :_  state
@@ -229,6 +306,7 @@
     ?.  ?=(%finished -.res)  `state
     ?+    wire  ~|('unknown request type coming from mailer' !!)
         [%send-email @ ~]
+::      ~&  res
       ?~  full-file.res
         `state
       [~ state]
@@ -275,6 +353,7 @@
       ~|("No domain name set up" !!)
     =*  name  i.t.wire
     =+  !<(=update:pipe q.cage.sign)
+::    ~&  update
     ?.  ?=(%email -.update)
       `this
     =/  content=(list [@t @t])
@@ -282,15 +361,17 @@
       [[(rsh [3 1] (spat p.a)) q.q.a] ~]
     =/  =mailing-list  (~(got by ml) name)
     =/  person=(list personalization-field)
-      %+  turn  ~(tap by mailing-list)
-      |=  [address=@t token=@uv]
+      %+  murn  ~(tap by mailing-list)
+      |=  [address=@t token=@uv confirmed=?]
+      ?.  confirmed  ~
       =/  callback=@t
         %:  rap  3
             u.ship-url.creds
-            '/mailer/unsubscribe/'
-            (scot %uv token)
+            '/mailer/unsubscribe?token='
+            (encode-token token)
             ~
         ==
+      :-  ~
       :*  [address]~
           ~
           [['%unsubscribe-callback%' callback] ~]
@@ -310,6 +391,31 @@
 ++  on-fail   on-fail:def
 --
 |_  =bowl:gall
+::
+++  encode-token
+  |=  tok=@uv
+  ^-  @t
+  (~(en base64:mimes:html | &) [(met 3 tok) tok])
+::
+++  get-user-by-token
+  |=  tok=@t
+  ^-  (unit [term @t @uv ?])
+  =/  token=(unit octs)  (~(de base64:mimes:html | &) tok)
+  ?~  token
+    ~
+  %-  ~(rep by ml)
+  |=  $:  [name=term m=mailing-list]
+          out=(unit [term @t @uv ?])
+      ==
+  ?^  out  out
+  %-  ~(rep by m)
+  |=  $:  in=[@t t=@uv ?]
+          out=(unit [term @t @uv ?])
+      ==
+  ?^  out  out
+  ?:  =(t.in q.u.token)
+    `[name in]
+  out
 ::
 ++  parse-csv
   |=  csv=@t
@@ -417,4 +523,74 @@
   %+  turn  subs
   |=  [a=@t b=@t]
   [a %s b]
+::
+++  subscribe-landing
+  |=  name=term
+  ^-  manx
+  ;div: Subscribed to {(trip (get-title name))}, check your email for confirmation
+::
+++  unsubscribe-landing
+  |=  name=term
+  ^-  manx
+  ;div: Unsubscribed from {(trip (get-title name))}
+::
+++  confirm-landing
+  |=  name=term
+  ^-  manx
+  ;div: Confirmed subscription to {(trip (get-title name))}
+::
+++  confirm-body
+  |=  [title=@t token=@uv]
+  ^-  (list content-field)
+  ?~  ship-url.creds  !!
+  =/  link=@t
+    %:  rap  3
+        u.ship-url.creds
+        '/mailer/confirm?token='
+        (encode-token token)
+        ~
+    ==
+  :_  ~
+  :-  'text/html'
+  =<  q
+  %-  as-octt:mimes:html
+  %-  en-xml:html
+  ^-  manx
+  ;div
+    ;p: Please confirm your subscription to {(trip title)}, if you did not subscribe you can ignore this email.
+    ;a(href (trip link)): Confirm Subscription
+  ==
+::
+++  confirm-email
+  |=  [addr=@t name=term token=@uv]
+  ^-  card
+  =/  title  (get-title name)
+  ?~  email.creds  !!
+  =/  =email
+    :*  [u.email.creds (scot %p our.bowl)]
+        (cat 3 'Confirm your subscription to ' title)
+        (confirm-body title token)
+        [[addr]~ ~ ~]~
+    ==
+  =-  [%pass /send-email/(scot %uv eny.bowl) %arvo %i %request -]
+  [(send-email email) *outbound-config:iris]
+::
+++  get-title
+  |=  name=term
+  ^-  @t
+  =/  assoc=association:meta
+    %-  need
+    %^  scry  %metadata-store
+      (unit association:meta)
+    /metadata/graph/ship/(scot %p our.bowl)/[name]/noun
+  title.metadatum.assoc
+::
+++  scry
+  |*  [=term =mold =path]
+  .^  mold  %gx
+      (scot %p our.bowl)
+      term
+      (scot %da now.bowl)
+      path
+  ==
 --
