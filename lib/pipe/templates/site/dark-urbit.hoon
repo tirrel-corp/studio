@@ -71,7 +71,7 @@
   ^-  manx
   ;body(class "w-100 h-100 flex flex-column items-center light-gray bg-near-black")
      ;div
-       =class  "pa1 pv3-ns w-100 mw6"
+       =class  "pa1 pv3-ns w-100 mw7"
        ;*  m
      ==
   ==
@@ -211,7 +211,7 @@
            cursor: pointer;
          }
          h1 {
-           font-size: 2.25rem;
+           font-size: 2rem;
            font-weight: 800;
          }
          h2 {
