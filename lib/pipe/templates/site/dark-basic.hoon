@@ -70,7 +70,7 @@
   ^-  manx
   ;body(class "w-100 h-100 flex flex-column items-center light-gray bg-near-black")
      ;div
-       =class  "pa1 pv3-ns w-100 mw6"
+       =class  "pa1 pv3-ns w-100 mw7"
        ;*  m
      ==
   ==
@@ -158,9 +158,6 @@
       ;meta(charset "utf-8");
       ;meta(name "viewport", content "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0");
       ;link(rel "stylesheet", href "https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css");
-      ;link(rel "preconnect", href "https://fonts.googleapis.com");
-      ;link(rel "preconnect", href "https://fonts.gstatic.com", crossorigin "true");
-      ;link(href "https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap", rel "stylesheet");
       ;title: {(trip text.title)} - by {(trip (scot %p author.post.ai))}
       ;+  custom-style
     ==
@@ -201,25 +198,19 @@
 ++  custom-style
   ^-  manx
   ;style:'''
-         body {
-           font-family: Inter, -apple-system, sans-serif;
-         }
          a {
            font-weight: 600;
            text-decoration: none;
-           color: rgb(0,177,113);
            cursor: pointer;
          }
          h1 {
            font-size: 2.25rem;
-           font-weight: 800;
          }
          h2 {
            font-size: 1.875rem;
          }
          h3 {
            font-size: 1.25rem;
-           font-weight: 600;
          }
          h4 {
            font-size: 1rem;
