@@ -16,7 +16,7 @@
 +$  card  card:agent:gall
 --
 ::
-=|  state-2
+=|  [%3 state-2]
 =*  state  -
 ::
 %-  agent:dbug
@@ -30,7 +30,7 @@
 ::
 ++  on-init
   ^-  (quip card _this)
-  :_  this(state *state-2)
+  :_  this(state [%3 *state-2])
   [%pass /graph %agent [our.bowl %graph-store] %watch /updates]~
 ::
 ++  on-save  !>(state)
@@ -43,20 +43,27 @@
     [give-templates:pc]~
   |-
   ?-  -.old
-    %2  [cards this(state old)]
+    %3  [cards this(state old)]
+    %2  $(old (state-2-to-3 old))
     %1  $(old (state-1-to-2 old))
     %0  $(old (state-0-to-1 old))
   ==
+  ::
+  ++  state-2-to-3
+    |=  [%2 s=state-1]
+    ^-  [%3 state-2]
+    ::  TODO:
+    [%3 *state-2]
+  ::
   ++  state-1-to-2
-    |=  s=state-1
-    ^-  state-2
+    |=  [%1 s=state-1]
+    ^-  [%2 state-1]
+    :-  %2
     %=  s
-      -  %2
-    ::
         flows
       %-  ~(rut by flows.s)
-      |=  [name=term f=flow]
-      ^-  flow
+      |=  [name=term f=flow-1]
+      ^-  flow-1
       %=  f
         email
         ?~  email.f  ~
@@ -67,15 +74,14 @@
     ==
   ::
   ++  state-0-to-1
-    |=  s=state-0
-    ^-  state-1
+    |=  [%0 s=state-0]
+    ^-  [%1 state-1]
+    :-  %1
     %=  s
-      -  %1
-    ::
         flows
       %-  ~(run by flows.s)
       |=  f=flow-0
-      ^-  flow
+      ^-  flow-1
       :*  resource.f
           index.f
           (site-0-to-1 site.f)
@@ -501,6 +507,9 @@
       (get-metadata resource.flow)
       comments.s
       ?=(^ email.flow)
+      width.s
+      lit.s
+      accent.s
   ==
 ::
 ++  get-email-inputs

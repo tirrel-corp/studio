@@ -1,17 +1,13 @@
 /-  *pipe
-/+  pipe-templates-site-light-basic,
-    pipe-templates-site-dark-basic,
-    pipe-templates-site-dark-urbit,
-    pipe-templates-site-light-urbit,
+/+  pipe-templates-site-basic,
+    pipe-templates-site-urbit,
     pipe-templates-email-light
 |%
 ++  site-templates
   ^-  (map term site-template)
   %-  ~(gas by *(map term site-template))
-  :~  [%light-basic pipe-templates-site-light-basic]
-      [%light-urbit pipe-templates-site-light-urbit]
-      [%dark-basic pipe-templates-site-dark-basic]
-      [%dark-urbit pipe-templates-site-dark-urbit]
+  :~  [%basic pipe-templates-site-basic]
+      [%urbit pipe-templates-site-urbit]
   ==
 ++  email-templates
   ^-  (map term email-template)

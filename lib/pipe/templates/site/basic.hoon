@@ -15,6 +15,8 @@
         comments
         association.sinp
         email.sinp
+        width.sinp
+        lit.sinp
     ==
 ::
 +$  article-inputs
@@ -25,6 +27,8 @@
       comments=(list post)
       =association:metadata-store
       email=?
+      width=?(%1 %2 %3)
+      lit=?
   ==
 ::
 ++  index-page
@@ -41,64 +45,83 @@
       ;meta(charset "utf-8");
       ;meta(name "viewport", content "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0");
       ;link(rel "stylesheet", href "https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css");
-      ;link(rel "preconnect", href "https://fonts.googleapis.com");
-      ;link(rel "preconnect", href "https://fonts.gstatic.com", crossorigin "true");
-      ;link(href "https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap", rel "stylesheet");
       ;+  custom-style
     ==
-    ;+  %-  frame
-    :*  (header binding.si title.metadatum.association.si)
-        %-  snoc
-        :_  (subscribe-box name.si title.metadatum.association.si email.si)
-        %+  turn  posts.si
-        |=  [initial=@da =post comments=(list post)]
-        ^-  manx
-        %:  article-preview
-            name.si
-            binding.si
-            initial
-            post
-            comments
-            association.si
-            email.si
-        ==
-    ==
-  ==
+    ;+  %^  frame  lit.si  width.si
+        :*  (header binding.si title.metadatum.association.si lit.si)
+            %-  snoc
+            :_  (subscribe-box name.si title.metadatum.association.si email.si lit.si)
+            %+  turn  posts.si
+            |=  [initial=@da =post comments=(list post)]
+            ^-  manx
+            %:  article-preview
+                name.si
+                binding.si
+                initial
+                post
+                comments
+                association.si
+                email.si
+                width.si
+                lit.si
+  ==    ==  ==
 ::
 ++  frame
-  |=  m=marl
+  |=  [lit=? width=?(%1 %2 %3) m=marl]
   ^-  manx
-  ;body(class "w-100 h-100 flex flex-column items-center light-gray bg-near-black")
+  =/  colors
+    ?:  lit
+      " near-black bg-white"
+    " white bg-near-black"
+  =/  wid
+    ?-  width
+      %1  " mw5"
+      %2  " mw6"
+      %3  " mw7"
+    ==
+  ;body(class (weld "w-100 h-100 flex flex-column items-center" colors))
      ;div
-       =class  "pa1 pv3-ns w-100 mw7"
+       =class  (weld "pa1 pv3-ns w-100" wid)
        ;*  m
      ==
   ==
 ::
 ++  header
-  |=  [=binding:eyre title=@t]
+  |=  [=binding:eyre title=@t lit=?]
   ^-  manx
+  =/  colors
+    ?:  lit
+      " near-black"
+    " white"
   =/  home-url  (spud path.binding)
   ;div(class "mb5")
-    ;a(href "{home-url}", class "link near-white")
+    ;a(href "{home-url}", class (weld "link" colors))
       ;h3: {(trip title)}
     ==
   ==
 ::
 ++  subscribe-box
-  |=  [book=@tas title=@t email=?]
+  |=  [book=@tas title=@t email=? lit=?]
   ^-  manx
   ?.  email  ;br;
+  =/  borders
+    ?:  lit
+      " b--near-black"
+    " b--white"
+  =/  btn-color
+    ?:  lit
+      " bg-near-black white"
+    " bg-white near-black"
   ;form
     =id  "subscribe"
     =method  "post"
     =action  "/mailer/subscribe"
-    =class   "db w-100 flex flex-column items-center br3 bw2 ba b--near-white pa2 mb4"
+    =class   (weld "db w-100 flex flex-column items-center br3 bw2 ba pa2 mb4" borders)
     ;p(style "margin-block-end: 0;"): Subscribe to {(trip title)}
     ;input(name "book", type "hidden", value "{(trip book)}");
     ;input
       =name   "who"
-      =class  "db pa2 input-reset ba mv3 br3"
+      =class  (weld "db pa2 input-reset ba mv3 br3" borders)
       =type   "email"
       =placeholder  "your@email.com"
     ;
@@ -106,7 +129,7 @@
     ;button
       =id     "subscribe"
       =type   "submit"
-      =class  "mb3 db fw4 ph3 pv2 bg-white near-black pointer bt3 bn"
+      =class  (weld "mb3 db fw4 ph3 pv2 pointer bt3 bn" btn-color)
     ; Subscribe
     ==
   ==
@@ -121,7 +144,7 @@
       (scot %p who)
       ~
     ==
-  ;p(class "light-silver fw4", style "margin-block-end: 0;"): {t}
+  ;p(class "gray fw4", style "margin-block-end: 0;"): {t}
 ::
 ++  article-preview
   |=  ai=article-inputs
@@ -134,10 +157,10 @@
     ?~  path.binding.ai
       (cat 3 '/' (strip-title text.title))
     (rap 3 (spat path.binding.ai) '/' (strip-title text.title) ~)
-  ;a(class "db link mb5 near-white", href url)
-    ;h3(class "white"): {(trip text.title)}
+  ;a(class "db link mb5 near-black", href url)
+    ;h3(class "black"): {(trip text.title)}
     ;+  ?~  snippet  *manx
-        ;p(class "fw4 light-gray"): {(trip u.snippet)}
+        ;p(class "fw4 dark-gray"): {(trip u.snippet)}
     ;+  (details initial.ai author.post.ai)
   ==
 ::
@@ -161,8 +184,8 @@
       ;title: {(trip text.title)} - by {(trip (scot %p author.post.ai))}
       ;+  custom-style
     ==
-    ;+  %-  frame
-    :~  (header binding.ai title.metadatum.association.ai)
+    ;+  %^  frame  lit.ai  width.ai
+    :~  (header binding.ai title.metadatum.association.ai lit.ai)
         ;h1: {(trip text.title)}
         (details initial.ai author.post.ai)
         ;article(class "w-100")
@@ -173,7 +196,7 @@
           ;h4(class "ma0"): Comments
           ;*  (turn comments.ai single-comment)
         ==
-        (subscribe-box name.ai title.metadatum.association.ai email.ai)
+        (subscribe-box name.ai title.metadatum.association.ai email.ai lit.ai)
     ==
   ==
 ::
@@ -193,7 +216,6 @@
     ;p(class "gray f7 ma0 mt3", style "margin-block-end: 0;"): {deets}
     ;p(class "f6 ma0 mt1"): {(trip text.body)}
   ==
-::
 ::
 ++  custom-style
   ^-  manx

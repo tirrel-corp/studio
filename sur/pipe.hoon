@@ -1,27 +1,34 @@
 /-  *post, meta=metadata-store
 |%
 +$  versioned-state
-  $%  state-0
-      state-1
-      state-2
+  $%  [%0 state-0]
+      [%1 state-1]
+      [%2 state-1]
+      [%3 state-2]
   ==
 ::
-+$  state-base
++$  state-2
   $:  flows=(map name=term flow)
       sites=(map name=term website)
       uid-to-name=(jug uid name=term)
       host-to-name=(map @t name=term)
   ==
 ::
-+$  state-2  [%2 state-base]
-+$  state-1  [%1 state-base]
-::
 +$  flow
   $:  =resource
       =index
-      site=(unit [template=term =binding:eyre comments=?])
+      site=(unit site)
       email=(unit term)
   ==
++$  site
+  $:  template=term
+      =binding:eyre
+      comments=?
+      width=?(%1 %2 %3)
+      lit=?
+      accent=@ux
+  ==
+::
 +$  action
   $%  [%add name=term flow]
       [%remove name=term]
@@ -34,6 +41,9 @@
       =association:meta
       comments=?
       email=?
+      width=?(%1 %2 %3)
+      lit=?
+      accent=@ux
   ==
 ::
 +$  email-inputs
@@ -42,6 +52,7 @@
       =post
       =association:meta
   ==
+::
 +$  site-template   $-(site-inputs website)
 +$  email-template  $-(email-inputs email)
 +$  website  (map path mime)
@@ -55,6 +66,20 @@
 ::
 ::  old versions
 ::
++$  flow-1
+  $:  =resource
+      =index
+      site=(unit [template=term =binding:eyre comments=?])
+      email=(unit term)
+  ==
+::
++$  state-1
+  $:  flows=(map name=term flow-1)
+      sites=(map name=term website)
+      uid-to-name=(jug uid name=term)
+      host-to-name=(map @t name=term)
+  ==
+::
 +$  flow-0
   $:  =resource
       =index
@@ -62,8 +87,7 @@
       email=(unit term)
   ==
 +$  state-0
-  $:  %0
-      flows=(map name=term flow-0)
+  $:  flows=(map name=term flow-0)
       sites=(map name=term website)
       uid-to-name=(jug uid name=term)
       host-to-name=(map @t name=term)
