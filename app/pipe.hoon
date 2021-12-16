@@ -52,8 +52,40 @@
   ++  state-2-to-3
     |=  [%2 s=state-1]
     ^-  [%3 state-2]
-    ::  TODO:
-    [%3 *state-2]
+    :-  %3
+    %=  s
+        flows
+      %-  ~(run by flows.s)
+      |=  f=flow-1
+      ^-  flow
+      %=    f
+          site
+        ?~  site.f
+          ~
+        :-  ~
+        :*  ?+  template.u.site.f  !!
+              %dark-urbit   %urbit
+              %light-urbit  %urbit
+              %dark-basic   %basic
+              %light-basic  %basic
+            ==
+          ::
+            binding.u.site.f
+            comments.u.site.f
+            %2
+          ::
+            ?+  template.u.site.f  !!
+              %dark-urbit   %.n
+              %light-urbit  %.y
+              %dark-basic   %.n
+              %light-basic  %.y
+            ==
+          ::
+            0x0
+        ==
+      ==
+    ==
+
   ::
   ++  state-1-to-2
     |=  [%1 s=state-1]
