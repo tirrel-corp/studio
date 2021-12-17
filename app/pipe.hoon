@@ -16,7 +16,7 @@
 +$  card  card:agent:gall
 --
 ::
-=|  state-3
+=|  [%3 state-2]
 =*  state  -
 ::
 %-  agent:dbug
@@ -30,7 +30,7 @@
 ::
 ++  on-init
   ^-  (quip card _this)
-  :_  this(state *state-3)
+  :_  this(state [%3 *state-2])
   [%pass /graph %agent [our.bowl %graph-store] %watch /updates]~
 ::
 ++  on-save  !>(state)
@@ -40,9 +40,9 @@
   |^
   =+  !<(old=versioned-state old-vase)
   |-
-  ?-  -.old
+  ?-    -.old
       %3
-    =.  state  old  :: need to update state first to send all templates
+    =.  state  old
     [[give-templates:pc]~ this]
   ::
     %2  $(old (state-2-to-3 old))
@@ -51,8 +51,38 @@
   ==
   ::
   ++  state-2-to-3
-    |=  s=state-2
-    ^-  state-3
+    |=  [%2 s=state-1]
+    ^-  [%3 state-2]
+    =.  flows.s
+      %-  ~(run by flows.s)
+      |=  f=flow-1
+      ^-  flow
+      %=    f
+          site
+        ?~  site.f
+          ~
+        :-  ~
+        :*  ?+  template.u.site.f  !!
+              %dark-urbit   %urbit
+              %light-urbit  %urbit
+              %dark-basic   %basic
+              %light-basic  %basic
+            ==
+          ::
+            binding.u.site.f
+            comments.u.site.f
+            %2
+          ::
+            ?+  template.u.site.f  !!
+              %dark-urbit   %.n
+              %light-urbit  %.y
+              %dark-basic   %.n
+              %light-basic  %.y
+            ==
+          ::
+            0x0
+        ==
+      ==
     :*  %3
         flows.s
         sites.s
@@ -64,15 +94,14 @@
     ==
   ::
   ++  state-1-to-2
-    |=  s=state-1
-    ^-  state-2
+    |=  [%1 s=state-1]
+    ^-  [%2 state-1]
+    :-  %2
     %=  s
-      -  %2
-    ::
         flows
       %-  ~(rut by flows.s)
-      |=  [name=term f=flow]
-      ^-  flow
+      |=  [name=term f=flow-1]
+      ^-  flow-1
       %=  f
         email
         ?~  email.f  ~
@@ -83,15 +112,14 @@
     ==
   ::
   ++  state-0-to-1
-    |=  s=state-0
-    ^-  state-1
+    |=  [%0 s=state-0]
+    ^-  [%1 state-1]
+    :-  %1
     %=  s
-      -  %1
-    ::
         flows
       %-  ~(run by flows.s)
       |=  f=flow-0
-      ^-  flow
+      ^-  flow-1
       :*  resource.f
           index.f
           (site-0-to-1 site.f)
@@ -692,6 +720,9 @@
       (get-metadata resource.flow)
       comments.s
       ?=(^ email.flow)
+      width.s
+      lit.s
+      accent.s
   ==
 ::
 ++  get-email-inputs

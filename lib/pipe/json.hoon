@@ -26,6 +26,16 @@
     :~  template+so
         binding+binding
         comments+bo
+        :-  %width
+        |=  j=json
+        ?>  ?=(%n -.j)
+        ?+  p.j  !!
+          %1  %1
+          %2  %2
+          %3  %3
+        ==
+      ::
+        lit+bo
     ==
   ::
   ++  binding
@@ -81,13 +91,15 @@
     ==
   ::
   ++  site
-    |=  s=(unit [template=term =binding:eyre comments=?])
+    |=  s=(unit ^site)
     ^-  json
     ?~  s  ~
     %-  pairs
     :~  template+s+template.u.s
         binding+(binding binding.u.s)
         comments+b+comments.u.s
+        width+s+(scot %ud width.u.s)
+        lit+b+lit.u.s
     ==
   ::
   ++  binding
