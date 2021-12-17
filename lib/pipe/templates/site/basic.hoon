@@ -135,7 +135,7 @@
   ==
 ::
 ++  details
-  |=  [when=@da who=@p]
+  |=  [when=@da who=@p lit=?]
   ^-  manx
   =/  t=tape
     %-  trip
@@ -157,11 +157,15 @@
     ?~  path.binding.ai
       (cat 3 '/' (strip-title text.title))
     (rap 3 (spat path.binding.ai) '/' (strip-title text.title) ~)
-  ;a(class "db link mb5 near-black", href url)
-    ;h3(class "black"): {(trip text.title)}
+  =/  colors
+    ?:  lit.ai
+      " near-black"
+    " white"
+  ;a(class (weld "db link mb5" colors), href url)
+    ;h3(class colors): {(trip text.title)}
     ;+  ?~  snippet  *manx
-        ;p(class "fw4 dark-gray"): {(trip u.snippet)}
-    ;+  (details initial.ai author.post.ai)
+        ;p(class (weld "fw4" colors)): {(trip u.snippet)}
+    ;+  (details initial.ai author.post.ai lit.ai)
   ==
 ::
 ++  article-page
@@ -187,22 +191,26 @@
     ;+  %^  frame  lit.ai  width.ai
     :~  (header binding.ai title.metadatum.association.ai lit.ai)
         ;h1: {(trip text.title)}
-        (details initial.ai author.post.ai)
+        (details initial.ai author.post.ai lit.ai)
         ;article(class "w-100")
           ;*  (contents-to-marl (slag 1 contents.post.ai))
         ==
         ;*  ?~  comments.ai  ;br;
         ;div(class "pt3 pl3 bt b--gray")
           ;h4(class "ma0"): Comments
-          ;*  (turn comments.ai single-comment)
+          ;*  (turn comments.ai |=(p=post (single-comment p lit.ai)))
         ==
         (subscribe-box name.ai title.metadatum.association.ai email.ai lit.ai)
     ==
   ==
 ::
 ++  single-comment
-  |=  p=post
+  |=  [p=post lit=?]
   ^-  manx
+  =/  color
+    ?:  lit
+      " near-black"
+    " whit"
   =/  deets=tape
     %-  trip
     %:  rap  3
@@ -214,7 +222,7 @@
   ?>  ?=(%text -.body)
   ;div(class "flex flex-column w-100 ml3")
     ;p(class "gray f7 ma0 mt3", style "margin-block-end: 0;"): {deets}
-    ;p(class "f6 ma0 mt1"): {(trip text.body)}
+    ;p(class (weld "f6 ma0 mt1" color)): {(trip text.body)}
   ==
 ::
 ++  custom-style

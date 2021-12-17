@@ -15,6 +15,8 @@
         comments
         association.sinp
         email.sinp
+        width.sinp
+        lit.sinp
     ==
 ::
 +$  article-inputs
@@ -25,6 +27,8 @@
       comments=(list post)
       =association:metadata-store
       email=?
+      width=?(%1 %2 %3)
+      lit=?
   ==
 ::
 ++  index-page
@@ -47,10 +51,10 @@
       ;title: {(trip title.metadatum.association.si)}
       ;+  custom-style
     ==
-    ;+  %-  frame
-    :*  (header binding.si title.metadatum.association.si)
+    ;+  %^  frame  lit.si  width.si
+    :*  (header binding.si title.metadatum.association.si lit.si)
         %-  snoc
-        :_  (subscribe-box name.si title.metadatum.association.si email.si)
+        :_  (subscribe-box name.si title.metadatum.association.si email.si lit.si)
         %+  turn  posts.si
         |=  [initial=@da =post comments=(list post)]
         ^-  manx
@@ -62,44 +66,69 @@
             comments
             association.si
             email.si
+            width.si
+            lit.si
         ==
     ==
   ==
 ::
 ++  frame
-  |=  m=marl
+  |=  [lit=? width=?(%1 %2 %3) m=marl]
   ^-  manx
-  ;body(class "w-100 h-100 flex flex-column items-center near-black bg-white")
+  =/  colors
+    ?:  lit
+      " near-black bg-white"
+    " white bg-near-black"
+  =/  wid
+    ?-  width
+      %1  " mw5"
+      %2  " mw6"
+      %3  " mw7"
+    ==
+  ;body(class (weld "w-100 h-100 flex flex-column items-center" colors))
      ;div
-       =class  "pa1 pv3-ns w-100 mw7"
+       =class  (weld "pa1 pv3-ns w-100" wid)
        ;*  m
      ==
   ==
 ::
 ++  header
-  |=  [=binding:eyre title=@t]
+  |=  [=binding:eyre title=@t lit=?]
   ^-  manx
+  =/  colors
+    ?:  lit
+      " near-black"
+    " white"
   =/  home-url  (spud path.binding)
-  ;div(class "mb5 flex justify-between items-center")
-    ;a(href "{home-url}", class "link black")
+  ;div(class "mb5")
+    ;a(href "{home-url}", class (weld "link" colors))
       ;h3: {(trip title)}
     ==
   ==
 ::
+::
 ++  subscribe-box
-  |=  [book=@tas title=@t email=?]
+  |=  [book=@tas title=@t email=? lit=?]
   ^-  manx
   ?.  email  ;br;
+  =/  borders
+    ?:  lit
+      " b--near-black"
+    " b--white"
+  =/  btn-color
+    ?:  lit
+      " bg-near-black white"
+    " bg-white near-black"
   ;form
     =id  "subscribe"
     =method  "post"
     =action  "/mailer/subscribe"
-    =class   "db w-100 flex flex-column items-center br3 bw2 ba b--near-black pa2 mb4"
+    =class   (weld "db w-100 flex flex-column items-center br3 bw2 ba pa2 mb4" borders)
     ;p(style "margin-block-end: 0;"): Subscribe to {(trip title)}
     ;input(name "book", type "hidden", value "{(trip book)}");
     ;input
       =name   "who"
-      =class  "db pa2 input-reset ba b-near-black mv3 br3"
+      =class  (weld "db pa2 input-reset ba mv3 br3" borders)
       =type   "email"
       =placeholder  "your@email.com"
     ;
@@ -107,7 +136,7 @@
     ;button
       =id     "subscribe"
       =type   "submit"
-      =class  "mb3 db fw4 ph3 pv2 bg-near-black white pointer bt3 bn"
+      =class  (weld "mb3 db fw4 ph3 pv2 pointer bt3 bn" btn-color)
     ; Subscribe
     ==
   ==
@@ -135,10 +164,14 @@
     ?~  path.binding.ai
       (cat 3 '/' (strip-title text.title))
     (rap 3 (spat path.binding.ai) '/' (strip-title text.title) ~)
-  ;a(class "db link mb5 near-black", href url)
-    ;h3(class "black"): {(trip text.title)}
+  =/  colors
+    ?:  lit.ai
+      " near-black"
+    " white"
+  ;a(class (weld "db link mb5" colors), href url)
+    ;h3(class colors): {(trip text.title)}
     ;+  ?~  snippet  *manx
-        ;p(class "fw4 dark-gray"): {(trip u.snippet)}
+        ;p(class (weld "fw4" colors)): {(trip u.snippet)}
     ;+  (details initial.ai author.post.ai)
   ==
 ::
@@ -165,8 +198,8 @@
       ;title: {(trip text.title)} • by {(trip (scot %p author.post.ai))}
       ;+  custom-style
     ==
-    ;+  %-  frame
-    :~  (header binding.ai title.metadatum.association.ai)
+    ;+  %^  frame  lit.ai  width.ai
+    :~  (header binding.ai title.metadatum.association.ai lit.ai)
         ;h1: {(trip text.title)}
         (details initial.ai author.post.ai)
         ;article(class "w-100")
@@ -177,7 +210,7 @@
           ;h4(class "ma0"): Comments
           ;*  (turn comments.ai single-comment)
         ==
-        (subscribe-box name.ai title.metadatum.association.ai email.ai)
+        (subscribe-box name.ai title.metadatum.association.ai email.ai lit.ai)
     ==
   ==
 ::
@@ -206,7 +239,6 @@
          }
          a {
            font-weight: 600;
-           color: rgb(0,177,113);
            text-decoration: none;
            cursor: pointer;
          }
