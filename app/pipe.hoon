@@ -16,7 +16,7 @@
 +$  card  card:agent:gall
 --
 ::
-=|  state-2
+=|  state-3
 =*  state  -
 ::
 %-  agent:dbug
@@ -30,7 +30,7 @@
 ::
 ++  on-init
   ^-  (quip card _this)
-  :_  this(state *state-2)
+  :_  this(state *state-3)
   [%pass /graph %agent [our.bowl %graph-store] %watch /updates]~
 ::
 ++  on-save  !>(state)
@@ -39,14 +39,30 @@
   ^-  (quip card _this)
   |^
   =+  !<(old=versioned-state old-vase)
-  =/  cards=(list card)
-    [give-templates:pc]~
   |-
   ?-  -.old
-    %2  [cards this(state old)]
+      %3
+    =.  state  old  :: need to update state first to send all templates
+    [[give-templates:pc]~ this]
+  ::
+    %2  $(old (state-2-to-3 old))
     %1  $(old (state-1-to-2 old))
     %0  $(old (state-0-to-1 old))
   ==
+  ::
+  ++  state-2-to-3
+    |=  s=state-2
+    ^-  state-3
+    :*  %3
+        flows.s
+        sites.s
+        uid-to-name.s
+        host-to-name.s
+        ~
+        ~
+        ~
+    ==
+  ::
   ++  state-1-to-2
     |=  s=state-1
     ^-  state-2
@@ -123,7 +139,7 @@
         `state
       =/  =site-template
         ~|  "no such template: {<template.u.site.action>}"
-        (~(got by site-templates) template.u.site.action)
+        (need (get-site-template:pc template.u.site.action))
       =/  =website  (site-template (get-site-inputs:pc name.action +>.action))
       =.  sites     (~(put by sites) name.action website)
       =?  host-to-name  ?=(^ site.binding.u.site.action)
@@ -150,6 +166,56 @@
         name.action
       :_  state
       [give-flows:pc cards]
+    ::
+        %watch-templates
+      =/  known-desks  .^((set desk) %cd (en-beam byk.bowl /))
+      ?.  (~(has in known-desks) desk.action)
+        ~&  "no such desk {<desk.action>}"
+        `state
+      =/  cards=(list card)
+        ?~  template-desk  ~
+        =/  =beak  [our.bowl u.template-desk %da now.bowl]
+        =/  paths=(list path)
+          %+  weld
+          .^((list path) %ct (en-beam beak /site))
+          .^((list path) %ct (en-beam beak /email))
+        %+  turn  paths
+        |=  =path
+        =/  wire  [%a (scag (dec (lent path)) path)]
+        (template-warp:pc wire u.template-desk %a path ~)
+      =.  cards
+        %+  weld  cards
+        :~  (template-warp:pc /t/site desk.action %t /site %sing)
+            (template-warp:pc /t/email desk.action %t /email %sing)
+        ==
+      :_  state(template-desk `desk.action)
+      ?~  template-desk
+        cards
+      ~&  "replacing old template desk {<u.template-desk>}"
+      :*  (template-warp:pc /t/site u.template-desk %t /site ~)
+          (template-warp:pc /t/email u.template-desk %t /email ~)
+          cards
+      ==
+   ::
+        %wipe-templates
+      ?~  template-desk
+        ~&  "not watching any desks"
+        `state
+      =/  =beak  [our.bowl u.template-desk %da now.bowl]
+      =/  paths=(list path)
+        %+  weld
+        .^((list path) %ct (en-beam beak /site))
+        .^((list path) %ct (en-beam beak /email))
+      =/  cards=(list card)
+        %+  turn  paths
+        |=  =path
+        =/  wire  [%a (scag (dec (lent path)) path)]
+        (template-warp:pc wire u.template-desk %a path ~)
+      :_  state(template-desk ~)
+      :*  (template-warp:pc /t/site u.template-desk %t /site ~)
+          (template-warp:pc /t/email u.template-desk %t /email ~)
+          cards
+      ==
     ==
   ::
   ++  handle-http-request
@@ -233,7 +299,7 @@
       ^-  (quip card _state)
       ?~  site.flow
         `state
-      =/  =site-template  (~(got by site-templates) template.u.site.flow)
+      =/  =site-template  (need (get-site-template:pc template.u.site.flow))
       =/  =website   (site-template (get-site-inputs:pc name flow))
       :-  [(give-site:pc name website)]~
       state(sites (~(put by sites) name website))
@@ -257,7 +323,7 @@
         `p.post.node
       ?~  post
         ~
-      =/  =email-template  (~(got by email-templates) u.email.flow)
+      =/  =email-template  (need (get-email-template:pc u.email.flow))
       =/  =email  (email-template (get-email-inputs:pc name flow u.post))
       [(give-email:pc name email)]~
     ::
@@ -294,9 +360,115 @@
 ++  on-arvo
   |=  [=wire =sign-arvo]
   ^-  (quip card _this)
+  |^
+  ?:  ?=(%eyre -.sign-arvo)
+    `this
+  ?.  ?=([%clay %writ *] sign-arvo)
+    (on-arvo:def wire sign-arvo)
   ?+  wire  (on-arvo:def wire sign-arvo)
-    [%eyre ~]  `this
+  ::
+      [%t ?(%site %email) ~]
+    ?~  p.sign-arvo  !!
+    =/  files  !<((list path) q.r.u.p.sign-arvo)
+    =*  which  i.t.wire
+    =*  desk   r.p.u.p.sign-arvo
+    =/  diff   (diff-files files which)
+    =?  custom-site  =(which %site)
+      %-  ~(rep in del.diff)
+      |=  [=term out=_custom-site]
+      (~(del by out) term)
+    =?  custom-email  =(which %email)
+      %-  ~(rep in del.diff)
+      |=  [=term out=_custom-email]
+      (~(del by out) term)
+    :_  this
+    ?~  template-desk  ~
+    :-  (template-warp:pc wire u.template-desk %t /[which] %next)
+    %+  weld
+      (process-add add.diff which desk)
+    (process-del del.diff which desk)
+  ::
+      [%a ?(%site %email) @ ~]
+    =*  which  i.t.wire
+    =*  name   i.t.t.wire
+    =/  =path  /[which]/[name]/hoon
+    =?  custom-site  =(which %site)
+      ?~  template-desk
+        (~(del by custom-site) name)
+      ?~  p.sign-arvo
+        (~(del by custom-site) name)
+      =+  !<(=vase q.r.u.p.sign-arvo)
+      =/  mid=(each site-template tang)
+        (mule |.(!<(site-template vase)))
+      ?-  -.mid
+          %.y
+        %-  (slog leaf+"built template: {<path>}" ~)
+        (~(put by custom-site) name p.mid)
+      ::
+          %.n
+        %-  (slog leaf+"template build failure: {<path>}" ~)
+        (~(del by custom-site) name)
+      ==
+    =?  custom-email  =(which %email)
+      ?~  template-desk
+        (~(del by custom-email) name)
+      ?~  p.sign-arvo
+        (~(del by custom-email) name)
+      =+  !<(=vase q.r.u.p.sign-arvo)
+      =/  mid=(each email-template tang)
+        (mule |.(!<(email-template vase)))
+      ?-  -.mid
+          %.y
+        %-  (slog leaf+"built template: {<path>}" ~)
+        (~(put by custom-email) name p.mid)
+      ::
+          %.n
+        %-  (slog leaf+"template build failure: {<path>}" ~)
+        (~(del by custom-email) name)
+      ==
+
+    :_  this
+    ?~  template-desk  [give-templates:pc]~
+    ?~  p.sign-arvo    [give-templates:pc]~
+    :~  give-templates:pc
+        (template-warp:pc wire u.template-desk %a path %next)
+    ==
   ==
+  ::
+  ++  diff-files
+    |=  [new-list=(list path) which=?(%site %email)]
+    ^-  [add=(set term) del=(set term)]
+    =/  old=(set term)
+      ?-  which
+        %site   ~(key by custom-site)
+        %email  ~(key by custom-email)
+      ==
+    =/  new=(set term)
+      %-  ~(gas in *(set term))
+      %+  turn  new-list
+      |=  =path
+      ^-  term
+      ?>  ?=([@ @ %hoon ~] path)
+      i.t.path
+    =/  add  (~(dif in new) old)
+    =/  del  (~(dif in old) new)
+    [add del]
+  ::
+  ++  process-add
+    |=  [add=(set term) which=?(%site %email) =desk]
+    ^-  (list card)
+    %+  turn  ~(tap in add)
+    |=  =term
+    (template-warp:pc /a/[which]/[term] desk %a /[which]/[term]/hoon %sing)
+  ::
+  ++  process-del
+    |=  [del=(set term) which=?(%site %email) =desk]
+    ^-  (list card)
+    %+  turn  ~(tap in del)
+    |=  =term
+    ^-  card
+    (template-warp:pc /a/[which]/[term] desk %a /[which]/[term]/hoon ~)
+  --
 ::
 ++  on-watch
   |=  =path
@@ -308,7 +480,9 @@
   ::
       [%updates ~]
     =/  temp=update
-      [%templates ~(key by site-templates) ~(key by email-templates)]
+      :+  %templates
+        (~(uni in ~(key by site-templates)) ~(key by custom-site))
+      (~(uni in ~(key by email-templates)) ~(key by custom-email))
     :_  this
     :~  [%give %fact ~ %pipe-update !>([%flows flows])]
         [%give %fact ~ %pipe-update !>(temp)]
@@ -364,12 +538,12 @@
     :^  ~  ~  %json  !>
     %-  pairs:enjs:format
     :~  :+  %site  %a
-        %+  turn  ~(tap by site-templates)
+        %+  turn  (weld ~(tap by site-templates) ~(tap by custom-site))
         |=  [=term *]
         [%s term]
     ::
         :+  %email  %a
-        %+  turn  ~(tap by email-templates)
+        %+  turn  (weld ~(tap by email-templates) ~(tap by custom-email))
         |=  [=term *]
         [%s term]
     ==
@@ -414,6 +588,20 @@
   :_  cards
   [%pass /eyre %arvo %e %disconnect binding.u.site.u.flo]
 ::
+++  get-email-template
+  |=  name=term
+  ^-  (unit email-template)
+  =/  res  (~(get by custom-email) name)
+  ?^  res  res
+  (~(get by email-templates) name)
+::
+++  get-site-template
+  |=  name=term
+  ^-  (unit site-template)
+  =/  res  (~(get by custom-site) name)
+  ?^  res  res
+  (~(get by site-templates) name)
+::
 ++  give-site
   |=  [name=term =website]
   ^-  card
@@ -428,7 +616,10 @@
 ::
 ++  give-templates
   ^-  card
-  =/  =update  [%templates ~(key by site-templates) ~(key by email-templates)]
+  =/  =update
+    :+  %templates
+      (~(uni in ~(key by site-templates)) ~(key by custom-site))
+    (~(uni in ~(key by email-templates)) ~(key by custom-email))
   [%give %fact [/updates]~ %pipe-update !>(update)]
 ::
 ++  give-flows
@@ -524,4 +715,15 @@
       path
   ==
 ::
+++  template-warp
+  |=  [=wire =desk =care:clay =path mod=?(~ %sing %next)]
+  ^-  card
+  =/  =mood:clay  [care [%da now.bowl] path]
+  =/  rav=(unit rave:clay)
+    ?-  mod
+      ~       ~
+      %sing   `[%sing mood]
+      %next   `[%next mood]
+    ==
+  [%pass wire %arvo %c %warp our.bowl desk rav]
 --

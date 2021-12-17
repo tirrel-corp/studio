@@ -8,6 +8,8 @@
     %-  of
     :~  [%add (ot name+so flow+flow ~)]
         [%remove (ot name+so ~)]
+        [%watch-templates (ot desk+so ~)]
+        [%wipe-templates ul]
     ==
   ::
   ++  flow

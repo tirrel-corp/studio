@@ -4,17 +4,23 @@
   $%  state-0
       state-1
       state-2
+      state-3
   ==
 ::
-+$  state-base
++$  state-latest
   $:  flows=(map name=term flow)
       sites=(map name=term website)
       uid-to-name=(jug uid name=term)
       host-to-name=(map @t name=term)
+      template-desk=(unit desk)
+      custom-site=(map term site-template)
+      custom-email=(map term email-template)
   ==
 ::
-+$  state-2  [%2 state-base]
-+$  state-1  [%1 state-base]
++$  state-3  [%3 state-latest]
++$  state-2  [%2 state-1-base]
++$  state-1  [%1 state-1-base]
++$  state-0  [%0 state-0-base]
 ::
 +$  flow
   $:  =resource
@@ -25,6 +31,8 @@
 +$  action
   $%  [%add name=term flow]
       [%remove name=term]
+      [%watch-templates =desk]
+      [%wipe-templates ~]
   ==
 ::
 +$  site-inputs
@@ -61,9 +69,16 @@
       site=(unit [template=term =binding:eyre])
       email=(unit term)
   ==
-+$  state-0
-  $:  %0
-      flows=(map name=term flow-0)
+::
++$  state-0-base
+  $:  flows=(map name=term flow-0)
+      sites=(map name=term website)
+      uid-to-name=(jug uid name=term)
+      host-to-name=(map @t name=term)
+  ==
+::
++$  state-1-base
+  $:  flows=(map name=term flow)
       sites=(map name=term website)
       uid-to-name=(jug uid name=term)
       host-to-name=(map @t name=term)
