@@ -43,7 +43,14 @@
   ?-    -.old
       %3
     =.  state  old
-    [[give-templates:pc]~ this]
+    =/  cards=(list card)  [give-templates:pc ~]
+    =/  f  ~(tap by flows)
+    |-
+    ?~  f
+      [cards this]
+    =^  cards2  state
+      (update-site:pc p.i.f q.i.f)
+    $(f t.f, cards (weld cards cards2))
   ::
     %2  $(old (state-2-to-3 old))
     %1  $(old (state-1-to-2 old))
@@ -53,38 +60,36 @@
   ++  state-2-to-3
     |=  [%2 s=state-1]
     ^-  [%3 state-2]
-    =.  flows.s
-      %-  ~(run by flows.s)
-      |=  f=flow-1
-      ^-  flow
-      %=    f
-          site
-        ?~  site.f
-          ~
-        :-  ~
-        :*  ?+  template.u.site.f  !!
-              %dark-urbit   %urbit
-              %light-urbit  %urbit
-              %dark-basic   %basic
-              %light-basic  %basic
-            ==
-          ::
-            binding.u.site.f
-            comments.u.site.f
-            %2
-          ::
-            ?+  template.u.site.f  !!
-              %dark-urbit   %.n
-              %light-urbit  %.y
-              %dark-basic   %.n
-              %light-basic  %.y
-            ==
-          ::
-            0x0
-        ==
-      ==
     :*  %3
-        flows.s
+        %-  ~(run by flows.s)
+        |=  f=flow-1
+        ^-  flow
+        %=    f
+            site
+          ?~  site.f
+            ~
+          :-  ~
+          :*  ?+  template.u.site.f  !!
+                %dark-urbit   %urbit
+                %light-urbit  %urbit
+                %dark-basic   %basic
+                %light-basic  %basic
+              ==
+            ::
+              binding.u.site.f
+              comments.u.site.f
+              %2
+            ::
+              ?+  template.u.site.f  !!
+                %dark-urbit   %.n
+                %light-urbit  %.y
+                %dark-basic   %.n
+                %light-basic  %.y
+              ==
+            ::
+              0x0
+          ==
+        ==
         sites.s
         uid-to-name.s
         host-to-name.s
@@ -105,9 +110,9 @@
       %=  f
         email
         ?~  email.f  ~
-        ?.  (scry:pc %mailer ? /has-list/[name]/noun)
+        ::?.  (scry:pc %mailer ? /has-list/[name]/noun)
           ~
-        email.f
+        ::Email.f
       ==
     ==
   ::
@@ -315,22 +320,12 @@
           ==
       ^-  [(list card) _state]
       =^  site-cards   sty
-        (update-site name flow update)
+        (update-site:pc name flow)
       =/  email-cards
         (update-email name flow update)
       :_  sty
       :(weld site-cards email-cards cards)
     [cards this]
-    ::
-    ++  update-site
-      |=  [name=term =flow =update:store:graph]
-      ^-  (quip card _state)
-      ?~  site.flow
-        `state
-      =/  =site-template  (need (get-site-template:pc template.u.site.flow))
-      =/  =website   (site-template (get-site-inputs:pc name flow))
-      :-  [(give-site:pc name website)]~
-      state(sites (~(put by sites) name website))
     ::
     ++  update-email
       |=  [name=term =flow =update:store:graph]
@@ -757,4 +752,14 @@
       %next   `[%next mood]
     ==
   [%pass wire %arvo %c %warp our.bowl desk rav]
+::
+++  update-site
+  |=  [name=term =flow]
+  ^-  (quip card _state)
+  ?~  site.flow
+    `state
+  =/  =site-template  (need (get-site-template template.u.site.flow))
+  =/  =website   (site-template (get-site-inputs name flow))
+  :-  [(give-site name website)]~
+  state(sites (~(put by sites) name website))
 --
