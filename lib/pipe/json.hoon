@@ -28,14 +28,16 @@
         comments+bo
         :-  %width
         |=  j=json
+        ^-  ?(%1 %2 %3)
         ?>  ?=(%n -.j)
-        ?+  p.j  !!
+        ?+  (slav %ud p.j)  !!
           %1  %1
           %2  %2
           %3  %3
         ==
       ::
         lit+bo
+        accent+nu
     ==
   ::
   ++  binding
