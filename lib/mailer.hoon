@@ -48,7 +48,8 @@
     |=  [api-key=(unit @t) email=(unit @t) ship-url=(unit @t)]
     ^-  json
     %-  pairs:enjs:format
-    :~  email+?~(email ~ s+u.email)
+    :~  api-key+?~(api-key ~ s+u.api-key)
+        email+?~(email ~ s+u.email)
         ship-url+?~(ship-url ~ s+u.ship-url)
     ==
   ::
