@@ -88,16 +88,13 @@
         `[[400 ~] ~]
       ?~  maybe-json=(de-json:html q.u.bod)
         `[[400 ~] ~]
-      ~&  u.maybe-json
       =/  act=(each partial-action tang)
         (mule |.((dejs u.maybe-json)))
-      ~&  act
       ?:  ?=(%| -.act)
         `[[400 ~] ~]
       ?-    -.p.act
           %initiate-sale
         =/  =action  [-.p.act eyre-id who.p.act sel.p.act]
-        ~&  action
         :_  [[201 ~] `(json-to-octs:srv s+eyre-id)]
         =-  [%pass /post-req/[eyre-id] %agent [our dap]:bowl %poke -]~
         [%naive-nmi-action !>(action)]
@@ -105,7 +102,6 @@
           %complete-sale
         =/  =action  [-.p.act token.p.act]
         ?~  maybe-request=(~(get by token-to-request) token.p.act)
-          ~&  %failed
           `[[400 ~] ~]
         :_  [[201 ~] `(json-to-octs:srv s+eyre-id)]
         =-  [%pass /post-req/[eyre-id] %agent [our dap]:bowl %poke -]~
@@ -143,7 +139,6 @@
       ::  TODO: make this generic
       ?~  ext.req
         $(ext.req `%html, site.req [%index ~])
-      ~&  [site.req ext.req]
       ?.  ?=(%json u.ext.req)
         =/  file=(unit octs)
           (get-file-at /app/naive-nmi site.req u.ext.req)
@@ -213,12 +208,10 @@
         %initiate-sale
       ?>  ?=(^ api-key)
       ?>  ?=(^ redirect-url)
-      ~&  action
       =/  =time  (~(got by request-to-time) request-id.action)
       =/  =wire  /step1/[request-id.action]
       =/  total-price
         (calc-total-price who.action sel.action)
-      ~&  total-price
       :-  =-  [%pass wire %arvo %i %request -]~
           :_  *outbound-config:iris
           (request-step1 who.action sel.action total-price)
@@ -392,7 +385,6 @@
       =/  result-text  (~(get by m) 'result-text')
       =/  =time  (~(got by request-to-time) request-id)
       =/  token  (need token.tx)
-      ~&  m
       =:  request-to-token  (~(del by request-to-token) request-id)
           request-to-time   (~(del by request-to-time) request-id)
           token-to-request  (~(del by token-to-request) token)
@@ -418,7 +410,6 @@
             ::  TODO: parse result
             *finis
           ==
-      ~&  info.tx
       =-  [%pass /sell-ship/[token] %agent [our.bowl %naive-market] %poke -]~
       :-  %naive-market-update
       !>(`update:nam`[%sell-ships who.info.tx sel.info.tx 0x1234])
@@ -473,7 +464,6 @@
   ?:  ?=([%updates ~] path)
     `this
   ?:  ?=([%configuration ~] path)
-    ~&  path
     :_  this
     :~  [%give %fact ~ naive-nmi-action+!>([%set-api-key api-key])]
         [%give %fact ~ naive-nmi-action+!>([%set-site site])]

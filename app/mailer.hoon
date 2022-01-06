@@ -306,7 +306,6 @@
     ?.  ?=(%finished -.res)  `state
     ?+    wire  ~|('unknown request type coming from mailer' !!)
         [%send-email @ ~]
-::      ~&  res
       ?~  full-file.res
         `state
       [~ state]
@@ -357,7 +356,6 @@
       ~|("No domain name set up" !!)
     =*  name  i.t.wire
     =+  !<(=update:pipe q.cage.sign)
-::    ~&  update
     ?.  ?=(%email -.update)
       `this
     =/  content=(list [@t @t])
