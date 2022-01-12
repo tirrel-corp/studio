@@ -92,7 +92,6 @@
         ==
         sites.s
         uid-to-name.s
-        host-to-name.s
         ~
         ~
         ~
@@ -163,20 +162,23 @@
     ?-    -.action
         %add
       ?<  (~(has by flows) name.action)
+      ?~  site.action  !!
+      ?:  %-  ~(rep by flows)
+          |=  [[term f=flow] out=_|]
+          ?~  site.f       out
+          ?:  out          out
+          =(path.binding.u.site.f path.binding.u.site.action)
+        ~|("binding already taken {<`path`path.binding.u.site.action>}" !!)
       =.  flows  (~(put by flows) name.action +>.action)
       =.  uid-to-name
         %+  ~(put ju uid-to-name)
           [resource.action index.action]
         name.action
-      ?~  site.action
-        `state
       =/  =site-template
         ~|  "no such template: {<template.u.site.action>}"
         (need (get-site-template:pc template.u.site.action))
       =/  =website  (site-template (get-site-inputs:pc name.action +>.action))
       =.  sites     (~(put by sites) name.action website)
-      =?  host-to-name  ?=(^ site.binding.u.site.action)
-        (~(put by host-to-name) u.site.binding.u.site.action name.action)
       :_  state
       :*  (give-site:pc name.action website)
           give-flows:pc
@@ -185,12 +187,9 @@
     ::
         %remove
       =/  =flow  (~(got by flows) name.action)
-      =^  cards  host-to-name
-        ?~  site.flow
-          [~ host-to-name]
-        :-  [%pass /eyre %arvo %e %disconnect binding.u.site.flow]~
-        ?~  site.binding.u.site.flow  host-to-name
-        (~(del by host-to-name) site.binding.u.site.flow)
+      =/  cards=(list card)
+        ?~  site.flow  ~
+        [%pass /eyre %arvo %e %disconnect binding.u.site.flow]~
       =.  flows  (~(del by flows) name.action)
       =.  sites  (~(del by sites) name.action)
       =.  uid-to-name

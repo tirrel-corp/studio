@@ -11,7 +11,6 @@
   $:  flows=(map name=term flow)
       sites=(map name=term website)
       uid-to-name=(jug uid name=term)
-      host-to-name=(map @t name=term)
       template-desk=(unit desk)
       custom-site=(map term site-template)
       custom-email=(map term email-template)
