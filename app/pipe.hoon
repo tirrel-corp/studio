@@ -199,6 +199,82 @@
       :_  state
       [give-flows:pc cards]
     ::
+        %edit
+      |^
+      =/  fl=flow  (~(got by flows) name.action)
+      =/  [cards=(list card) new=flow rebuild=?]
+        %+  roll  edits.action
+        |=  [=edit cards=(list card) f=_fl rebuild=_|]
+        ?-  -.edit
+            %resource  [cards f(resource resource.edit) %.y]
+            %email     [cards f(email email.edit) rebuild]
+            %site      (site-edit edit-site.edit cards f rebuild)
+        ==
+      =.  flows  (~(put by flows) name.action new)
+      ?~  site.new
+        [cards state(sites (~(del by sites) name.action))]
+      ?.  rebuild
+        :_  state
+        :*  give-flows:pc
+            cards
+        ==
+      =/  =site-template
+        ~|  "no such template: {<template.u.site.new>}"
+        (need (get-site-template:pc template.u.site.new))
+      =/  =website  (site-template (get-site-inputs:pc name.action new))
+      =.  sites     (~(put by sites) name.action website)
+      :_  state
+      :*  give-flows:pc
+          (give-site:pc name.action website)
+          cards
+      ==
+      ::
+      ++  site-edit
+        |=  [=edit-site cards=(list card) f=flow rebuild=?]
+        ^-  [(list card) flow ?]
+        ?~  site.f
+          ?>  ?=(%whole -.edit-site)
+          ?~  site.edit-site  [cards f rebuild]  :: no change
+          :+  [(connect binding.u.site.edit-site) cards]
+            f(site site.edit-site)
+          %.y
+        ?-  -.edit-site
+          %template  [cards f(template.u.site term.edit-site) %.y]
+          %comments  [cards f(comments.u.site comments.edit-site) %.y]
+          %width     [cards f(width.u.site width.edit-site) %.y]
+          %lit       [cards f(lit.u.site lit.edit-site) %.y]
+          %accent    [cards f(accent.u.site accent.edit-site) %.y]
+        ::
+            %binding
+          :+  :*  (disconnect binding.u.site.f)
+                  (connect binding.edit-site)
+                  cards
+              ==
+            f(binding.u.site binding.edit-site)
+          rebuild
+        ::
+            %whole
+          ?~  site.edit-site
+            [[(disconnect binding.u.site.f) cards] f(site ~) %.y]
+          :+  :*  (disconnect binding.u.site.f)
+                  (connect binding.u.site.edit-site)
+                  cards
+              ==
+            f(site site.edit-site)
+          %.y
+        ==
+      ::
+      ++  connect
+        |=  =binding:eyre
+        ^-  card
+        [%pass /eyre %arvo %e %connect binding dap.bowl]
+      ::
+      ++  disconnect
+        |=  =binding:eyre
+        ^-  card
+        [%pass /eyre %arvo %e %disconnect binding]
+      --
+    ::
         %watch-templates
       =/  known-desks  .^((set desk) %cd (en-beam byk.bowl /))
       ?.  (~(has in known-desks) desk.action)

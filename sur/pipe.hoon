@@ -32,9 +32,26 @@
       accent=@ux
   ==
 ::
++$  edit-site
+  $%  [%template =term]
+      [%binding =binding:eyre]
+      [%comments comments=?]
+      [%width width=?(%1 %2 %3)]
+      [%lit lit=?]
+      [%accent accent=@ux]
+      [%whole site=(unit site)]
+  ==
+::
++$  edit
+  $%  [%resource =resource]
+      [%site =edit-site]
+      [%email email=(unit term)]
+  ==
+::
 +$  action
   $%  [%add name=term flow]
       [%remove name=term]
+      [%edit name=term edits=(list edit)]
       [%watch-templates =desk]
       [%wipe-templates ~]
   ==
