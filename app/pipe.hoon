@@ -310,21 +310,40 @@
     ?.  ?=(%graph-update-3 p.cage.sign)
       (on-agent:def wire sign)
     =/  =update:store:graph  !<(update:store:graph q.cage.sign)
-    ?.  ?=(%add-nodes -.q.update)
+    ?+  -.q.update
       `this
-    =^  cards  state
-      %+  roll  (update-to-flows update)
-      |=  $:  [name=term =flow]
-              [cards=(list card) sty=_state]
-          ==
-      ^-  [(list card) _state]
-      =^  site-cards   sty
-        (update-site:pc name flow)
-      =/  email-cards
-        (update-email name flow update)
-      :_  sty
-      :(weld site-cards email-cards cards)
-    [cards this]
+    ::
+        %remove-graph
+      =/  name=(unit term)
+        %-  ~(rep by flows)
+        |=  [[name=term =flow] out=(unit term)]
+        ?:  =(resource.q.update resource.flow)
+          `name
+        out
+      ?~  name
+        `this
+      :-  ~
+      %=  this
+        flows         (~(del by flows) u.name)
+        sites         (~(del by sites) u.name)
+        uid-to-name   (~(del by uid-to-name) [resource.q.update ~])
+      ==
+    ::
+        %add-nodes
+      =^  cards  state
+        %+  roll  (update-to-flows update)
+        |=  $:  [name=term =flow]
+                [cards=(list card) sty=_state]
+            ==
+        ^-  [(list card) _state]
+        =^  site-cards   sty
+          (update-site:pc name flow)
+        =/  email-cards
+          (update-email name flow update)
+        :_  sty
+        :(weld site-cards email-cards cards)
+      [cards this]
+    ==
     ::
     ++  update-email
       |=  [name=term =flow =update:store:graph]
