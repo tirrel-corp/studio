@@ -405,6 +405,19 @@
         uid-to-name   (~(del by uid-to-name) [resource.q.update ~])
       ==
     ::
+        %remove-posts
+      =^  cards  state
+        %+  roll  (update-to-flows update)
+        |=  $:  [name=term =flow]
+                [cards=(list card) sty=_state]
+            ==
+        ^-  [(list card) _state]
+        =^  site-cards   sty
+          (update-site:pc name flow)
+        :_  sty
+        (weld site-cards cards)
+      [cards this]
+    ::
         %add-nodes
       =^  cards  state
         %+  roll  (update-to-flows update)
@@ -445,6 +458,17 @@
       [(give-email:pc name email)]~
     ::
     ++  update-to-flows
+      |=  =update:store:graph
+      ^-  (list [term flow])
+      ?>  ?=(?(%add-nodes %remove-posts) -.q.update)
+      %+  murn  ~(tap by flows)
+      |=  [name=term =flow]
+      ?.  =(resource.flow resource.q.update)
+        ~
+      `[name flow]
+    ::
+    ++  update-to-flows-old
+    :: XX unused, but kept here in case we want to start using indices again
       |=  =update:store:graph
       ^-  (list [term flow])
       ?>  ?=(%add-nodes -.q.update)
@@ -751,12 +775,13 @@
   ^-  (list post:store:graph)
   ?.  ?=(%graph -.children.node)
     ~
-  %+  turn  ~(val by p.children.node)
+  %+  murn  ~(val by p.children.node)
   |=  n=node:store:graph
   ?>  ?=(%graph -.children.n)
   =/  com  (got:orm p.children.n 1)
-  ?>  ?=(%& -.post.com)
-  p.post.com
+  ?.  ?=(%& -.post.com)
+    ~
+  `p.post.com
 ::
 ++  get-posts
   |=  [res=resource comments=?]
@@ -770,8 +795,10 @@
     /graph/(scot %p entity.res)/[name.res]/node/children/kith/'~'/'~'
   ?>  ?=(%add-nodes -.q.update)
   %+  sort
-    %+  turn  ~(tap by nodes.q.update)
+    %+  murn  ~(tap by nodes.q.update)
     |=  [=index =node:store:graph]
+    ?:  ?=(%| -.post.node)
+      ~
     ?>  ?=(%graph -.children.node)
     =/  arc=node:store:graph  (got:orm p.children.node 1)
     =/  com=node:store:graph  (got:orm p.children.node 2)
@@ -782,6 +809,7 @@
     ?~  first   !!
     ?>  ?=(%& -.post.+.u.latest)
     ?>  ?=(%& -.post.+.u.first)
+    :-  ~
     :*  time-sent.p.post.+.u.first
         p.post.+.u.latest
         ?.(comments ~ (get-comments com))
