@@ -319,8 +319,9 @@
   ?:  ?=([%http-response *] path)
     `this
   ?:  ?=([%updates ~] path)
+    =/  =update  [%initial creds ml]
     :_  this
-    [%give %fact ~ %mailer-update !>([%initial creds ml])]~
+    [%give %fact ~ %mailer-update !>(update)]~
   (on-watch:def path)
 ::
 ++  on-peek
@@ -349,11 +350,11 @@
     ?>  ?=([%pipe @ ~] wire)
     ?>  ?=(%pipe-update p.cage.sign)
     ?~  api-key.creds
-      ~|("No Sendgrid credentials set up" !!)
+      `this
     ?~  email.creds
-      ~|("No Sendgrid credentials set up" !!)
+      `this
     ?~  ship-url.creds
-      ~|("No domain name set up" !!)
+      `this
     =*  name  i.t.wire
     =+  !<(=update:pipe q.cage.sign)
     ?.  ?=(%email -.update)

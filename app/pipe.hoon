@@ -207,8 +207,8 @@
         |=  [=edit cards=(list card) f=_fl rebuild=_|]
         ?-  -.edit
             %resource  [cards f(resource resource.edit) %.y]
-            %email     [cards f(email email.edit) rebuild]
-            %site      (site-edit edit-site.edit cards f rebuild)
+            %email     [cards f(email email.edit) %.y]
+            %site      (site-edit edit-site.edit cards f %.y)
         ==
       =.  flows  (~(put by flows) name.action new)
       ?~  site.new
