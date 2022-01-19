@@ -45,6 +45,12 @@
     =.  state  old
     =/  cards=(list card)  [give-templates:pc ~]
     =/  f  ~(tap by flows)
+    ?.  .^(? %gu /(scot %p our.bowl)/graph-store/(scot %da now.bowl))
+      :_  this
+      %+  turn  f
+      |=  [=term =flow]
+      =/  =cage  [%noun !>([%update-site term flow])]
+      [%pass /update-site/[term] %arvo %b %wait now.bowl]
     |-
     ?~  f
       [cards this]
@@ -502,6 +508,15 @@
   |=  [=wire =sign-arvo]
   ^-  (quip card _this)
   |^
+  ?:  ?=(%behn -.sign-arvo)
+    ?:  ?=([%update-site @ ~] wire)
+      =/  name  i.t.wire
+      =/  flow  (~(got by flows) name)
+      =^  cards  state
+        (update-site:pc name flow)
+      [cards this]
+    `this
+  ::
   ?:  ?=(%eyre -.sign-arvo)
     `this
   ?.  ?=([%clay %writ *] sign-arvo)
