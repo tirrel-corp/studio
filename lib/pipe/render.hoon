@@ -153,6 +153,48 @@
     [%.y (snoc p.out p.hym)]
   [%.n p.hym]
 ::
+++  reference-to-manx
+  |=  r=reference
+  ^-  manx
+  ?-  -.r
+      %graph  :: just redirect to the group for now
+    =/  url
+      %:  rap  3
+        'web+urbitgraph://group/'
+        (scot %p entity.group.r)  '/'
+        name.group.r
+        ~
+      ==
+    ;a(href (trip url))
+    ; {<entity.group.r>}/{(trip name.group.r)}
+    ==
+  ::
+      %group
+    =/  url
+      %:  rap  3
+        'web+urbitgraph://group/'
+        (scot %p entity.group.r)  '/'
+        name.group.r
+        ~
+      ==
+    ;a(href (trip url))
+    ; {<entity.group.r>}/{(trip name.group.r)}
+    ==
+  ::
+      %app
+    =/  url
+      %:  rap  3
+        'web+urbitgraph://'
+        (scot %p ship.r)  '/'
+        desk.r
+        (spat path.r)
+        ~
+      ==
+    ;a(href (trip url))
+    ; {<ship.r>}/{(trip desk.r)}
+    ==
+  ==
+::
 ++  content-to-manx
   |=  =content
   ^-  (each manx tang)
@@ -161,12 +203,13 @@
     %mention    (text-to-manx (scot %p ship.content))
     %url        [%.y (url-to-manx url.content)]
     %code       (text-to-manx expression.content)
-    %reference  [%.n ~]
+    %reference  [%.y (reference-to-manx reference.content)]
   ==
 ::
 ++  text-preprocess  :: jank as fuck
   |=  text=@t
   ^-  @t
+  =.  text  (strip-leading-space text)
   =/  mod  (rap 3 ';>\0a' text '\0a\0a' ~)
   =/  lines  (to-wain:format mod)
   =/  [full=wain flag=?]
@@ -188,6 +231,16 @@
       [(snoc full u.pars) flag]
     [(snoc full '```') |]
   (of-wain:format full)
+::
+++  strip-leading-space
+  |=  a=@t
+  ^-  @t
+  |-
+  ?:  ?|  =(' ' (end [3 1] a))
+          =('\0a' (end [3 1] a))
+      ==
+    $(a (rsh [3 1] a))
+  a
 ::
 ++  text-to-manx
   |=  text=@t
