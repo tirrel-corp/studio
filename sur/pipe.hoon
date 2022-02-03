@@ -85,6 +85,7 @@
       [%email name=term =email]
       [%flows flows=(map term flow)]
       [%templates site=(set term) email=(set term)]
+      [%errors err=(map term (map path tang))]
   ==
 ::
 ::  old versions

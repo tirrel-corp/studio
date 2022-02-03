@@ -90,6 +90,25 @@
       :~  site+(templates site.u)
           email+(templates email.u)
       ==
+    ::
+        %errors
+      :-  %o
+      %-  ~(gas by *(map @t json))
+      %+  turn  ~(tap by err.u)
+      |=  [=term e=(map ^path tang)]
+      ^-  [@t json]
+      :-  term
+      :-  %o
+      %-  ~(gas by *(map @t json))
+      %+  turn  ~(tap by e)
+      |=  [pax=^path =tang]
+      ^-  [@t json]
+      :-  (spat pax)
+      :-  %a
+      %-  zing
+      %+  turn  (flop tang)
+      |=  =^tank
+      (turn (wash [0 80] tank) tape)
     ==
   ::
   ++  templates

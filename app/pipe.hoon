@@ -42,7 +42,7 @@
   |-
   ?-    -.old
       %4
-    :_  this
+    :_  this(state old)
     %+  turn  ~(tap by flows)
     |=  [=term =flow]
     [%pass /update-site/[term] %arvo %b %wait now.bowl]
@@ -640,13 +640,16 @@
       [%http-response *]  `this
   ::
       [%updates ~]
-    =/  temp=update
+    =/  templates=update
       :+  %templates
         (~(uni in ~(key by site-templates)) ~(key by custom-site))
       (~(uni in ~(key by email-templates)) ~(key by custom-email))
+    =/  flow=update    [%flows flows]
+    =/  errors=update  [%errors get-all-errors:pc]
     :_  this
-    :~  [%give %fact ~ %pipe-update !>([%flows flows])]
-        [%give %fact ~ %pipe-update !>(temp)]
+    :~  [%give %fact ~ %pipe-update !>(flow)]
+        [%give %fact ~ %pipe-update !>(templates)]
+        [%give %fact ~ %pipe-update !>(errors)]
     ==
   ::
       [%site @ ~]
@@ -769,6 +772,16 @@
   |=  [name=term =website]
   ^-  card
   =/  =update  [%site name website]
+  [%give %fact [/site/[name]]~ %pipe-update !>(update)]
+::
+++  give-errors
+  |=  [name=term =website]
+  ^-  card
+  =/  errors=(map path tang)  (get-site-errors website)
+  =/  =update
+    :-  %errors
+    %-  ~(gas by *(map term (map path tang)))
+    [name errors]^~
   [%give %fact [/site/[name]]~ %pipe-update !>(update)]
 ::
 ++  give-email
@@ -904,6 +917,23 @@
     `state
   =/  =site-template  (need (get-site-template template.u.site.flow))
   =/  =website   (site-template (get-site-inputs name flow))
-  :-  [(give-site name website)]~
-  state(sites (~(put by sites) name website))
+  =/  errors=update  [%errors get-all-errors]
+  :_  state(sites (~(put by sites) name website))
+  :~  (give-site name website)
+      [%give %fact [/site/[name]]~ %pipe-update !>(errors)]
+  ==
+::
+++  get-all-errors
+  ^-  (map term (map path tang))
+  (~(run by sites) get-site-errors)
+::
+++  get-site-errors
+  |=  =website
+  ^-  (map path tang)
+  %-  ~(gas by *(map path tang))
+  %+  murn  ~(tap by website)
+  |=  [pax=path may=(each mime tang)]
+  ^-  (unit [path tang])
+  ?:  ?=(%& -.may)  ~
+  `[pax p.may]
 --
