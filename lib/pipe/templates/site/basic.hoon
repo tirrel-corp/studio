@@ -3,21 +3,31 @@
 ^-  $-(site-inputs website)
 |=  sinp=site-inputs
 ^-  website
-|^  %-  ~(gas by *website)
-    :-  (index-page sinp)
-    %+  turn  posts.sinp
-    |=  [initial=@da =post comments=(list post)]
-    %:  article-page
-        name.sinp
-        binding.sinp
-        initial
-        post
-        comments
-        association.sinp
-        email.sinp
-        width.sinp
-        lit.sinp
-    ==
+|^  =/  [previews=marl pages=website]
+      %+  roll  posts.sinp
+      |=  $:  [initial=@da =post comments=(list post)]
+              [previews=marl pages=website]
+          ==
+      =/  [=path build=(each [manx mime] tang)]
+        %:  article-build
+            name.sinp
+            binding.sinp
+            initial
+            post
+            comments
+            association.sinp
+            email.sinp
+            width.sinp
+            lit.sinp
+        ==
+      ?:  ?=(%& -.build)
+        :-  (snoc previews -.p.build)
+        (~(put by pages) path [%.y +.p.build])
+      :-  previews
+      (~(put by pages) path [%.n p.build])
+    =/  m  (index-page sinp previews)
+    ~!  m
+    (~(put by pages) / [%.y m])
 ::
 +$  article-inputs
   $:  name=term
@@ -32,10 +42,9 @@
   ==
 ::
 ++  index-page
-  |=  si=site-inputs
-  ^-  [path mime]
+  |=  [si=site-inputs previews=marl]
+  ^-  mime
   =/  home-url  (spud path.binding.si)
-  :-  /
   :-  [%text %html ~]
   %-  as-octt:mimes:html
   %+  welp  "<!doctype html>"
@@ -49,22 +58,10 @@
     ==
     ;+  %^  frame  lit.si  width.si
         :*  (header binding.si title.metadatum.association.si lit.si)
-            %-  snoc
-            :_  (subscribe-box name.si title.metadatum.association.si email.si lit.si)
-            %+  turn  posts.si
-            |=  [initial=@da =post comments=(list post)]
-            ^-  manx
-            %:  article-preview
-                name.si
-                binding.si
-                initial
-                post
-                comments
-                association.si
-                email.si
-                width.si
-                lit.si
-  ==    ==  ==
+            %+  snoc
+              previews
+            (subscribe-box name.si title.metadatum.association.si email.si lit.si)
+  ==    ==
 ::
 ++  frame
   |=  [lit=? width=?(%1 %2 %3) m=marl]
@@ -146,36 +143,44 @@
     ==
   ;p(class "gray fw4", style "margin-block-end: 0;"): {t}
 ::
-++  article-preview
+++  article-build
   |=  ai=article-inputs
-  ^-  manx
+  ^-  [path (each [manx mime] tang)]
+  =/  con=(each marl tang)  (contents-to-marl (slag 1 contents.post.ai))
   =/  title=content  (snag 0 contents.post.ai)
   ?>  ?=(%text -.title)
+  :-  /(strip-title text.title)
+  ?:  ?=(%| -.con)
+    [%.n p.con]
+  :+  %.y
+    (article-preview ai text.title)
+  (article-page ai p.con text.title)
+::
+++  article-preview
+  |=  [ai=article-inputs title=@t]
+  ^-  manx
   =/  snippet=(unit @t)  (snip contents.post.ai)
   =/  url=tape
     %-  trip
     ?~  path.binding.ai
-      (cat 3 '/' (strip-title text.title))
-    (rap 3 (spat path.binding.ai) '/' (strip-title text.title) ~)
+      (cat 3 '/' (strip-title title))
+    (rap 3 (spat path.binding.ai) '/' (strip-title title) ~)
   =/  colors
     ?:  lit.ai
       " near-black"
     " white"
   ;a(class (weld "db link mb5" colors), href url)
-    ;h3(class colors): {(trip text.title)}
+    ;h3(class colors): {(trip title)}
     ;+  ?~  snippet  *manx
         ;p(class (weld "fw4" colors)): {(trip u.snippet)}
     ;+  (details initial.ai author.post.ai lit.ai)
   ==
 ::
 ++  article-page
-  |=  ai=article-inputs
-  ^-  [path mime]
+  |=  [ai=article-inputs con=marl title=@t]
+  ^-  mime
   =/  home-url  (spud path.binding.ai)
   ::
-  =/  title=content  (snag 0 contents.post.ai)
-  ?>  ?=(%text -.title)
-  :-  /(strip-title text.title)
   :-  [%text %html ~]
   %-  as-octt:mimes:html
   %+  welp  "<!doctype html>"
@@ -185,15 +190,15 @@
       ;meta(charset "utf-8");
       ;meta(name "viewport", content "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0");
       ;link(rel "stylesheet", href "https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css");
-      ;title: {(trip text.title)} - by {(trip (scot %p author.post.ai))}
+      ;title: {(trip title)} - by {(trip (scot %p author.post.ai))}
       ;+  custom-style
     ==
     ;+  %^  frame  lit.ai  width.ai
     :~  (header binding.ai title.metadatum.association.ai lit.ai)
-        ;h1: {(trip text.title)}
+        ;h1: {(trip title)}
         (details initial.ai author.post.ai lit.ai)
         ;article(class "w-100")
-          ;*  (contents-to-marl (slag 1 contents.post.ai))
+          ;*  con
         ==
         ;*  ?~  comments.ai  ;br;
         ;div(class "pt3 pl3 bt b--gray")

@@ -16,7 +16,7 @@
 +$  card  card:agent:gall
 --
 ::
-=|  [%3 state-2]
+=|  [%4 state-3]
 =*  state  -
 ::
 %-  agent:dbug
@@ -30,7 +30,7 @@
 ::
 ++  on-init
   ^-  (quip card _this)
-  :_  this(state [%3 *state-2])
+  :_  this(state [%4 *state-3])
   [%pass /graph %agent [our.bowl %graph-store] %watch /updates]~
 ::
 ++  on-save  !>(state)
@@ -41,27 +41,21 @@
   =+  !<(old=versioned-state old-vase)
   |-
   ?-    -.old
-      %3
-    =.  state  old
-    =/  cards=(list card)  [give-templates:pc ~]
-    =/  f  ~(tap by flows)
-    ?.  .^(? %gu /(scot %p our.bowl)/graph-store/(scot %da now.bowl))
-      :_  this
-      %+  turn  f
-      |=  [=term =flow]
-      =/  =cage  [%noun !>([%update-site term flow])]
-      [%pass /update-site/[term] %arvo %b %wait now.bowl]
-    |-
-    ?~  f
-      [cards this]
-    =^  cards2  state
-      (update-site:pc p.i.f q.i.f)
-    $(f t.f, cards (weld cards cards2))
+      %4
+    :_  this
+    %+  turn  ~(tap by flows)
+    |=  [=term =flow]
+    [%pass /update-site/[term] %arvo %b %wait now.bowl]
   ::
+    %3  $(old (state-3-to-4 old))
     %2  $(old (state-2-to-3 old))
     %1  $(old (state-1-to-2 old))
     %0  $(old (state-0-to-1 old))
   ==
+  ++  state-3-to-4
+    |=  [%3 s=state-2]
+    ^-  [%4 state-3]
+    [%4 s(sites ~, custom-site ~, custom-email ~)]
   ::
   ++  state-2-to-3
     |=  [%2 s=state-1]
@@ -362,12 +356,14 @@
     ::
     =/  web=(unit website)
       (~(get by sites) name.u.flow-req)
-    =/  page=(unit mime)
+    =/  page=(unit (each mime tang))
       ?~  web  ~
       (~(get by u.web) path.u.flow-req)
     ?~  page
       not-found:gen:server
-    [[200 [['content-type' 'text/html'] ~]] `q.u.page]
+    ?:  ?=(%| -.u.page)
+      not-found:gen:server
+    [[200 [['content-type' 'text/html'] ~]] `q.p.u.page]
     ::
     ++  get-suffix
       |=  [a=path b=path]
@@ -718,12 +714,14 @@
       ?~  temp
         [~ ~]
       =/  site  (u.temp lorem-ipsum:pipe-render)
-      =/  index=mime    (~(got by site) /)
-      =/  article=mime  (~(got by site) /ut-enim-ad-minim-veniam)
+      =/  index=(each mime tang)    (~(got by site) /)
+      =/  article=(each mime tang)  (~(got by site) /ut-enim-ad-minim-veniam)
+      ?:  ?=(%| -.index)    [~ ~]
+      ?:  ?=(%| -.article)  [~ ~]
       :^  ~  ~  %json  !>
       %-  pairs:enjs:format
-      :~  index+s+q.q.index
-          article+s+q.q.index
+      :~  index+s+q.q.p.index
+          article+s+q.q.p.article
       ==
     ==
   ==

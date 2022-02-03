@@ -142,59 +142,26 @@
   ^-  path
   [(strip-title title) ~]
 ::
-++  post-to-email
-  |=  [=index =post]
-  ^-  [path mime]
-  =/  title=content  (snag 0 contents.post)
-  ?>  ?=(%text -.title)
-  :-  (title-to-url text.title)
-  :-  [%text %html ~]
-  %-  as-octt:mimes:html
-  %+  welp
-    "<!doctype html>"
-  (en-xml:html (post-to-manx post))
-::
-++  post-to-manx
-  |=  =post
-  ^-  manx
-  =/  body-font=(pair tape tape)
-    ["https://pagecdn.io/lib/easyfonts/spectral.css" "font-spectral"]
-  =/  accent-font=(pair tape tape)
-    ["" "sans-serif"]
-  =/  title=content  (snag 0 contents.post)
-  ?>  ?=(%text -.title)
-  ;html
-    ;head
-      ;meta(charset "utf-8");
-      ;meta(name "viewport", content "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0");
-      ;link(rel "stylesheet", href "https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css");
-      ;link(rel "stylesheet", href "{p.body-font}");
-      ;link(rel "stylesheet", href "{p.accent-font}");
-      ;title: {(trip text.title)} - by {(trip (scot %p author.post))}
-    ==
-    ;body(class "w-100 h-100 flex flex-column items-center")
-      ;div(class "pa4 pt3 flex flex-column w-90 near-black", style "max-width: 44rem;")
-        ;h1(class "f2 lh-title {q.accent-font}", style "margin-block-end: 0;"): {(trip text.title)}
-        ;p(class "f5 gray {q.accent-font} fw3"): {(trip (scot %da time-sent.post))}
-        ;*  (contents-to-marl (slag 1 contents.post))
-      ==
-    ==
-  ==
-::
 ++  contents-to-marl
   |=  contents=(list content)
-  ^-  marl
-  (murn contents content-to-manx)
+  ^-  (each marl tang)
+  %+  roll  contents
+  |=  [=content out=(each marl tang)]
+  ?:  ?=(%| -.out)  out
+  =/  hym=(each manx tang)  (content-to-manx content)
+  ?:  ?=(%& -.hym)
+    [%.y (snoc p.out p.hym)]
+  [%.n p.hym]
 ::
 ++  content-to-manx
   |=  =content
-  ^-  (unit manx)
+  ^-  (each manx tang)
   ?-  -.content
-    %text       `(text-to-manx text.content)
-    %mention    `(text-to-manx (scot %p ship.content))
-    %url        `(url-to-manx url.content)
-    %code       `(text-to-manx expression.content)
-    %reference  ~ :: (reference-to-manx content)
+    %text       (text-to-manx text.content)
+    %mention    (text-to-manx (scot %p ship.content))
+    %url        [%.y (url-to-manx url.content)]
+    %code       (text-to-manx expression.content)
+    %reference  [%.n ~]
   ==
 ::
 ++  text-preprocess  :: jank as fuck
@@ -224,11 +191,12 @@
 ::
 ++  text-to-manx
   |=  text=@t
-  ^-  manx
+  ^-  (each manx tang)
   ?:  =('' text)
+    :-  %.y
     ;br;
   =/  p  (text-preprocess text)
-  elm:(static:cram (ream p))
+  (mule |.(elm:(static:cram (ream p))))
 ::
 ++  url-to-manx
   |=  url=@t

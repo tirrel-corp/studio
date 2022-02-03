@@ -5,9 +5,10 @@
       [%1 state-1]
       [%2 state-1]
       [%3 state-2]
+      [%4 state-3]
   ==
 ::
-+$  state-2
++$  state-3
   $:  flows=(map name=term flow)
       sites=(map name=term website)
       uid-to-name=(jug uid name=term)
@@ -77,7 +78,7 @@
 ::
 +$  site-template   $-(site-inputs website)
 +$  email-template  $-(email-inputs email)
-+$  website  (map path mime)
++$  website  (map path (each mime tang))
 +$  email    [subject=@t body=mime]
 +$  update
   $%  [%site name=term =website]
@@ -88,6 +89,18 @@
 ::
 ::  old versions
 ::
++$  state-2
+  $:  flows=(map name=term flow)
+      sites=(map name=term website-0)
+      uid-to-name=(jug uid name=term)
+      template-desk=(unit desk)
+      custom-site=(map term site-template-0)
+      custom-email=(map term email-template)
+  ==
+::
++$  site-template-0  $-(site-inputs website-0)
++$  website-0        (map path mime)
+::
 +$  flow-1
   $:  =resource
       =index
@@ -97,7 +110,7 @@
 ::
 +$  state-1
   $:  flows=(map name=term flow-1)
-      sites=(map name=term website)
+      sites=(map name=term website-0)
       uid-to-name=(jug uid name=term)
       host-to-name=(map @t name=term)
   ==
@@ -111,7 +124,7 @@
 ::
 +$  state-0
   $:  flows=(map name=term flow-0)
-      sites=(map name=term website)
+      sites=(map name=term website-0)
       uid-to-name=(jug uid name=term)
       host-to-name=(map @t name=term)
   ==
