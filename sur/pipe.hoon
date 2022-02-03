@@ -77,7 +77,7 @@
   ==
 ::
 +$  site-template   $-(site-inputs website)
-+$  email-template  $-(email-inputs email)
++$  email-template  $-(email-inputs (each email tang))
 +$  website  (map path (each mime tang))
 +$  email    [subject=@t body=mime]
 +$  update
@@ -95,10 +95,11 @@
       uid-to-name=(jug uid name=term)
       template-desk=(unit desk)
       custom-site=(map term site-template-0)
-      custom-email=(map term email-template)
+      custom-email=(map term email-template-0)
   ==
 ::
-+$  site-template-0  $-(site-inputs website-0)
++$  site-template-0   $-(site-inputs website-0)
++$  email-template-0  $-(email-inputs email)
 +$  website-0        (map path mime)
 ::
 +$  flow-1

@@ -463,8 +463,10 @@
       ?~  post
         ~
       =/  =email-template  (need (get-email-template:pc u.email.flow))
-      =/  =email  (email-template (get-email-inputs:pc name flow u.post))
-      [(give-email:pc name email)]~
+      =/  em=(each email tang)
+        (email-template (get-email-inputs:pc name flow u.post))
+      ?:  ?=(%| -.em)  ~
+      [(give-email:pc name p.em)]~
     ::
     ++  update-to-flows
       |=  =update:store:graph
