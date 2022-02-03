@@ -331,7 +331,7 @@
     |=  [[term f=flow] out=_|]
     ?~  site.f       out
     ?:  out          out
-    =(path.binding.u.site.f path.binding)
+    =(binding.u.site.f binding)
   ::
   ++  handle-http-request
     |=  req=inbound-request:eyre
@@ -342,14 +342,15 @@
     =/  host=(unit @t)
       (~(get by (~(gas by *(map @t @t)) header-list.request.req)) 'host')
     ::
-    =/  flow-req=(unit [name=term =path])
+    =/  flow-req=(unit [name=term path=@t])
       %-  ~(rep by flows)
-      |=  [[name=term =flow] out=(unit [term path])]
-      ?~  site.flow  ~
+      |=  [[name=term =flow] out=(unit [term @t])]
+      ?~  site.flow  out
+      ?.  =(site.binding.u.site.flow host)  out
       =/  suffix=(unit path)
         (get-suffix path.binding.u.site.flow site.req-line)
       ?~  suffix  out
-      `[name u.suffix]
+      `[name (spat u.suffix)]
     ::
     ?~  flow-req
       not-found:gen:server
@@ -719,8 +720,8 @@
       ?~  temp
         [~ ~]
       =/  site  (u.temp lorem-ipsum:pipe-render)
-      =/  index=(each mime tang)    (~(got by site) /)
-      =/  article=(each mime tang)  (~(got by site) /ut-enim-ad-minim-veniam)
+      =/  index=(each mime tang)    (~(got by site) '/')
+      =/  article=(each mime tang)  (~(got by site) '/ut-enim-ad-minim-veniam')
       ?:  ?=(%| -.index)    [~ ~]
       ?:  ?=(%| -.article)  [~ ~]
       :^  ~  ~  %json  !>
@@ -777,10 +778,10 @@
 ++  give-errors
   |=  [name=term =website]
   ^-  card
-  =/  errors=(map path tang)  (get-site-errors website)
+  =/  errors=(map @t tang)  (get-site-errors website)
   =/  =update
     :-  %errors
-    %-  ~(gas by *(map term (map path tang)))
+    %-  ~(gas by *(map term (map @t tang)))
     [name errors]^~
   [%give %fact [/site/[name]]~ %pipe-update !>(update)]
 ::
@@ -924,16 +925,16 @@
   ==
 ::
 ++  get-all-errors
-  ^-  (map term (map path tang))
+  ^-  (map term (map @t tang))
   (~(run by sites) get-site-errors)
 ::
 ++  get-site-errors
   |=  =website
-  ^-  (map path tang)
-  %-  ~(gas by *(map path tang))
+  ^-  (map @t tang)
+  %-  ~(gas by *(map @t tang))
   %+  murn  ~(tap by website)
-  |=  [pax=path may=(each mime tang)]
-  ^-  (unit [path tang])
+  |=  [path=@t may=(each mime tang)]
+  ^-  (unit [@t tang])
   ?:  ?=(%& -.may)  ~
-  `[pax p.may]
+  `[path p.may]
 --

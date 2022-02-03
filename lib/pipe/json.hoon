@@ -95,15 +95,13 @@
       :-  %o
       %-  ~(gas by *(map @t json))
       %+  turn  ~(tap by err.u)
-      |=  [=term e=(map ^path tang)]
+      |=  [=term e=(map @t tang)]
       ^-  [@t json]
       :-  term
       :-  %o
-      %-  ~(gas by *(map @t json))
-      %+  turn  ~(tap by e)
-      |=  [pax=^path =tang]
-      ^-  [@t json]
-      :-  (spat pax)
+      %-  ~(run by e)
+      |=  =tang
+      ^-  json
       :-  %a
       %-  zing
       %+  turn  (flop tang)

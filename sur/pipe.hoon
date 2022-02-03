@@ -78,14 +78,14 @@
 ::
 +$  site-template   $-(site-inputs website)
 +$  email-template  $-(email-inputs (each email tang))
-+$  website  (map path (each mime tang))
++$  website  (map @t (each mime tang))
 +$  email    [subject=@t body=mime]
 +$  update
   $%  [%site name=term =website]
       [%email name=term =email]
       [%flows flows=(map term flow)]
       [%templates site=(set term) email=(set term)]
-      [%errors err=(map term (map path tang))]
+      [%errors err=(map term (map @t tang))]
   ==
 ::
 ::  old versions
@@ -101,7 +101,7 @@
 ::
 +$  site-template-0   $-(site-inputs website-0)
 +$  email-template-0  $-(email-inputs email)
-+$  website-0        (map path mime)
++$  website-0         (map path mime)
 ::
 +$  flow-1
   $:  =resource

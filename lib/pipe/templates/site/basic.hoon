@@ -8,7 +8,7 @@
       |=  $:  [initial=@da =post comments=(list post)]
               [previews=marl pages=website]
           ==
-      =/  [=path build=(each [manx mime] tang)]
+      =/  [path=@t build=(each [manx mime] tang)]
         %:  article-build
             name.sinp
             binding.sinp
@@ -26,8 +26,7 @@
       :-  previews
       (~(put by pages) path [%.n p.build])
     =/  m  (index-page sinp previews)
-    ~!  m
-    (~(put by pages) / [%.y m])
+    (~(put by pages) '/' [%.y m])
 ::
 +$  article-inputs
   $:  name=term
@@ -145,11 +144,11 @@
 ::
 ++  article-build
   |=  ai=article-inputs
-  ^-  [path (each [manx mime] tang)]
+  ^-  [@t (each [manx mime] tang)]
   =/  con=(each marl tang)  (contents-to-marl (slag 1 contents.post.ai))
   =/  title=content  (snag 0 contents.post.ai)
   ?>  ?=(%text -.title)
-  :-  /(strip-title text.title)
+  :-  (cat 3 '/' (strip-title text.title))
   ?:  ?=(%| -.con)
     [%.n p.con]
   :+  %.y
