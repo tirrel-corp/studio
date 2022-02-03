@@ -205,32 +205,88 @@
     %code       (text-to-manx expression.content)
     %reference  [%.y (reference-to-manx reference.content)]
   ==
++$  mode
+  $~  %def
+  $?  %def
+      %code
+      %header
+  ==
 ::
 ++  text-preprocess  :: jank as fuck
   |=  text=@t
+  |^
   ^-  @t
   =.  text  (strip-leading-space text)
   =/  mod  (rap 3 ';>\0a' text '\0a\0a' ~)
   =/  lines  (to-wain:format mod)
-  =/  [full=wain flag=?]
+  =/  [full=wain =mode]
     %+  roll  lines
-    |=  [line=@t full=wain flag=_|]
-    =/  tics  (rush line ;~(plug (star ace) tic tic tic (star ace)))
-    ?:  !flag
-      ?~  tics
-        [(snoc full line) |]
-      [(snoc full '```') &]
-    ?~  tics
-      =/  pars
+    |=  [line=@t full=wain flag=mode]
+    ?-  flag
+    ::  default mode
+        %def
+      ::  detect ``` and switch to %code mode
+      =/  tics=(unit tape)
         %+  rush  line
-        %+  cook
-          |=(t=tape (cat 3 '    ' (crip t)))
-        ;~(pfix (star ace) (star prn))
-      ?~  pars
-        [full flag]
-      [(snoc full u.pars) flag]
-    [(snoc full '```') |]
+        ;~(pfix ;~(plug (star ace) (jest '```') (star ace)) (star next))
+      ?^  tics
+        =.  full  (snoc full '```')
+        ?~  u.tics
+          [full %code]
+        =/  pars  (need (rush (crip u.tics) reformat-space))
+        [(snoc full pars) %code]
+      ::  detect # and switch to %header mode
+      =/  hed
+        %+  rush  line
+        ;~(plug (stun [0 3] ace) (stun [1 6] hax) (plus ace) (star next))
+      ?^  hed
+        [(snoc full line) %header]
+      ::  detect and reformat lists
+      =/  nlist=(unit tape)
+        %+  rush  line
+        ;~(pfix ;~(plug (stun [0 3] ace) dem dot ace) (star next))
+      ?^  nlist
+        [(snoc full (cat 3 '+ ' (crip u.nlist))) %def]
+      =/  llist=(unit tape)
+        %+  rush  line
+        ;~(pfix ;~(plug (stun [0 3] ace) lus ace) (star next))
+      ?^  llist
+        [(snoc full (cat 3 '- ' (crip u.llist))) %def]
+      [(snoc full line) %def]
+    ::  handle headers
+        %header
+      ?^  (rush line (star ace))
+        [(snoc full '') %def]
+      [(snoc (snoc full '') line) %def]
+    ::  handle backticks
+        %code
+      =/  tics
+        %+  rush  line
+        ;~(sfix (star (not-char '`')) ;~(plug (jest '```') (star ace)))
+      ?~  tics
+        =/  pars  (need (rush line reformat-space))
+        [(snoc full pars) flag]
+      =?  full  ?=(^ u.tics)
+        (snoc full (crip u.tics))
+      [(snoc full '```') %def]
+    ==
   (of-wain:format full)
+  ::
+  ++  reformat-space
+    %+  cook
+    |=(t=tape (cat 3 '    ' (crip t)))
+    ;~(pfix (star ace) (star next))
+  ::
+  ++  not-char
+    |=  daf=char
+    |=  tub=nail
+    ^-  (like char)
+    ?~  q.tub
+      (fail tub)
+    ?:  =(daf i.q.tub)
+      (fail tub)
+    (next tub)
+  --
 ::
 ++  strip-leading-space
   |=  a=@t
