@@ -169,11 +169,7 @@
         %add
       ?<  (~(has by flows) name.action)
       ?~  site.action  !!
-      ?:  %-  ~(rep by flows)
-          |=  [[term f=flow] out=_|]
-          ?~  site.f       out
-          ?:  out          out
-          =(path.binding.u.site.f path.binding.u.site.action)
+      ?:  (binding-taken binding.u.site.action)
         ~|("binding already taken {<`path`path.binding.u.site.action>}" !!)
       =.  flows  (~(put by flows) name.action +>.action)
       =.  uid-to-name
@@ -252,12 +248,14 @@
           %accent    [cards f(accent.u.site accent.edit-site) %.y]
         ::
             %binding
+          ?:  (binding-taken binding.edit-site)
+            [cards f rebuild]
           :+  :*  (disconnect binding.u.site.f)
                   (connect binding.edit-site)
                   cards
               ==
             f(binding.u.site binding.edit-site)
-          rebuild
+          %.y
         ::
             %whole
           ?~  site.edit-site
@@ -331,6 +329,15 @@
           cards
       ==
     ==
+  ::
+  ++  binding-taken
+    |=  =binding:eyre
+    ^-  ?
+    %-  ~(rep by flows)
+    |=  [[term f=flow] out=_|]
+    ?~  site.f       out
+    ?:  out          out
+    =(path.binding.u.site.f path.binding)
   ::
   ++  handle-http-request
     |=  req=inbound-request:eyre
