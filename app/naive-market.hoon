@@ -317,12 +317,13 @@
     ::  TODO: ensure we remove pending sales from set
     =/  =address  (address-from-prv:key:eth prv.con)
     =-  state(for-sale (~(put by for-sale) who -))
-    %-  ~(dif in ~(key by sold-ship-to-date))
-    %-  ~(gas in *(set ship))
-    %+  murn
-      (scry-for %roller (list ship) /ships/(scot %ux address))
-    |=  s=ship
-    ?.(=(%duke (clan:title s)) ~ `s)
+    %-  %~  dif  in
+      %-  ~(gas in *(set ship))
+      %+  murn
+        (scry-for %roller (list ship) /ships/(scot %ux address))
+      |=  s=ship
+      ?.(=(%duke (clan:title s)) ~ `s)
+    ~(key by sold-ship-to-date)
   ::
   ++  scry-for
     |*  [dap=term =mold =path]
