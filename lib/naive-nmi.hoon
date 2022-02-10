@@ -9,10 +9,11 @@
     ^-  json
     %+  frond  -.act
     ?-  -.act
-      %initiate-sale  ~
-      %complete-sale  ~
-      %set-api-key    ?~(key.act ~ s+u.key.act)
-      %set-site       ~
+      %initiate-sale     ~
+      %complete-sale     ~
+      %set-api-key       ?~(key.act ~ s+u.key.act)
+      %set-backend-url   ~
+      %set-redirect-url  ~
     ==
   --
 ::
@@ -25,7 +26,8 @@
     :~  initiate-sale+(ot rid+so shp+ship:dejs:nam sel+selector:dejs:nam ~)
         complete-sale+so
         set-api-key+(mu so)
-        set-site+(mu (ot host+so suffix+(mu so) ~))
+        set-backend-url+(mu (ot host+so suffix+(mu so) ~))
+        set-redirect-url+(mu so)
     ==
   --
 --

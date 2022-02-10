@@ -92,21 +92,17 @@
         (mule |.((dejs u.maybe-json)))
       ?:  ?=(%| -.act)
         `[[400 ~] ~]
-      ?-    -.p.act
-          %initiate-sale
+      ?:  ?=(%initiate-sale -.p.act)
         =/  =action  [-.p.act eyre-id who.p.act sel.p.act]
         :_  [[201 ~] `(json-to-octs:srv s+eyre-id)]
         =-  [%pass /post-req/[eyre-id] %agent [our dap]:bowl %poke -]~
         [%naive-nmi-action !>(action)]
-      ::
-          %complete-sale
-        =/  =action  [-.p.act token.p.act]
-        ?~  maybe-request=(~(get by token-to-request) token.p.act)
-          `[[400 ~] ~]
-        :_  [[201 ~] `(json-to-octs:srv s+eyre-id)]
-        =-  [%pass /post-req/[eyre-id] %agent [our dap]:bowl %poke -]~
-        [%naive-nmi-action !>(action)]
-      ==
+      =/  =action  [-.p.act token.p.act]
+      ?~  maybe-request=(~(get by token-to-request) token.p.act)
+        `[[400 ~] ~]
+      :_  [[201 ~] `(json-to-octs:srv s+eyre-id)]
+      =-  [%pass /post-req/[eyre-id] %agent [our dap]:bowl %poke -]~
+      [%naive-nmi-action !>(action)]
     ::
     ++  dejs
       =,  dejs:format
@@ -136,44 +132,13 @@
       =*  srv  server
       |=  [hed=header-list:http req=request-line:srv]
       ^-  simple-payload:http
-      ::  TODO: make this generic
-      ?~  ext.req
-        $(ext.req `%html, site.req [%index ~])
-      ?.  ?=(%json u.ext.req)
-        ::  TODO: rip this out, don't serve the webpage from here
-        =/  file=(unit octs)
-          (get-file-at /app/naive-nmi site.req u.ext.req)
-        ?~  file   not-found:gen:srv
-        ?+  u.ext.req  not-found:gen:srv
-          %html  (html-response:gen:srv u.file)
-          %js    (js-response:gen:srv u.file)
-          %css   (css-response:gen:srv u.file)
-        ==
-      ::  TODO: do something less janky
+      ?.  ?=(^ ext.req)        not-found:gen:srv
+      ?.  ?=(%json u.ext.req)  not-found:gen:srv
       =/  site  (flop site.req)
-      ?~  site
+      ?~  site  not-found:gen:srv
+      ?~  maybe-token=(~(get by request-to-token) i.site)
         not-found:gen:srv
-      =/  maybe-token  (~(get by request-to-token) i.site)
-      ?~  maybe-token
-        not-found:gen:srv
-      %-  json-response:gen:srv
-      s+u.maybe-token
-    ::
-    ++  get-file-at
-      |=  [base=path file=path ext=@ta]
-      ^-  (unit octs)
-      ?.  ?=(?(%html %css %js) ext)
-        ~
-      =/  =path
-        :*  (scot %p our.bowl)
-            q.byk.bowl
-            (scot %da now.bowl)
-            (snoc (weld base file) ext)
-        ==
-      ?.  .^(? %cu path)  ~
-      %-  some
-      %-  as-octs:mimes:html
-      .^(@ %cx path)
+      (json-response:gen:srv s+u.maybe-token)
     --
   ::
   ++  naive-nmi-action
@@ -186,20 +151,14 @@
       :_  state(api-key key.action)
       [%give %fact /configuration^~ naive-nmi-action+!>(action)]^~
     ::
-        %set-site
+        %set-backend-url
       ?>  ?=(^ site.action)
       =*  host    host.u.site.action
       =*  suffix  suffix.u.site.action
-      =/  full-url=cord
-        %+  rap  3
-        :-  'https://'
-        ?~  suffix
-          host^~
-        ~[host '/' u.suffix]
       =/  old-pax=path  ?~(site ~ ?~(suffix.u.site ~ u.suffix.u.site^~))
       =/  old-host      ?~(site ~ `host.u.site)
       =/  suf-pax=path  ?~(suffix ~ u.suffix^~)
-      :_  state(redirect-url `full-url, site `[host suffix])
+      :_  state(site `[host suffix])
       :-  [%give %fact /configuration^~ naive-nmi-action+!>(action)]
       %-  zing
       :~  ?~  site  ~
@@ -207,6 +166,9 @@
         ::
           [%pass /eyre %arvo %e %connect [`host suf-pax] dap.bowl]~
       ==
+    ::
+        %set-redirect-url
+      `state(redirect-url p.action)
     ::
         %initiate-sale
       ?>  ?=(^ api-key)
@@ -469,7 +431,8 @@
   ?:  ?=([%configuration ~] path)
     :_  this
     :~  [%give %fact ~ naive-nmi-action+!>([%set-api-key api-key])]
-        [%give %fact ~ naive-nmi-action+!>([%set-site site])]
+        [%give %fact ~ naive-nmi-action+!>([%set-backend site])]
+        [%give %fact ~ naive-nmi-action+!>([%set-redirect-url site])]
     ==
   (on-watch:def path)
 ::
