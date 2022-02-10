@@ -62,6 +62,7 @@
       =/  =address  (address-from-prv:key:eth prv.c)
       :_  state(star-configs (~(put by star-configs) who.update c))
       :_  ~
+      ::  TODO: watch points here instead of txs
       :^  %pass  /star/(scot %p who.update)  %agent
       [[our.bowl %roller] %watch /txs/(scot %ux address)]
       ::
@@ -299,7 +300,9 @@
   ^-  (quip card _this)
   |^
   ?+    wire  (on-agent:def wire sign)
+
       [%star @ ~]
+    ~&  wire
     =/  who=ship  (slav %p i.t.wire)
     =/  con=config  (~(got by star-configs) who)
     ?:  ?=(%kick -.sign)

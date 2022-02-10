@@ -140,6 +140,7 @@
       ?~  ext.req
         $(ext.req `%html, site.req [%index ~])
       ?.  ?=(%json u.ext.req)
+        ::  TODO: rip this out, don't serve the webpage from here
         =/  file=(unit octs)
           (get-file-at /app/naive-nmi site.req u.ext.req)
         ?~  file   not-found:gen:srv
@@ -148,9 +149,11 @@
           %js    (js-response:gen:srv u.file)
           %css   (css-response:gen:srv u.file)
         ==
-      ?~  site.req
+      ::  TODO: do something less janky
+      =/  site  (flop site.req)
+      ?~  site
         not-found:gen:srv
-      =/  maybe-token  (~(get by request-to-token) i.site.req)
+      =/  maybe-token  (~(get by request-to-token) i.site)
       ?~  maybe-token
         not-found:gen:srv
       %-  json-response:gen:srv
