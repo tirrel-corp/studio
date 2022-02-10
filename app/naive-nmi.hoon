@@ -312,7 +312,7 @@
     ==
     ::
     ++  process-step1
-      |=  [request-id=cord tx=transaction m=(map @t @t)]
+      |=  [request-id=cord tx=transaction m=(map @t $?(@t (map @t @t)))]
       ^-  _state
       ?>  ?=(%pending -.tx)
       =/  =time  (~(got by request-to-time) request-id)
@@ -325,6 +325,8 @@
           %^  put:orm  transactions  time
           [%failure info.tx token.tx ~]
         ==
+      ?>  ?=(@t u.result-code)
+      ?>  ?=(@t u.result-text)
       ?.  =('100' u.result-code)
         %_    state
             transactions
@@ -332,7 +334,8 @@
           :^  %failure  info.tx  token.tx
           `[(slav %ud u.result-code) u.result-text]
         ==
-      =/  action-token  `@t`(rsh [3 54] (need form-url))
+      ?>  ?=([~ u=@t] form-url)
+      =/  action-token  `@t`(rsh [3 54] u.form-url)
       %_    state
           transactions
         %^  put:orm  transactions  time
@@ -343,11 +346,13 @@
       ==
     ::
     ++  process-step3
-      |=  [request-id=cord tx=transaction m=(map @t @t)]
+      |=  [request-id=cord tx=transaction m=(map @t $?(@t (map @t @t)))]
       ^-  (quip card _state)
+      ~&  step3+m
       ?>  ?=(%pending -.tx)
       =/  result-code  (~(get by m) 'result-code')
       =/  result-text  (~(get by m) 'result-text')
+      =/  shipping     (~(get by m) 'shipping')
       =/  =time  (~(got by request-to-time) request-id)
       =/  token  (need token.tx)
       =:  request-to-token  (~(del by request-to-token) request-id)
@@ -360,6 +365,8 @@
             transactions
           (put:orm transactions time [%failure info.tx token.tx ~])
         ==
+      ?>  ?=(@t u.result-code)
+      ?>  ?=(@t u.result-text)
       ?.  =('100' u.result-code)
         :-  ~
         %_    state
@@ -381,7 +388,7 @@
     ::
     ++  normalize-data
       |=  [request-id=cord full-file=(unit mime-data:iris)]
-      ^-  (each [transaction (map @t @t)] (quip card _state))
+      ^-  (each [transaction (map @t $?(@t (map @t @t)))] (quip card _state))
       |^
       =/  =time  (~(got by request-to-time) request-id)
       =/  tx=transaction  (got:orm transactions time)
@@ -407,10 +414,22 @@
       ::
       ++  map-from-xml-body
         |=  xml=manx
-        ^-  (map @t @t)
-        %-  ~(gas by *(map @t @t))
+        ^-  (map @t $@(@t (map @t @t)))
+        %-  ~(gas by *(map @t $@(@t (map @t @t))))
         %+  murn  c.xml
         |=  =manx
+        ^-  (unit [@t $@(@t (map @t @t))])
+        ?.  ?=(@ n.g.manx)  ~
+        =/  cman  c.manx
+        ?~  cman          ~
+        ?^  a.g.i.cman
+          [~ n.g.manx (crip v.i.a.g.i.cman)]
+        ^-  (unit [@t (map @t @t)])
+        :-  ~
+        :-  n.g.manx
+        %-  ~(gas by *(map @t @t))
+        %+  murn  c.manx
+        |=  =^manx
         ^-  (unit [@t @t])
         ?.  ?=(@ n.g.manx)  ~
         ?~  c.manx          ~

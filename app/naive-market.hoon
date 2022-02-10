@@ -98,7 +98,7 @@
           (gte 50 ~(wyt in p.sel))
       =/  nonce=@
         ~|  "roller may not be set up"
-        +((need (scry-for %roller (unit @) /nonce/(scot %p who)/[proxy])))
+        (need (scry-for %roller (unit @) /nonce/(scot %p who)/[proxy]))
       :_  state
       =|  cards=(list card)
       |^  ^-  (list card)
@@ -218,7 +218,7 @@
         =/  =tx:naive:ntx
           [[ship %own] %transfer-point to %&]
         =/  nonce=@
-          +((need (scry-for %roller (unit @) /nonce/(scot %p ship)/own)))
+          (need (scry-for %roller (unit @) /nonce/(scot %p ship)/own))
         =/  sig=octs
           (gen-tx:ntx nonce tx prv)
         :^  %pass  /transfer/(scot %p who)/(scot %p ship)  %agent
