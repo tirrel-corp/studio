@@ -62,9 +62,8 @@
       =/  =address  (address-from-prv:key:eth prv.c)
       :_  state(star-configs (~(put by star-configs) who.update c))
       :_  ~
-      ::  TODO: watch points here instead of txs
       :^  %pass  /star/(scot %p who.update)  %agent
-      [[our.bowl %roller] %watch /txs/(scot %ux address)]
+      [[our.bowl %roller] %watch /connect/(scot %ux address)]
       ::
       ++  check-dupes
         |=  prv=@
@@ -300,7 +299,6 @@
   ^-  (quip card _this)
   |^
   ?+    wire  (on-agent:def wire sign)
-
       [%star @ ~]
     ~&  wire
     =/  who=ship  (slav %p i.t.wire)
@@ -308,7 +306,7 @@
     ?:  ?=(%kick -.sign)
       =/  =address  (address-from-prv:key:eth prv.con)
       :_  this
-      [%pass wire %agent [our.bowl %roller] %watch /txs/(scot %ux address)]^~
+      [%pass wire %agent [our.bowl %roller] %watch /connect/(scot %ux address)]^~
     ?.  ?=(%fact -.sign)
       `this
     `this(state (on-star who con))
