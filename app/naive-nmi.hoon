@@ -7,8 +7,17 @@
 +$  card  card:agent:gall
 ::
 +$  state-0
-  $:  %0
-      api-key=(unit cord)
+  $:  api-key=(unit cord)
+      site=(unit [host=cord suffix=(unit term)])
+      redirect-url=(unit cord)
+      transactions=transactions-0
+      =request-to-time
+      =request-to-token
+      =token-to-request
+  ==
+::
++$  state-1
+  $:  api-key=(unit cord)
       site=(unit [host=cord suffix=(unit term)])
       redirect-url=(unit cord)
       =transactions
@@ -16,10 +25,15 @@
       =request-to-token
       =token-to-request
   ==
+::
++$  versioned-state
+  $%  [%0 state-0]
+      [%1 state-1]
+  ==
 ++  api-url  'https://secure.networkmerchants.com/api/v2/three-step'
 --
 ::
-=|  state-0
+=|  [%1 state-1]
 =*  state  -
 ::
 %-  agent:dbug
@@ -35,8 +49,20 @@
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
-  =/  old  !<(state-0 old-vase)
-  `this(state old)
+  |^
+  =/  old  !<(versioned-state old-vase)
+  |-
+  ?-  -.old
+      %1  `this(state old)
+      %0  $(old (state-0-to-1 old))
+  ==
+  ::
+  ++  state-0-to-1
+    |=  [%0 s=state-0]
+    ^-  [%1 state-1]
+    :-  %1
+    s(transactions *^transactions)
+  --
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -348,11 +374,9 @@
     ++  process-step3
       |=  [request-id=cord tx=transaction m=(map @t $?(@t (map @t @t)))]
       ^-  (quip card _state)
-      ~&  step3+m
       ?>  ?=(%pending -.tx)
       =/  result-code  (~(get by m) 'result-code')
       =/  result-text  (~(get by m) 'result-text')
-      =/  shipping     (~(get by m) 'shipping')
       =/  =time  (~(got by request-to-time) request-id)
       =/  token  (need token.tx)
       =:  request-to-token  (~(del by request-to-token) request-id)
@@ -365,6 +389,10 @@
             transactions
           (put:orm transactions time [%failure info.tx token.tx ~])
         ==
+      =/  shipping=$?(@t (map @t @t))  (~(got by m) 'shipping')
+      ?@  shipping  !!
+      =/  shp=(map @t @t)  shipping
+      =/  email     (~(got by shp) 'email')
       ?>  ?=(@t u.result-code)
       ?>  ?=(@t u.result-text)
       ?.  =('100' u.result-code)
@@ -375,16 +403,25 @@
           :^  %failure  info.tx  token.tx
           `[(slav %ud u.result-code) u.result-text]
         ==
+      =/  transaction-id      (~(got by m) 'transaction-id')
+      =/  authorization-code  (~(got by m) 'authorization-code')
+      =/  cvv-result          (~(got by m) 'cvv-result')
+      ?>  ?=(@t transaction-id)
+      ?>  ?=(@t authorization-code)
+      ?>  ?=(@t cvv-result)
       :_  %_    state
               transactions
             %^  put:orm  transactions  time
             :^  %success  info.tx  token.tx
-            ::  TODO: parse result
-            *finis
+            :*  (rash transaction-id dem)
+                (rash authorization-code dem)
+                cvv-result
+                email
+            ==
           ==
       =-  [%pass /sell-ship/[token] %agent [our.bowl %naive-market] %poke -]~
       :-  %naive-market-update
-      !>(`update:nam`[%sell-ships who.info.tx sel.info.tx 0x1234])
+      !>(`update:nam`[%sell-ships who.info.tx sel.info.tx 0x1234 email])
     ::
     ++  normalize-data
       |=  [request-id=cord full-file=(unit mime-data:iris)]

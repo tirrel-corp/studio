@@ -1,12 +1,22 @@
 :: naive-market [tirrel]
 ::
-/-  dice
+/-  dice, mailer
 /+  *naive-market, ntx=naive-transactions, eth=ethereum, default-agent, dbug, verb
 |%
 +$  card  card:agent:gall
+::
 +$  state-0
-  $:  %0
-      price=(unit price)
+  $:  price=(unit price)
+      referrals=(unit referral-policy)
+    ::
+      =star-configs
+      =for-sale
+      sold-ships=sold-ships-0
+      =sold-ship-to-date
+  ==
+::
++$  state-1
+  $:  price=(unit price)
       referrals=(unit referral-policy)
     ::
       =star-configs
@@ -14,9 +24,14 @@
       =sold-ships
       =sold-ship-to-date
   ==
+::
++$  versioned-state
+  $%  [%0 state-0]
+      [%1 state-1]
+  ==
 --
 ::
-=|  state-0
+=|  [%1 state-1]
 =*  state  -
 ::
 %-  agent:dbug
@@ -31,8 +46,20 @@
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
-  =/  old  !<(state-0 old-vase)
-  `this(state old)
+  |^
+  =/  old  !<(versioned-state old-vase)
+  |-
+  ?-  -.old
+    %1  `this(state old)
+    %0  $(old (state-0-to-1 old))
+  ==
+  ::
+  ++  state-0-to-1
+    |=  [%0 s=state-0]
+    ^-  [%1 state-1]
+    :-  %1
+    s(sold-ships *^sold-ships)
+  --
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -166,9 +193,10 @@
         %sell-ships
       |^
       ?>  ?=(^ price)
-      =*  now  now.bowl
-      =*  who  who.update
-      =*  to   to.update
+      =*  now    now.bowl
+      =*  who    who.update
+      =*  to     to.update
+      =*  email  email.update
       =/  ships=(list ship)  ~(tap in (~(get ju for-sale) who))
       =/  c=config  (~(got by star-configs) who)
       =/  from=address  (address-from-prv:key:eth prv.c)
@@ -181,17 +209,22 @@
         ?:  =(0 p.sel.update)
           :_  state
           %+  weld  cards
-          (give /updates^~ [%sell-ships who %&^ships-to-be-sold to])
+          (give /updates^~ [%sell-ships who %&^ships-to-be-sold to email])
         ?>  ?=(^ ships)
         =*  ship  i.ships
         %_  $
           p.sel.update       (dec p.sel.update)
           ships              t.ships
           ships-to-be-sold   (~(put in ships-to-be-sold) ship)
-          sold-ships         (put:his sold-ships now [ship u.price referrals])
           for-sale           (~(del ju for-sale) who ship)
           sold-ship-to-date  (~(put by sold-ship-to-date) ship now)
-          cards              [(transfer-point ship who from to prv.c) cards]
+          sold-ships  (put:his sold-ships now [ship u.price referrals email])
+        ::
+            cards
+          :*  (transfer-point ship who from to prv.c)
+              (send-email email)
+              cards
+          ==
         ==
       =/  pending  ~(tap in p.sel.update)
       |-
@@ -205,10 +238,15 @@
       ?>  (~(has ju for-sale) who ship)
       %_  $
         pending            t.pending
-        sold-ships         (put:his sold-ships now [ship u.price referrals])
+        sold-ships         (put:his sold-ships now [ship u.price referrals email])
         for-sale           (~(del ju for-sale) who ship)
         sold-ship-to-date  (~(put by sold-ship-to-date) ship now)
-        cards              [(transfer-point ship who from to prv.c) cards]
+      ::
+          cards
+        :*  (transfer-point ship who from to prv.c)
+            (send-email email)
+            cards
+        ==
       ==
       ::
       ++  transfer-point
@@ -223,6 +261,13 @@
         :^  %pass  /transfer/(scot %p who)/(scot %p ship)  %agent
         :+  [our.bowl %roller]  %poke
         roller-action+!>([%submit | from q.sig %don tx])
+      ::
+      ++  send-email
+        |=  email=@t
+        ^-  card
+        =/  send-email=action:mailer  [%send-email (make-email email)]
+        =/  =cage  [%mailer-action !>(send-email)]
+        [%pass /fulfillment-email %agent [our.bowl %mailer] %poke cage]
       --
     ::
         %sell-from-referral

@@ -1,5 +1,27 @@
-/-  *naive-market
+/-  *naive-market, mailer
 |%
+++  make-email
+  |=  address=@t
+  ^-  email:mailer
+  |^
+  :*  ['isaac@tirrel.io' '~tirrel']
+      'Planet Receipt'
+      email-body^~
+      [[address]~ ~ ~]~
+  ==
+  ::
+  ++  email-body
+    ^-  content-field:mailer
+    :-  'text/html'
+    =<  q
+    %-  as-octt:mimes:html
+    %-  en-xml:html
+    %-  manx
+    ;div
+      ;p: here is your planet
+    ==
+  --
+::
 ++  dejs
   =,  dejs:format
   |%
@@ -12,7 +34,7 @@
         set-price+price
         set-referrals+(mu referral-policy)
         spawn-ships+(ot ship+ship sel+selector ~)
-        sell-ships+(ot ship+ship sel+selector to+nu ~)
+        sell-ships+(ot ship+ship sel+selector to+nu email+so ~)
         sell-from-referral+ship
     ==
   ::
