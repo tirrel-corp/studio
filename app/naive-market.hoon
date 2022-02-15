@@ -195,8 +195,8 @@
       ?>  ?=(^ price)
       =*  now    now.bowl
       =*  who    who.update
-      =*  to     to.update
       =*  email  email.update
+      =/  recipient  0x1234
       =/  ships=(list ship)  ~(tap in (~(get ju for-sale) who))
       =/  c=config  (~(got by star-configs) who)
       =/  from=address  (address-from-prv:key:eth prv.c)
@@ -209,7 +209,7 @@
         ?:  =(0 p.sel.update)
           :_  state
           %+  weld  cards
-          (give /updates^~ [%sell-ships who %&^ships-to-be-sold to email])
+          (give /updates^~ [%sell-ships who %&^ships-to-be-sold email])
         ?>  ?=(^ ships)
         =*  ship  i.ships
         %_  $
@@ -221,7 +221,7 @@
           sold-ships  (put:his sold-ships now [ship u.price referrals email])
         ::
             cards
-          :*  (transfer-point ship who from to prv.c)
+          :*  (transfer-point ship who from recipient prv.c)
               (send-email email)
               cards
           ==
@@ -243,7 +243,7 @@
         sold-ship-to-date  (~(put by sold-ship-to-date) ship now)
       ::
           cards
-        :*  (transfer-point ship who from to prv.c)
+        :*  (transfer-point ship who from recipient prv.c)
             (send-email email)
             cards
         ==

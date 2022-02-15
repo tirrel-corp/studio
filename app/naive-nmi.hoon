@@ -421,7 +421,7 @@
           ==
       =-  [%pass /sell-ship/[token] %agent [our.bowl %naive-market] %poke -]~
       :-  %naive-market-update
-      !>(`update:nam`[%sell-ships who.info.tx sel.info.tx 0x1234 email])
+      !>(`update:nam`[%sell-ships who.info.tx sel.info.tx email])
     ::
     ++  normalize-data
       |=  [request-id=cord full-file=(unit mime-data:iris)]

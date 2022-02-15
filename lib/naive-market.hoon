@@ -1,5 +1,41 @@
 /-  *naive-market, mailer
 |%
+::
+++  generate-invite-wallet
+  |=  [ship=@p seed=@ux]
+  =/  ticket  (make-deterministic-wallet ship seed)
+::  =/  invite-wallet  (generate-wallet ship ticket)
+::  [ticket invite-wallet]
+  ticket
+::
+++  make-deterministic-wallet
+  |=  [ship=@p seed=@ux]
+  ^-  @q
+  =/  point-salt  (cat 3 (scot %p ship) 'invites')
+  =/  entropy  (shas seed point-salt)
+  =/  ticket   (end [3 (div 64 3)] entropy)
+  =/  cub      (pit:nu:crub:crypto 512 entropy)
+  (generate-invite-wallet ship ticket)
+::
+++  get-auth-token
+  |=  priv=@ux
+  ^-  @ux
+  =/  msg  'Bridge Authentication Token'
+  =/  msg-2
+    %:  rap  3
+      '\19Ethereum Signed Message:\0a'
+      (scot %ud (met 3 msg))
+      msg
+      ~
+    ==
+  =/  hax    (swp 3 (shax msg-2))
+  =/  raw-sig    (ecdsa-raw-sign:secp256k1:secp:secp:crypto hax priv)
+  =/  res    (cat 3 (swp 3 r.raw-sig) (swp 3 s.raw-sig))
+  ~&  (cut 3 [31 1] res)
+  ~&  (cut 3 [31 1] (swp 3 res))
+  =/  bits   (add 27 (mod (cut 3 [31 1] (swp 3 res)) 2))
+  `@ux`(swp 3 (cat 3 res bits))
+::
 ++  make-email
   |=  address=@t
   ^-  email:mailer
@@ -34,7 +70,7 @@
         set-price+price
         set-referrals+(mu referral-policy)
         spawn-ships+(ot ship+ship sel+selector ~)
-        sell-ships+(ot ship+ship sel+selector to+nu email+so ~)
+        sell-ships+(ot ship+ship sel+selector email+so ~)
         sell-from-referral+ship
     ==
   ::
@@ -99,7 +135,7 @@
       %-  pairs
       :~  who+(ship who.upd)
           sel+(selector sel.upd)
-          to+s+(en:base16:mimes:html [(met 3 to.upd) to.upd])
+          email+s+email.upd
       ==
     ::
         %sell-from-referral
