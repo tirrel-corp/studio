@@ -1,21 +1,32 @@
 /-  *naive-market, mailer
+/+  kg=keygen
 |%
+::
+++  main
+  |=  [prv=@ =ship]
+  ^-  (trel @q node:kg uode:kg)
+  =/  a  (get-auth-token prv)
+  =/  iw  (generate-invite-wallet ship a)
+  =/  oad  ::  ownership seed
+    (to-seed:bip39:kg seed.q.iw "")
+  =/  sed  (derive-network-seed:kg oad 1)
+  =/  network=uode:kg  [1 sed (urbit:ds:kg sed)]
+  [p.iw q.iw network]
 ::
 ++  generate-invite-wallet
   |=  [ship=@p seed=@ux]
-  =/  ticket  (make-deterministic-wallet ship seed)
-::  =/  invite-wallet  (generate-wallet ship ticket)
-::  [ticket invite-wallet]
-  ticket
+  ^-  (pair @q node:kg)
+  =/  ticket  (make-deterministic-ticket ship seed)
+  =/  w  (ownership-wallet-from-ticket:kg ship ticket ~)
+  [+.ticket w]
 ::
-++  make-deterministic-wallet
+++  make-deterministic-ticket
   |=  [ship=@p seed=@ux]
-  ^-  @q
+  ^-  byts
   =/  point-salt  (cat 3 (scot %p ship) 'invites')
   =/  entropy  (shas seed point-salt)
   =/  ticket   (end [3 (div 64 3)] entropy)
-  =/  cub      (pit:nu:crub:crypto 512 entropy)
-  (generate-invite-wallet ship ticket)
+  [(met 3 ticket) ticket]
 ::
 ++  get-auth-token
   |=  priv=@ux

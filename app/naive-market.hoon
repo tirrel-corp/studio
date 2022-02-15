@@ -131,6 +131,10 @@
       ?:  ?=(%| -.sel)
         =/  unspawned=(list ship)
           (scry-for %roller (list ship) /unspawned/(scot %p who))
+        ::  TODO: get pending by ship
+        ::  get pending spawns
+        ::  filter unspawned by pending spawns
+
         =|  i=@ud
         |-
         ?:  ?|(?=(~ unspawned) (gte i p.sel))
@@ -140,11 +144,14 @@
           i          +(i)
           nonce      +(nonce)
           unspawned  t.unspawned
-          cards      [(configure-keys ship) (spawn ship) cards]
+          cards      (weld (generate-txs ship) cards)
         ==
       =/  unspawned=(set ship)
         %-  ~(gas in *(set ship))
         (scry-for %roller (list ship) /unspawned/(scot %p who))
+      ::  TODO: get pending by ship
+      ::  get pending spawns
+      ::  filter unspawned by pending spawns
       =/  ships=(list ship)  ~(tap in p.sel)
       |-
       ?~  ships
@@ -154,40 +161,38 @@
       ?>  (~(has in unspawned) ship)
       %_  $
         ships  t.ships
-        cards  [(configure-keys ship) (spawn ship) cards]
+        cards  (weld (generate-txs ship) cards)
       ==
       ::
-      ++  spawn
+      ++  generate-txs
         |=  =ship
-        ^-  card
-        =/  =tx:naive:ntx
+        ^-  (list card)
+        =/  wal  (main prv ship)
+        =*  tic  p.wal
+        =*  nod  q.wal
+        =*  net  r.wal
+        =/  spawn=card
+          =-  (roller-card addr q:(gen-tx:ntx 0 - prv) -)
+          ^-  tx:naive:ntx
           [[who proxy] %spawn ship addr]
-        =/  sig=octs
-          (gen-tx:ntx nonce tx prv)
-        :^  %pass  /spawn/(scot %p ship)  %agent
-        :+  [our.bowl %roller]  %poke
-        roller-action+!>([%submit | addr q.sig %don tx])
-      ::
-      ++  configure-keys
-        |=  =ship
-        ^-  card
-        ::  TODO: this is a first pass to replicate logic in
-        ::  gen/key.hoon
-        =/  bur  (shaz (add ship (shaz eny.bowl)))
-        =/  cub  (pit:nu:crub:crypto 512 bur)
-        =/  pub=pass  pub:ex:cub
-        =/  bod=@     (rsh 3 pub)
-        =/  encrypt=@  (rsh 8 bod)
-        =/  auth=@     (end 8 bod)
-        =/  =tx:naive:ntx
+        =/  config-keys=card
+          =-  (roller-card addr q:(gen-tx:ntx 0 - prv) -)
+          ^-  tx:naive:ntx
           :+  [ship %own]
             %configure-keys
-          [encrypt auth suite=1 breach=%.n]
-        =/  sig=octs
-          (gen-tx:ntx nonce=0 tx prv)
-        :^  %pass  /configure/(scot %p ship)  %agent
+          [public.crypt.keys.net public.auth.keys.net suite=1 breach=%.n]
+        =/  transfer=card
+          =-  (roller-card addr q:(gen-tx:ntx 0 - prv) -)
+          ^-  tx:naive:ntx
+          [[who proxy] %transfer-point addr.keys.nod reset=%.n]
+        [transfer config-keys spawn ~]
+      ::
+      ++  roller-card
+        |=  [=address:naive:ntx sig=@ =tx:naive:ntx]
+        ^-  card
+        :^  %pass  /roller/(scot %ux sig)  %agent
         :+  [our.bowl %roller]  %poke
-        roller-action+!>([%submit | addr q.sig %don tx])
+        roller-action+!>([%submit | address sig %don tx])
       --
     ::
         %sell-ships
