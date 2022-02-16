@@ -6,7 +6,7 @@
 +$  selector  (each (set ship) @ud)
 ::
 +$  referral-policy  [number-referrals=@ud =price]
-+$  record           [=ship =price ref=(unit referral-policy) email=@t]
++$  record           [=ship =price ref=(unit referral-policy) email=@t ticket=@q]
 +$  records          (set record)
 ::
 +$  config        [prv=@ proxy=?(%own %spawn)]
@@ -24,14 +24,11 @@
   ==
 ::
 +$  sold-ship-to-date  (map ship time)
-+$  for-sale           (jug ship ship)
++$  for-sale           (map ship (map ship @q))
 +$  keys               [encrypt=@ auth=@]
 +$  ship-to-keys       (map ship keys)
 ::
 +$  sold-ships         ((jog time record) gth)
 ++  his                ((jo time record) gth)
-::  old structures
-+$  sold-ships-0  ((jog time record-0) gth)
-+$  record-0      [=ship =price ref=(unit referral-policy)]
 --
 

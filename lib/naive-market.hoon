@@ -2,9 +2,9 @@
 /+  kg=keygen
 |%
 ::
-++  main
+++  wallet-for-ship
   |=  [prv=@ =ship]
-  ^-  (trel @q node:kg uode:kg)
+  ^-  [tic=@q nod=node:kg net=uode:kg]
   =/  a  (get-auth-token prv)
   =/  iw  (generate-invite-wallet ship a)
   =/  oad  ::  ownership seed
