@@ -48,26 +48,63 @@
   `@ux`(swp 3 (cat 3 res bits))
 ::
 ++  make-email
-  |=  address=@t
+  |=  [address=@t sold=(map ship @q)]
   ^-  email:mailer
-  |^
   :*  ['isaac@tirrel.io' '~tirrel']
-      'Planet Receipt'
-      email-body^~
+      'You got a planet!'
+      (email-body sold)^~
       [[address]~ ~ ~]~
   ==
   ::
-  ++  email-body
-    ^-  content-field:mailer
-    :-  'text/html'
-    =<  q
-    %-  as-octt:mimes:html
-    %-  en-xml:html
-    %-  manx
+++  email-body
+  |=  sold=(map ship @q)
+  ^-  content-field:mailer
+  =/  num  ~(wyt by sold)
+  :-  'text/html'
+  =<  q
+  %-  as-octt:mimes:html
+  %-  en-xml:html
+  ^-  manx
+  ?:  =(num 1)
+    =/  lis  ~(tap by sold)
+    ?>  ?=(^ lis)
+    =/  ship    -.i.lis
+    =/  ticket  +.i.lis
+    =/  bu  (bridge-url ticket)
     ;div
-      ;p: here is your planet
+      ;p: Welcome to Urbit, you now own the planet {(scow %p ship)}
+      ;table
+        ;tr
+          ;td: Please activate it in Bridge:
+          ;td
+            ;a(href bu): {bu}
+          ==
+        ==
+      ==
     ==
-  --
+  =/  lis  ~(tap by sold)
+  ?>  ?=(^ lis)
+  =/  ship    -.i.lis
+  =/  ticket  +.i.lis
+  ;div
+    ;p: Welcome to Urbit, you now own the following planets. Click the bridge link beside each planet to activate it
+    ;table
+      ;*  %+  turn  lis
+          |=  [s=@p t=@q]
+          ^-  manx
+          ;tr
+            ;td: {(scow %p s)}
+            ;td
+              ;a(href (bridge-url t)): {(bridge-url t)}
+            ==
+          ==
+    ==
+  ==
+::
+++  bridge-url
+  |=  t=@q
+  ^-  tape
+  "https://bridge.urbit.org/#{(slag 1 (scow %q t))}"
 ::
 ++  dejs
   =,  dejs:format

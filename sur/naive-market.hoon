@@ -25,6 +25,7 @@
 ::
 +$  sold-ship-to-date  (map ship time)
 +$  for-sale           (map ship (map ship @q))
++$  pending-txs        (map ship (map ship [@q (list @ux)]))
 +$  keys               [encrypt=@ auth=@]
 +$  ship-to-keys       (map ship keys)
 ::
