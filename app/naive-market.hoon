@@ -157,12 +157,12 @@
         =+  (wallet-for-ship prv ship)
         =/  spawn  (roller-tx addr nonce [[who proxy] %spawn ship addr])
         =/  conf-keys
-          %^  roller-tx  addr  +(nonce)
+          %^  roller-tx  addr  0
           :+  [ship %own]  %configure-keys
           [public.crypt.keys.net public.auth.keys.net 1 %.n]
         =/  transfer
-          %^  roller-tx  addr  (add 2 nonce)
-          [[who proxy] %transfer-point addr.keys.nod %.n]
+          %^  roller-tx  addr  1
+          [[ship %own] %transfer-point addr.keys.nod %.n]
         :+  tic
           [q.spawn q.conf-keys q.transfer ~]
         [p.spawn p.conf-keys p.transfer ~]
