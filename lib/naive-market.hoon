@@ -23,9 +23,9 @@
 ++  make-deterministic-ticket
   |=  [ship=@p seed=@ux]
   ^-  byts
-  =/  point-salt  (cat 3 (scot %p ship) 'invites')
-  =/  entropy  (shas seed point-salt)
-  =/  ticket   (end [3 (div 64 3)] entropy)
+  =/  point-salt  (cat 3 (rsh [3 2] (scot %ui ship)) 'invites')
+  =/  entropy  (shas point-salt (swp 3 seed))
+  =/  ticket   (swp 3 (end [1 32] entropy))
   [(met 3 ticket) ticket]
 ::
 ++  get-auth-token
@@ -42,8 +42,6 @@
   =/  hax    (swp 3 (shax msg-2))
   =/  raw-sig    (ecdsa-raw-sign:secp256k1:secp:secp:crypto hax priv)
   =/  res    (cat 3 (swp 3 r.raw-sig) (swp 3 s.raw-sig))
-  ~&  (cut 3 [31 1] res)
-  ~&  (cut 3 [31 1] (swp 3 res))
   =/  bits   (add 27 (mod (cut 3 [31 1] (swp 3 res)) 2))
   `@ux`(swp 3 (cat 3 res bits))
 ::
@@ -118,7 +116,7 @@
         set-price+price
         set-referrals+(mu referral-policy)
         spawn-ships+(ot ship+ship sel+selector ~)
-        sell-ships+(ot ship+ship sel+selector email+so ~)
+        sell-ships+(ot ship+ship sel+selector time+di email+so ~)
         sell-from-referral+ship
     ==
   ::
@@ -184,6 +182,7 @@
       :~  who+(ship who.upd)
           sel+(selector sel.upd)
           email+s+email.upd
+          time+(time time.upd)
       ==
     ::
         %sell-from-referral

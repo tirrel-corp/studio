@@ -35,11 +35,11 @@
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
-  `this(state [%0 *state-0])
-::  =/  old  !<(versioned-state old-vase)
-::  ?-  -.old
-::    %0  `this(state old)
-::  ==
+  ::`this(state [%0 *state-0])
+  =/  old  !<(versioned-state old-vase)
+  ?-  -.old
+    %0  `this(state old)
+  ==
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -136,7 +136,7 @@
         =/  pending-spawns=(set ship)
           %-  ~(gas in *(set ship))
           %+  murn
-            (scry-for %roller (list pend-tx:dice) /pending-by/(scot %p who))
+            (scry-for %roller (list pend-tx:dice) /pending/(scot %p who))
           |=  pen=pend-tx:dice
           ^-  (unit ship)
           =*  skim-tx  +.tx.raw-tx.pen
@@ -183,6 +183,7 @@
       =*  sel  sel.update
       =*  who    who.update
       =*  email  email.update
+      =*  time   time.update
       ?>  ?=(^ price)
       |^
       =/  c=config  (~(got by star-configs) who)
@@ -194,7 +195,7 @@
         (~(dif in for-sale-who) sold)
       =.  sold-ships
         %^  uni:his  sold-ships
-          now.bowl
+          time
         (make-records sold)
       =.  sold-ship-to-date
         %-  ~(uni by sold-ship-to-date)
@@ -203,10 +204,10 @@
       ::
       ++  ship-to-date
         |=  s=(map ship @q)
-        ^-  (map ship time)
+        ^-  (map ship ^time)
         %-  ~(run in s)
         |=  [a=ship @q]
-        [a now.bowl]
+        [a time]
       ::
       ++  make-records
         |=  m=(map ship @q)
@@ -301,6 +302,10 @@
     =/  who=ship  (slav %p i.t.t.path)
     ``noun+!>(`(set (pair ship @q))`(~(get ju for-sale) who))
   ::
+      [%x %records @ ~]
+    =/  =time  (slav %ud i.t.t.path)
+    ``noun+!>(`records`(get:his sold-ships time))
+  ::
       [%x %star-configs ~]
     :^  ~  ~  %json
     !>  ^-  json
@@ -313,7 +318,6 @@
   |^
   ?+    wire  (on-agent:def wire sign)
       [%star @ ~]
-    ~&  wire
     =/  who=ship  (slav %p i.t.wire)
     =/  con=config  (~(got by star-configs) who)
     ?:  ?=(%kick -.sign)

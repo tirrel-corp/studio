@@ -126,7 +126,7 @@
       =/  =action  [-.p.act token.p.act]
       ?~  maybe-request=(~(get by token-to-request) token.p.act)
         `[[400 ~] ~]
-      :_  [[201 ~] `(json-to-octs:srv s+eyre-id)]
+      :_  [[201 ~] `(json-to-octs:srv s+u.maybe-request)]
       =-  [%pass /post-req/[eyre-id] %agent [our dap]:bowl %poke -]~
       [%naive-nmi-action !>(action)]
     ::
@@ -160,11 +160,21 @@
       ^-  simple-payload:http
       ?.  ?=(^ ext.req)        not-found:gen:srv
       ?.  ?=(%json u.ext.req)  not-found:gen:srv
-      =/  site  (flop site.req)
-      ?~  site  not-found:gen:srv
-      ?~  maybe-token=(~(get by request-to-token) i.site)
-        not-found:gen:srv
-      (json-response:gen:srv s+u.maybe-token)
+      ?+    site.req  not-found:gen:srv
+          [* %'start' @ ~]
+        ?~  token=(~(get by request-to-token) (rear `(list @t)`site.req))
+          not-found:gen:srv
+        (json-response:gen:srv s+u.token)
+      ::
+          [* %'finish' @ ~]
+        ?~  time=(~(get by request-to-time) (rear `(list @t)`site.req))
+          not-found:gen:srv
+        =/  =records:nam
+          (scry-for %naive-market records:nam /records/(scot %da u.time))
+        ~&  records
+        %-  json-response:gen:srv
+        ~
+      ==
     --
   ::
   ++  naive-nmi-action
@@ -289,17 +299,17 @@
       |=  xml=manx
       ^-  octs
       (as-octt:mimes:html (en-xml:html xml))
-    ::
-    ++  scry-for
-      |*  [dap=term =mold =path]
-      .^  mold
-        %gx
-        (scot %p our.bowl)
-        dap
-        (scot %da now.bowl)
-        (snoc `^path`path %noun)
-      ==
     --
+  ::
+  ++  scry-for
+    |*  [dap=term =mold =path]
+    .^  mold
+      %gx
+      (scot %p our.bowl)
+      dap
+      (scot %da now.bowl)
+      (snoc `^path`path %noun)
+    ==
   --
 ::
 ++  on-arvo
@@ -421,7 +431,7 @@
           ==
       =-  [%pass /sell-ship/[token] %agent [our.bowl %naive-market] %poke -]~
       :-  %naive-market-update
-      !>(`update:nam`[%sell-ships who.info.tx sel.info.tx email])
+      !>(`update:nam`[%sell-ships who.info.tx sel.info.tx time email])
     ::
     ++  normalize-data
       |=  [request-id=cord full-file=(unit mime-data:iris)]

@@ -19,7 +19,7 @@
       [%set-referrals ref=(unit referral-policy)]
     ::
       [%spawn-ships who=ship sel=selector]
-      [%sell-ships who=ship sel=selector email=@t]
+      [%sell-ships who=ship sel=selector time=@da email=@t]
       [%sell-from-referral who=ship]
   ==
 ::
