@@ -72,9 +72,12 @@
             pending-txs   (~(put by pending-txs) who.update ~)
             for-sale      (~(put by for-sale) who.update ~)
           ==
-      :_  ~
-      :^  %pass  /star/(scot %p who.update)  %agent
-      [[our.bowl %roller] %watch /connect/(scot %ux address)]
+      :~  :^  %pass  /star/connect/(scot %p who.update)  %agent
+          [[our.bowl %roller] %watch /connect/(scot %ux address)]
+      ::
+          :^  %pass  /star/txs/(scot %p who.update)  %agent
+          [[our.bowl %roller] %watch /txs/(scot %ux address)]
+      ==
       ::
       ++  check-dupes
         |=  prv=@
@@ -92,9 +95,12 @@
             for-sale      (~(del by for-sale) who.update)
             pending-txs   (~(del by pending-txs) who.update)
           ==
-      :_  ~
-      :^  %pass  /star/(scot %p who.update)  %agent
-      [[our.bowl %roller] %leave ~]
+      :~  :^  %pass  /star/connect/(scot %p who.update)  %agent
+          [[our.bowl %roller] %leave ~]
+      ::
+          :^  %pass  /star/txs/(scot %p who.update)  %agent
+          [[our.bowl %roller] %leave ~]
+      ==
     ::
         %spawn-ships
       =*  sel  sel.update
@@ -122,7 +128,7 @@
       =/  gen  (generate-txs ship nonce)
       %_  $
         ships    t.ships
-        nonce    (add 3 nonce)
+        nonce    +(nonce)
         tickets  [[ship p.gen] tickets]
         cards    (weld cards q.gen)
         pend     (~(put by pend) ship [p.gen r.gen])
@@ -317,9 +323,11 @@
   ^-  (quip card _this)
   |^
   ?+    wire  (on-agent:def wire sign)
-      [%star @ ~]
-    =/  who=ship  (slav %p i.t.wire)
+      [%star @ @ ~]
+    ~&  wire+-.sign
+    =/  who=ship  (slav %p i.t.t.wire)
     =/  con=config  (~(got by star-configs) who)
+    :: TODO deal with both cases
     ?:  ?=(%kick -.sign)
       =/  =address  (address-from-prv:key:eth prv.con)
       :_  this
@@ -327,6 +335,7 @@
     ?.  ?=(%fact -.sign)
       `this
     =+  (on-star who con)
+    ~&  on-star+[p f]
     :-  ~
     %=  this
       pending-txs  (~(put by pending-txs) who p)
@@ -350,6 +359,7 @@
       |=  [x=@ux res=_&]
       =/  scry=tx-status:dice
         (scry-for %roller tx-status:dice /tx/(scot %ux x)/status)
+      ~&  scry+scry
       ?.  res  res
       ?=(%confirmed status.scry)
     ?.  success  [p f]
