@@ -68,7 +68,7 @@
     ?>  ?=(^ lis)
     =/  ship    -.i.lis
     =/  ticket  +.i.lis
-    =/  bu  (bridge-url ticket)
+    =/  bu  (bridge-url ship ticket)
     ;div
       ;p: Welcome to Urbit, you now own the planet {(scow %p ship)}
       ;table
@@ -93,16 +93,16 @@
           ;tr
             ;td: {(scow %p s)}
             ;td
-              ;a(href (bridge-url t)): {(bridge-url t)}
+              ;a(href (bridge-url s t)): {(bridge-url s t)}
             ==
           ==
     ==
   ==
 ::
 ++  bridge-url
-  |=  t=@q
+  |=  [p=@p t=@q]
   ^-  tape
-  "https://bridge.urbit.org/#{(slag 1 (scow %q t))}"
+  "https://bridge.urbit.org/#{(slag 1 (scow %q t))}-{(slag 1 (scow %p p))}"
 ::
 ++  dejs
   =,  dejs:format
