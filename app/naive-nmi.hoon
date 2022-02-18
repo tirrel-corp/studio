@@ -31,6 +31,7 @@
       [%1 state-1]
   ==
 ++  api-url  'https://secure.networkmerchants.com/api/v2/three-step'
+++  timeout-interval  ~m1
 --
 ::
 =|  [%1 state-1]
@@ -43,7 +44,9 @@
 +*  this  .
     def   ~(. (default-agent this %|) bowl)
 ::
-++  on-init  `this
+++  on-init
+  :-  [%pass /timeout %arvo %b %wait (add now.bowl timeout-interval)]~
+  this
 ::
 ++  on-save   !>(state)
 ++  on-load
@@ -52,9 +55,11 @@
   |^
   =/  old  !<(versioned-state old-vase)
   |-
-  ?-  -.old
-      %1  `this(state old)
-      %0  $(old (state-0-to-1 old))
+  ?-    -.old
+      %1
+    `this(state old)
+  ::
+    %0  $(old (state-0-to-1 old))
   ==
   ::
   ++  state-0-to-1
@@ -320,11 +325,36 @@
     ~?  !accepted.sign-arvo
       [dap.bowl "bind rejected!" binding.sign-arvo]
     [~ this]
+  ?:  ?=([%behn %wake *] sign-arvo)
+    :_  filter-old-requests
+    [%pass /timeout %arvo %b %wait (add now.bowl timeout-interval)]~
   ?.  ?=(%http-response +<.sign-arvo)
     (on-arvo:def wire sign-arvo)
   =^  cards  state
     (http-response wire client-response.sign-arvo)
   [cards this]
+  ::
+  ++  filter-old-requests
+    ^+  this
+    =^    req-ids=(list cord)
+        request-to-time
+      %+  roll  ~(tap by request-to-time)
+      |=  [[req-id=cord =time] [req-ids=(list cord) req-to-tim=_request-to-time]]
+      ?.  (lth time (sub now.bowl ~m30))
+        req-ids^req-to-tim
+      :-  req-id^req-ids
+      (~(del by req-to-tim) req-id)
+    |-
+    ?~  req-ids
+      this
+    =/  token  (~(get by request-to-token) i.req-ids)
+    ?~  token
+      $(req-ids t.req-ids)
+    %_  $
+      req-ids           t.req-ids
+      request-to-token  (~(del by request-to-token) i.req-ids)
+      token-to-request  (~(del by token-to-request) u.token)
+    ==
   ::
   ++  http-response
     |=  [=^wire res=client-response:iris]
