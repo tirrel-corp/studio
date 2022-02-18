@@ -309,7 +309,7 @@
     ``noun+!>(`(set (pair ship @q))`(~(get ju for-sale) who))
   ::
       [%x %records @ ~]
-    =/  =time  (slav %ud i.t.t.path)
+    =/  =time  (slav %da i.t.t.path)
     ``noun+!>(`records`(get:his sold-ships time))
   ::
       [%x %star-configs ~]
@@ -346,7 +346,6 @@
   ++  on-star
     |=  [who=ship con=config]
     ^-  [p=(map ship [@q (list @ux)]) f=(map ship @q)]
-    ::  TODO: ensure we remove pending sales from set
     =/  pend   (~(got by pending-txs) who)
     =/  for-s  (~(got by for-sale) who)
     %+  roll  ~(tap by pend)
@@ -354,17 +353,28 @@
             p=_pend
             f=_for-s
         ==
-    =/  success=?
+    =/  success=?(%pending %failed %confirmed)
       %+  roll  txs
-      |=  [x=@ux res=_&]
+      |=  [x=@ux res=$~(%confirmed ?(%pending %failed %confirmed))]
       =/  scry=tx-status:dice
         (scry-for %roller tx-status:dice /tx/(scot %ux x)/status)
       ~&  scry+scry
-      ?.  res  res
-      ?=(%confirmed status.scry)
-    ?.  success  [p f]
+      ?:  ?|(=(res %pending) =(res %failed))
+        res
+      ?-  status.scry
+        ?(%pending %sending %unknown)  %pending
+        ?(%failed %cancelled)          %failed
+        %confirmed                     %confirmed
+      ==
+    ::  TODO: when it actually works, uncomment this,
+::    ?-    success
+::        %confirmed
     :-  (~(del by p) ship)
     (~(put by f) ship tic)
+    ::
+::      %pending    [p f]
+::      %failed     [(~(del by p) ship) f]
+::    ==
   ::
   ++  scry-for
     |*  [dap=term =mold =path]

@@ -176,9 +176,16 @@
           not-found:gen:srv
         =/  =records:nam
           (scry-for %naive-market records:nam /records/(scot %da u.time))
-        ~&  records
         %-  json-response:gen:srv
-        ~
+        ?:  =(~ records)  ~
+        :-  %a
+        %+  turn  ~(tap in records)
+        |=  r=record:nam
+        ^-  json
+        %-  pairs:enjs:format
+        :~  ship+s+(scot %p ship.r)
+            ticket+s+(scot %q ticket.r)
+        ==
       ==
     --
   ::
@@ -340,7 +347,7 @@
         request-to-time
       %+  roll  ~(tap by request-to-time)
       |=  [[req-id=cord =time] [req-ids=(list cord) req-to-tim=_request-to-time]]
-      ?.  (lth time (sub now.bowl ~m30))
+      ?.  (lth time (sub now.bowl ~h1))
         req-ids^req-to-tim
       :-  req-id^req-ids
       (~(del by req-to-tim) req-id)
@@ -419,10 +426,6 @@
       =/  result-text  (~(get by m) 'result-text')
       =/  =time  (~(got by request-to-time) request-id)
       =/  token  (need token.tx)
-      =:  request-to-token  (~(del by request-to-token) request-id)
-          request-to-time   (~(del by request-to-time) request-id)
-          token-to-request  (~(del by token-to-request) token)
-        ==
       ?.  ?&(?=(^ result-code) ?=(^ result-text))
         :-  ~
         %_    state
