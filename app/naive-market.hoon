@@ -198,7 +198,7 @@
       =/  for-sale-who  (~(got by for-sale) who)
       =.  for-sale
         %+  ~(put by for-sale)  who
-        (~(dif in for-sale-who) sold)
+        (~(dif by for-sale-who) sold)
       =.  sold-ships
         %^  uni:his  sold-ships
           time
