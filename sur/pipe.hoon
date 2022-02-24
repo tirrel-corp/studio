@@ -77,8 +77,8 @@
   ==
 ::
 +$  site-template   $-(site-inputs website)
-+$  email-template  $-(email-inputs (each email tang))
-+$  website  (map @t (each mime tang))
++$  email-template  $-(email-inputs [email (unit tang)])
++$  website  (map @t [mime (unit tang)])
 +$  email    [subject=@t body=mime]
 +$  update
   $%  [%site name=term =website]

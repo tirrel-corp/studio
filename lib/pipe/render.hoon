@@ -144,14 +144,13 @@
 ::
 ++  contents-to-marl
   |=  contents=(list content)
-  ^-  (each marl tang)
+  ^-  [marl (unit tang)]
   %+  roll  contents
-  |=  [=content out=(each marl tang)]
-  ?:  ?=(%| -.out)  out
-  =/  hym=(each manx tang)  (content-to-manx content)
-  ?:  ?=(%& -.hym)
-    [%.y (snoc p.out p.hym)]
-  [%.n p.hym]
+  |=  [=content m=marl t=(unit tang)]
+  =/  [hym=manx err=(unit tang)]  (content-to-manx content)
+  ?^  t  :: TODO maybe collect all errors rather than just the first one
+    [(snoc m hym) t]
+  [(snoc m hym) err]
 ::
 ++  reference-to-manx
   |=  r=reference
@@ -197,13 +196,13 @@
 ::
 ++  content-to-manx
   |=  =content
-  ^-  (each manx tang)
+  ^-  [manx (unit tang)]
   ?-  -.content
     %text       (text-to-manx text.content)
     %mention    (text-to-manx (scot %p ship.content))
-    %url        [%.y (url-to-manx url.content)]
+    %url        [(url-to-manx url.content) ~]
     %code       (text-to-manx expression.content)
-    %reference  [%.y (reference-to-manx reference.content)]
+    %reference  [(reference-to-manx reference.content) ~]
   ==
 +$  mode
   $~  %def
@@ -300,12 +299,15 @@
 ::
 ++  text-to-manx
   |=  text=@t
-  ^-  (each manx tang)
+  ^-  [manx (unit tang)]
   ?:  =('' text)
-    :-  %.y
-    ;br;
+    [;br; ~]
   =/  p  (text-preprocess text)
-  (mule |.(elm:(static:cram (ream p))))
+  =/  q  (mule |.(elm:(static:cram (ream p))))
+  ?:  ?=(%& -.q)
+    [p.q ~]
+  :_  `p.q
+  ;p: {(trip text)}
 ::
 ++  url-to-manx
   |=  url=@t

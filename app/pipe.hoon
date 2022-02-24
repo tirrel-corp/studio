@@ -357,14 +357,12 @@
     ::
     =/  web=(unit website)
       (~(get by sites) name.u.flow-req)
-    =/  page=(unit (each mime tang))
+    =/  page=(unit [mime (unit tang)])
       ?~  web  ~
       (~(get by u.web) path.u.flow-req)
     ?~  page
       not-found:gen:server
-    ?:  ?=(%| -.u.page)
-      not-found:gen:server
-    [[200 [['content-type' 'text/html'] ~]] `q.p.u.page]
+    [[200 [['content-type' 'text/html'] ~]] `q.-.u.page]
     ::
     ++  get-suffix
       |=  [a=path b=path]
@@ -464,10 +462,9 @@
       ?~  post
         ~
       =/  =email-template  (need (get-email-template:pc u.email.flow))
-      =/  em=(each email tang)
+      =/  [em=email err=(unit tang)]
         (email-template (get-email-inputs:pc name flow u.post))
-      ?:  ?=(%| -.em)  ~
-      [(give-email:pc name p.em)]~
+      [(give-email:pc name em)]~
     ::
     ++  update-to-flows
       |=  =update:store:graph
@@ -720,14 +717,12 @@
       ?~  temp
         [~ ~]
       =/  site  (u.temp lorem-ipsum:pipe-render)
-      =/  index=(each mime tang)    (~(got by site) '/')
-      =/  article=(each mime tang)  (~(got by site) '/ut-enim-ad-minim-veniam')
-      ?:  ?=(%| -.index)    [~ ~]
-      ?:  ?=(%| -.article)  [~ ~]
+      =/  [index=mime (unit tang)]    (~(got by site) '/')
+      =/  [article=mime (unit tang)]  (~(got by site) '/ut-enim-ad-minim-veniam')
       :^  ~  ~  %json  !>
       %-  pairs:enjs:format
-      :~  index+s+q.q.p.index
-          article+s+q.q.p.article
+      :~  index+s+q.q.index
+          article+s+q.q.article
       ==
     ==
   ==
@@ -933,8 +928,8 @@
   ^-  (map @t tang)
   %-  ~(gas by *(map @t tang))
   %+  murn  ~(tap by website)
-  |=  [path=@t may=(each mime tang)]
+  |=  [path=@t page=mime err=(unit tang)]
   ^-  (unit [@t tang])
-  ?:  ?=(%& -.may)  ~
-  `[path p.may]
+  ?~  err  ~
+  `[path u.err]
 --

@@ -8,7 +8,7 @@
       |=  $:  [initial=@da =post comments=(list post)]
               [previews=marl pages=website]
           ==
-      =/  [path=@t build=(each [manx mime] tang)]
+      =/  [path=@t pre=manx page=[mime (unit tang)]]
         %:  article-build
             name.sinp
             binding.sinp
@@ -20,13 +20,10 @@
             width.sinp
             lit.sinp
         ==
-      ?:  ?=(%& -.build)
-        :-  (snoc previews -.p.build)
-        (~(put by pages) path [%.y +.p.build])
-      :-  previews
-      (~(put by pages) path [%.n p.build])
+      :-  (snoc previews pre)
+      (~(put by pages) path page)
     =/  m  (index-page sinp previews)
-    (~(put by pages) '/' [%.y m])
+    (~(put by pages) '/' [m ~])
 ::
 +$  article-inputs
   $:  name=term
@@ -150,16 +147,15 @@
 ::
 ++  article-build
   |=  ai=article-inputs
-  ^-  [@t (each [manx mime] tang)]
-  =/  con=(each marl tang)  (contents-to-marl (slag 1 contents.post.ai))
+  ^-  [@t manx mime (unit tang)]
+  =/  [con=marl err=(unit tang)]  (contents-to-marl (slag 1 contents.post.ai))
   =/  title=content  (snag 0 contents.post.ai)
   ?>  ?=(%text -.title)
-  :-  (cat 3 '/' (strip-title text.title))
-  ?:  ?=(%| -.con)
-    [%.n p.con]
-  :+  %.y
-    (article-preview ai text.title)
-  (article-page ai p.con text.title)
+  :*  (cat 3 '/' (strip-title text.title))
+      (article-preview ai text.title)
+      (article-page ai con text.title)
+      err
+  ==
 ::
 ++  article-preview
   |=  [ai=article-inputs title=@t]

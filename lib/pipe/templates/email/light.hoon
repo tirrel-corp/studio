@@ -2,18 +2,16 @@
 /+  *pipe-render, cram
 ^-  email-template
 |=  in=email-inputs
-^-  (each email tang)
+^-  [email (unit tang)]
 |^  =/  title=content  (snag 0 contents.post.in)
     ?>  ?=(%text -.title)
-    =/  page=(each manx tang)  (article-page in)
-    ?:  ?=(%| -.page)
-      [%.n p.page]
-    :-  %.y
+    =/  [page=manx err=(unit tang)]  (article-page in)
+    :_  err
     :-  text.title
     :-  [%text %html ~]
     %-  as-octt:mimes:html
     %-  en-xml:html
-    p.page
+    page
 ::
 ++  frame
   |=  m=marl
@@ -75,14 +73,12 @@
 ::
 ++  article-page
   |=  in=email-inputs
-  ^-  (each manx tang)
-  =/  con=(each marl tang)
+  ^-  [manx (unit tang)]
+  =/  [con=marl err=(unit tang)]
     (contents-to-marl (slag 1 contents.post.in))
-  ?:  ?=(%| -.con)
-    [%.n p.con]
   =/  title=content  (snag 0 contents.post.in)
   ?>  ?=(%text -.title)
-  :-  %.y
+  :_  err
   ;div
     ;+  %-  frame
     :*  (header site-binding.in title.metadatum.association.in)
@@ -90,7 +86,7 @@
           ; {(trip text.title)}
         ==
         (details time-sent.post.in author.post.in)
-        (snoc p.con footer)
+        (snoc con footer)
     ==
   ==
 --
