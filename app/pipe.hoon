@@ -43,7 +43,7 @@
   ?-    -.old
       %4
     :_  this(state old)
-    %+  turn  ~(tap by flows)
+    %+  turn  ~(tap by flows.old)
     |=  [=term =flow]
     [%pass /update-site/[term] %arvo %b %wait now.bowl]
   ::

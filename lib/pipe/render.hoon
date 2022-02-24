@@ -307,7 +307,7 @@
   ?:  ?=(%& -.q)
     [p.q ~]
   :_  `p.q
-  ;p: {(trip text)}
+  ;p(style "white-space: pre-wrap"): {(trip text)}
 ::
 ++  url-to-manx
   |=  url=@t
