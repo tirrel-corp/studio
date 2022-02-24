@@ -913,10 +913,11 @@
     `state
   =/  =site-template  (need (get-site-template template.u.site.flow))
   =/  =website   (site-template (get-site-inputs name flow))
+  =.  sites      (~(put by sites) name website)
   =/  errors=update  [%errors get-all-errors]
-  :_  state(sites (~(put by sites) name website))
+  :_  state
   :~  (give-site name website)
-      [%give %fact [/site/[name]]~ %pipe-update !>(errors)]
+      [%give %fact [/updates]~ %pipe-update !>(errors)]
   ==
 ::
 ++  get-all-errors
