@@ -35,11 +35,11 @@
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
-  `this(state [%0 *state-0])
-::  =/  old  !<(versioned-state old-vase)
-::  ?-  -.old
-::    %0  `this(state old)
-::  ==
+  ::`this(state [%0 *state-0])
+  =/  old  !<(versioned-state old-vase)
+  ?-  -.old
+    %0  `this(state old)
+  ==
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -176,13 +176,27 @@
       ++  roller-tx
         |=  [=address:naive:ntx nonce=@ =tx:naive:ntx]
         ^-  (pair @ux card)
-        =/  tx-octs  (gen-tx-octs:ntx tx)
-        =/  sig      q:(sign-tx:ntx prv nonce tx-octs)
-        =/  =raw-tx:naive:ntx  [sig tx-octs tx]
-        :-  (hash-raw-tx:ntx raw-tx)
-        :^  %pass  /roller/(scot %ux sig)  %agent
+        =/  tx-octs=octs  (gen-tx-octs:ntx tx)
+        =/  chain-id=@
+          (scry-for %roller @ /chain-id)
+        =+  [hash sig]=(fix-sign-tx prv nonce tx-octs)
+        :-  hash
+        :^  %pass  /roller/(scot %ux hash)  %agent
         :+  [our.bowl %roller]  %poke
-        roller-action+!>([%submit | address sig %don tx])
+        roller-action+!>([%submit | address q:sig %don tx])
+      ::
+      ++  fix-sign-tx
+        |=  [pk=@ nonce=@ tx=octs]
+        ^-  [@ux octs]
+        =/  chain-id=@
+          (scry-for %roller @ /chain-id)
+        =/  sign-data
+          %-  hash-tx:ntx
+          (unsigned-tx:ntx chain-id nonce tx)
+        =+  (ecdsa-raw-sign:secp256k1:secp:crypto sign-data pk)
+        :-  sign-data
+        =+  [len dat]=(cad:naive:ntx 3 1^v 32^s 32^r tx ~)
+        [len dat]
       --
     ::
         %sell-ships
@@ -324,7 +338,6 @@
   |^
   ?+    wire  (on-agent:def wire sign)
       [%star @ @ ~]
-    ~&  wire+-.sign
     =/  who=ship  (slav %p i.t.t.wire)
     =/  con=config  (~(got by star-configs) who)
     :: TODO deal with both cases
@@ -335,7 +348,6 @@
     ?.  ?=(%fact -.sign)
       `this
     =+  (on-star who con)
-    ~&  on-star+[p f]
     :-  ~
     %=  this
       pending-txs  (~(put by pending-txs) who p)
