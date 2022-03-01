@@ -176,27 +176,27 @@
       ++  roller-tx
         |=  [=address:naive:ntx nonce=@ =tx:naive:ntx]
         ^-  (pair @ux card)
-        =/  tx-octs=octs  (gen-tx-octs:ntx tx)
         =/  chain-id=@
           (scry-for %roller @ /chain-id)
-        =+  [hash sig]=(fix-sign-tx prv nonce tx-octs)
+        =+  [hash sig]=(fix-sign-tx prv nonce tx)
         :-  hash
         :^  %pass  /roller/(scot %ux hash)  %agent
         :+  [our.bowl %roller]  %poke
         roller-action+!>([%submit | address q:sig %don tx])
       ::
       ++  fix-sign-tx
-        |=  [pk=@ nonce=@ tx=octs]
+        |=  [pk=@ nonce=@ =tx:naive:ntx]
         ^-  [@ux octs]
+        =/  =octs  (gen-tx-octs:ntx tx)
         =/  chain-id=@
           (scry-for %roller @ /chain-id)
         =/  sign-data
           %-  hash-tx:ntx
-          (unsigned-tx:ntx chain-id nonce tx)
+          (unsigned-tx:ntx chain-id nonce octs)
         =+  (ecdsa-raw-sign:secp256k1:secp:crypto sign-data pk)
-        :-  sign-data
-        =+  [len dat]=(cad:naive:ntx 3 1^v 32^s 32^r tx ~)
-        [len dat]
+        =+  [len dat]=(cad:naive:ntx 3 1^v 32^s 32^r ~)
+        :_  [len dat]
+        (hash-raw-tx:ntx dat octs tx)
       --
     ::
         %sell-ships
@@ -370,7 +370,7 @@
       |=  [x=@ux res=$~(%confirmed ?(%pending %failed %confirmed))]
       =/  scry=tx-status:dice
         (scry-for %roller tx-status:dice /tx/(scot %ux x)/status)
-      ~&  scry+scry
+      ~&  >  scry+scry
       ?:  ?|(=(res %pending) =(res %failed))
         res
       ?-  status.scry
@@ -378,15 +378,14 @@
         ?(%failed %cancelled)          %failed
         %confirmed                     %confirmed
       ==
-    ::  TODO: when it actually works, uncomment this,
-::    ?-    success
-::        %confirmed
+    ?-    success
+        %confirmed
     :-  (~(del by p) ship)
     (~(put by f) ship tic)
     ::
-::      %pending    [p f]
-::      %failed     [(~(del by p) ship) f]
-::    ==
+      %pending    [p f]
+      %failed     [(~(del by p) ship) f]
+    ==
   ::
   ++  scry-for
     |*  [dap=term =mold =path]
