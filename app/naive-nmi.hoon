@@ -2,8 +2,8 @@
 ^-  agent:gall
 |_  =bowl:gall
 +*  this  .
-++  on-init   `this
     def   ~(. (default-agent this %|) bowl)
+++  on-init   `this
 ++  on-save   !>(~)
 ++  on-load   on-load:def
 ++  on-poke   on-poke:def
