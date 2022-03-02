@@ -1,11 +1,11 @@
-/+  *naive-market
+/+  *shop
 ::
 |_  upd=update
 ++  grad  %noun
 ++  grow
   |%
   ++  noun  upd
-  ++  naive-market-update  upd
+  ++  shop-update  upd
   ++  json  (update:enjs upd)
   --
 ::

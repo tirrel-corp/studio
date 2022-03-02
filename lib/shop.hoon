@@ -1,4 +1,4 @@
-/-  *naive-market, mailer
+/-  *shop, mailer
 /+  kg=keygen
 |%
 ::

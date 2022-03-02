@@ -1,11 +1,11 @@
-/+  *naive-nmi
+/+  *nmi
 ::
 |_  act=action
 ++  grad  %noun
 ++  grow
   |%
   ++  noun  act
-  ++  naive-nmi-action  act
+  ++  nmi-action  act
   ++  json  (action:enjs act)
   --
 ::
