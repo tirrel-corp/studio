@@ -257,7 +257,8 @@
       ^-  cord
       =/  =price:nam
         (need (scry-for %shop (unit price:nam) /price))
-      ?>  ?=(%'USD' currency.price)
+      ?>  ?=(%& -.price)
+      ?>  ?=(%'USD' currency.p.price)
       =/  inventory=(set ship)
         (scry-for %shop (set ship) /inventory/(scot %p who))
       ?>  ?:  ?=(%| -.sel)
@@ -265,7 +266,7 @@
           =((~(int in p.sel) inventory) p.sel)
       %+  rsh  [3 2]
       %+  scot  %ui
-      %+  mul  amount.price
+      %+  mul  amount.p.price
       ?:(?=(%| -.sel) p.sel ~(wyt in p.sel))
     ::
     ++  request-step1
@@ -464,7 +465,7 @@
           ==
       =-  [%pass /sell-ship/[token] %agent [our.bowl %shop] %poke -]~
       :-  %shop-update
-      !>(`update:nam`[%sell-ships who.info.tx sel.info.tx time email])
+      !>(`update:nam`[%sell-ships who.info.tx sel.info.tx time email ~])
     ::
     ++  normalize-data
       |=  [request-id=cord full-file=(unit mime-data:iris)]

@@ -6,7 +6,6 @@
 +$  card  card:agent:gall
 +$  state-0
   $:  price=(unit price)
-      referrals=(unit referral-policy)
     ::
       =star-configs
       =pending-txs
@@ -57,7 +56,6 @@
     ^-  (quip card _state)
     ?-    -.update
       %set-price      `state(price `price.update)
-      %set-referrals  `state(referrals ref.update)
     ::
         %add-star-config
       |^
@@ -73,7 +71,7 @@
           ==
       :~  :^  %pass  /star/connect/(scot %p who.update)  %agent
           [[our.bowl %roller] %watch /connect/(scot %ux address)]
-      ::
+        ::
           :^  %pass  /star/txs/(scot %p who.update)  %agent
           [[our.bowl %roller] %watch /txs/(scot %ux address)]
       ==
@@ -203,7 +201,12 @@
       =*  who    who.update
       =*  email  email.update
       =*  time   time.update
+      =*  password  password.update
       ?>  ?=(^ price)
+      ?>  ?|  ?=(%& -.u.price)
+              ?&  ?=(^ password.update)
+                  (~(has in p.u.price) u.password.update)
+          ==  ==
       |^
       =/  c=config  (~(got by star-configs) who)
       =/  sold=(map ship @q)
@@ -219,6 +222,8 @@
       =.  sold-ship-to-date
         %-  ~(uni by sold-ship-to-date)
         (ship-to-date sold)
+      =?  price  ?&(?=(%| -.u.price) ?=(^ password.update))
+        price(p.u (~(del in p.u.price) u.password.update))
       [(send-email sold)^~ state]
       ::
       ++  ship-to-date
@@ -234,7 +239,7 @@
         %-  ~(run in m)
         |=  [=ship tic=@q]
         ^-  record
-        [ship u.price referrals email tic]
+        [ship u.price email tic]
       ::
       ++  select-ships
         ^-  (list (pair ship @q))
@@ -257,13 +262,6 @@
         =/  =cage  [%mailer-action !>(send-email)]
         [%pass /fulfillment-email %agent [our.bowl %mailer] %poke cage]
       --
-    ::
-        %sell-from-referral
-      :-  (give /updates^~ update)
-      ::  check that a code is available and that the ship in question
-      ::  has referrals left to give out.
-      ::  if not, crash. if yes, then sell at the referral code price.
-      state
     ==
   ::
   ++  give
@@ -302,7 +300,6 @@
     =-  ?~  price  -
         [(update:enjs [%set-price u.price]) -]
     ^-  (list json)
-    :-  (update:enjs [%set-referrals referrals])
     %+  turn  ~(tap by star-configs)
     |=  [who=ship =config]
     ^-  json
