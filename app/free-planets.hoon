@@ -78,8 +78,24 @@
         %-  trip
         =-  (cut 3 [- (sub (lent tape) -)] (crip tape))
         (add 10 password-i)
-      :_  :-  [201 ~]
-          :-  ~
+      =/  =price:nam
+        (need (scry-for %shop (unit price:nam) /price))
+      ?>  ?=(%| -.price)
+      ?.  (~(has in p.price) password)
+        =-  `[[200 ~] ~ -]
+        %-  manx-to-octs:srv
+        ;html
+          ;body: Wrong password!
+        ==
+      =/  inventory
+        (scry-for %shop (set [ship @q]) /inventory/(scot %p seller))
+      ?.  (gth ~(wyt in inventory) 0)
+        =-  `[[200 ~] ~ -]
+        %-  manx-to-octs:srv
+        ;html
+          ;body: Sorry, we ran out of planets!
+        ==
+      :_  =-  [[201 ~] ~ -]
           %-  manx-to-octs:srv
           ;html
             ;body: Success, check your email!

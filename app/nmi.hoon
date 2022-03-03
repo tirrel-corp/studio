@@ -259,8 +259,8 @@
         (need (scry-for %shop (unit price:nam) /price))
       ?>  ?=(%& -.price)
       ?>  ?=(%'USD' currency.p.price)
-      =/  inventory=(set ship)
-        (scry-for %shop (set ship) /inventory/(scot %p who))
+      =/  inventory
+        (scry-for %shop (set [ship @q]) /inventory/(scot %p who))
       ?>  ?:  ?=(%| -.sel)
             (lte p.sel ~(wyt in inventory))
           =((~(int in p.sel) inventory) p.sel)
