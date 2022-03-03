@@ -8,6 +8,8 @@
 +$  card  card:agent:gall
 --
 ::
+=|  seller=ship
+::
 %-  agent:dbug
 %+  verb  |
 ^-  agent:gall
@@ -15,11 +17,14 @@
 +*  this  .
     def   ~(. (default-agent this %|) bowl)
 ::
-++  on-init  `this
-++  on-save   !>(~)
+++  on-init
+  :_  this
+  [%pass /eyre %arvo %e %connect [~ /planets] dap.bowl]^~
+::
+++  on-save   !>(seller)
 ++  on-load
   |=  old-vase=vase
-  `this
+  `this(seller !<(@p old-vase))
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -27,6 +32,8 @@
   ?>  (team:title our.bowl src.bowl)
   |^
   ?+    mark  (on-poke:def mark vase)
+    %noun     `this(seller !<(@p vase))
+  ::
       %handle-http-request
     =+  !<([eyre-id=@ta =inbound-request:eyre] vase)
     =|  sim=simple-payload:http
@@ -51,61 +58,65 @@
       %'POST'  (handle-post-request req-head req-line req-body)
     ==
     ::
-    +$  partial-action
-      $%  [%initiate-sale who=ship sel=selector:nam]
-          [%complete-sale token=cord]
-      ==
-    ::
     ++  handle-post-request
       =*  srv  server
       |=  [headers=header-list:http req=request-line:srv bod=(unit octs)]
       ?~  bod
         `[[400 ~] ~]
-      ?~  maybe-json=(de-json:html q.u.bod)
-        `[[400 ~] ~]
-      =/  act=(each partial-action tang)
-        (mule |.((dejs u.maybe-json)))
-      ?:  ?=(%| -.act)
-        `[[400 ~] ~]
-      :_  [[201 ~] `(json-to-octs:srv s+'example-data')]
+      =/  =tape  (trip `@t`q.u.bod)
+      =/  password-i  (need (find "&password=" tape))
+      =/  email=@t
+        %-  crip
+        %-  need
+        %-  de-urlt:html
+        %-  trip
+        (cut 3 [6 (sub password-i 6)] (crip tape))
+      =/  password=@t
+        %-  crip
+        %-  need
+        %-  de-urlt:html
+        %-  trip
+        =-  (cut 3 [- (sub (lent tape) -)] (crip tape))
+        (add 10 password-i)
+      :_  :-  [201 ~]
+          :-  ~
+          %-  manx-to-octs:srv
+          ;html
+            ;body: Success, check your email!
+          ==
       =-  [%pass /post-req/[eyre-id] %agent [our.bowl %shop] %poke -]~
       :-  %shop-update
-      !>(~)
-      ::!>(`update:nam`[%sell-ships who.info.tx sel.info.tx time email ~])
-    ::
-    ++  dejs
-      =,  dejs:format
-      |^
-      %-  of
-      :~  [%initiate-sale init-sale]
-          [%complete-sale so]
-      ==
-      ::
-      ++  init-sale
-        %-  ot
-        :~  who+(su ;~(pfix sig fed:ag))
-            sel+selector
-        ==
-      ::
-      ++  selector
-        |=  jon=json
-        ^-  selector:nam
-        ?>  ?=(^ jon)
-        ?+  -.jon  !!
-          %n  [%| (ni jon)]
-          %a  [%& ((as (su ;~(pfix sig fed:ag))) jon)]
-        ==
-      --
+      !>  ^-  update:nam
+      [%sell-ships seller %|^1 now.bowl email `password]
     ::
     ++  handle-get-request
       =*  srv  server
       |=  [hed=header-list:http req=request-line:srv]
       ^-  simple-payload:http
-      ?.  ?=(^ ext.req)        not-found:gen:srv
       :-  [200 [['content-type' 'text/html'] ~]]
       :-  ~
       %-  manx-to-octs:srv
-      *manx
+      ;html.sans-serif.f4
+        ;head
+          ;meta(charset "utf-8");
+          ;meta(name "viewport", content "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0");
+          ;link(rel "stylesheet", href "https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css");
+        ==
+        ;body.absolute.w-100.h-100.flex.flex-column.justify-center.items-center
+          ;form.mw6.pa2(method "POST", action "/planets")
+            ;h3: Want a free planet? Enter your email and a code.
+            ;span.w-100.flex.justify-between.items-center.mv3
+              ;label.b: Email
+              ;input.w-60.ba.pa2(name "email");
+            ==
+            ;span.w-100.flex.justify-between.items-center.mv3
+              ;label.b: Code
+              ;input.w-60.ba.pa2(name "password");
+            ==
+            ;input.w-100.bg-black.white.bn.pv2.ph4.dim.pointer(type "submit");
+          ==
+        ==
+      ==
     --
   ::
   ++  scry-for
