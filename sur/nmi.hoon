@@ -1,4 +1,4 @@
-/-  nam=naive-market
+/-  nam=shop
 |%
 ::+$  init-info
 ::  $:  amount=cord

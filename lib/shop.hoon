@@ -1,4 +1,4 @@
-/-  *naive-market, mailer
+/-  *shop, mailer
 /+  kg=keygen
 |%
 ::
@@ -114,10 +114,8 @@
     :~  add-star-config+(ot ship+ship config+config ~)
         del-star-config+ship
         set-price+price
-        set-referrals+(mu referral-policy)
         spawn-ships+(ot ship+ship sel+selector ~)
-        sell-ships+(ot ship+ship sel+selector time+di email+so ~)
-        sell-from-referral+ship
+        sell-ships+(ot ship+ship sel+selector time+di email+so password+(mu so) ~)
     ==
   ::
   ++  config
@@ -128,12 +126,9 @@
     ==
   ::
   ++  price
-    ^-  $-(json ^price)
-    (ot amount+ni currency+so ~)
-  ::
-  ++  referral-policy
-    ^-  $-(json ^referral-policy)
-    (ot number-referrals+ni price+price ~)
+    |=  jon=json
+    ^-  ^price
+    %&^((ot amount+ni currency+so ~) jon)
   ::
   ++  selector
     |=  jon=json
@@ -165,10 +160,6 @@
       %+  frond  %set-price
       (price price.upd)
     ::
-        %set-referrals
-      %+  frond  %set-referrals
-      (referral-policy ref.upd)
-    ::
         %spawn-ships
       %+  frond  %spawn-ships
       %-  pairs
@@ -184,10 +175,6 @@
           email+s+email.upd
           time+(time time.upd)
       ==
-    ::
-        %sell-from-referral
-      %+  frond  %sell-from-referral
-      (ship who.upd)
     ==
   ::
   ++  config
@@ -201,19 +188,11 @@
   ++  price
     |=  pri=^price
     ^-  json
+    ?:  ?=(%| -.pri)
+      a+(turn ~(tap in p.pri) |=(t=@t s+t))
     %-  pairs
-    :~  amount+(numb amount.pri)
-        currency+s+currency.pri
-    ==
-  ::
-  ++  referral-policy
-    |=  ref=(unit ^referral-policy)
-    ^-  json
-    ?~  ref
-      ~
-    %-  pairs
-    :~  number-referrals+(numb number-referrals.u.ref)
-        price+(price price.u.ref)
+    :~  amount+(numb amount.p.pri)
+        currency+s+currency.p.pri
     ==
   ::
   ++  selector

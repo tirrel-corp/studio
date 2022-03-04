@@ -1,5 +1,5 @@
-/-  *naive-nmi
-/+  nam=naive-market
+/-  *nmi
+/+  nam=shop
 |%
 ++  enjs
   =,  enjs:format
