@@ -208,7 +208,6 @@
   $~  %def
   $?  %def
       %code
-      %header
   ==
 ::
 ++  text-preprocess  :: jank as fuck
@@ -239,7 +238,7 @@
         %+  rush  line
         ;~(plug (stun [0 3] ace) (stun [1 6] hax) (plus ace) (star next))
       ?^  hed
-        [(snoc full line) %header]
+        [(snoc (snoc full line) '') %def]
       ::  detect and reformat lists
       =/  nlist=(unit tape)
         %+  rush  line
@@ -252,11 +251,6 @@
       ?^  llist
         [(snoc full (cat 3 '- ' (crip u.llist))) %def]
       [(snoc full line) %def]
-    ::  handle headers
-        %header
-      ?^  (rush line (star ace))
-        [(snoc full '') %def]
-      [(snoc (snoc full '') line) %def]
     ::  handle backticks
         %code
       =/  tics
