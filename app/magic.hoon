@@ -79,7 +79,7 @@
       =/  serial-id=path
         ?@  q.upd
           /ship/(scot %p q.upd)
-        /email/[p.q.upd]/(scot %p q.q.upd)
+        /email/[p.q.upd]
       =/  new-wire=wire
         ^-  wire  ^-  (list @)
         %-  zing
@@ -160,16 +160,28 @@
   ::
       [%email @ @ @ ~]
     =/  email  (slav %tas i.t.t.wire)
-    =/  =ship  (slav %p i.t.t.t.wire)
-    ?.  (~(has by users.srv) [%email email ship])
+    ?.  (~(has by users.srv) [%email email])
       `this
-    =.  users.srv  (~(put by users.srv) [%email email ship] [~ ~])
+    =.  users.srv  (~(put by users.srv) [%email email] [~ ~])
     `this(services (~(put by services) i.wire srv))
+  ==
+::
+++  on-peek
+  |=  =path
+  ^-  (unit (unit cage))
+  ?+    path  (on-peek:def path)
+      [%x %user @ ?(%email %ship) @ ~]
+    :^  ~  ~  %noun
+    !>  ^-  (unit user)
+    ?~  srv=(~(get by services) i.t.t.path)
+      ~
+    ?:  ?=(%email i.t.t.t.path)
+      (~(get by users.u.srv) [%email i.t.t.t.t.path])
+    (~(get by users.u.srv) (slav %p i.t.t.t.t.path))
   ==
 ::
 ++  on-watch  on-watch:def
 ++  on-leave  on-leave:def
-++  on-peek   on-peek:def
 ++  on-agent  on-agent:def
 ++  on-fail   on-fail:def
 --

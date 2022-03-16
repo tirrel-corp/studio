@@ -7,7 +7,7 @@
 ::
 +$  id
   $@  @p
-  [%email p=@tas q=@p]
+  [%email p=@tas]
 ::      [%phone p=@ud q=@p]
 ::
 +$  user
