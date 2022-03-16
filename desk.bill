@@ -1,4 +1,5 @@
 :~  %mailer
     %pipe
     %magic
+    %auth
 ==
