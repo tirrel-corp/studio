@@ -1,6 +1,6 @@
 ::  magic [tirrel]: user database and login system
 ::
-/-  *magic
+/-  *magic, mailer
 /+  default-agent, dbug, verb
 |%
 +$  card  card:agent:gall
@@ -106,7 +106,38 @@
       %-  zing
       :~  del-old-timer
           set-new-timer
+          ?@  q.upd
+            ~  ::  TODO: send DM?
+          (send-email p.q.upd new-cod)^~
       ==
+    ==
+  ::
+  ++  send-email
+    |=  [email=@tas cod=@q]
+    ^-  card
+    =-  [%pass /email/[email] %agent [our.bowl %mailer] %poke -]
+    :-  %mailer-action
+    !>  ^-  action:mailer
+    [%send-email (make-email email cod)]
+  ::
+  ++  make-email
+    |=  [address=@tas cod=@q]
+    ^-  email:mailer
+    :^    ['isaac@tirrel.io' '~tirrel']
+        'Your Studio login code'
+      (email-body cod)^~
+    [[address]~ ~ ~]~
+  ::
+  ++  email-body
+    |=  cod=@q
+    ^-  content-field:mailer
+    :-  'text/html'
+    =<  q
+    %-  as-octt:mimes:html
+    %-  en-xml:html
+    ^-  manx
+    ;div
+      ;p: Your Studio login code is: {(scow %q cod)}
     ==
   --
 ::
