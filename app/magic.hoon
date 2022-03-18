@@ -115,6 +115,7 @@
   ++  send-email
     |=  [email=@tas cod=@q]
     ^-  card
+    ~&  email^cod
     =-  [%pass /email/[email] %agent [our.bowl %mailer] %poke -]
     :-  %mailer-action
     !>  ^-  action:mailer
@@ -123,7 +124,7 @@
   ++  make-email
     |=  [address=@tas cod=@q]
     ^-  email:mailer
-    :^    ['isaac@tirrel.io' '~tirrel']
+    :^    ['logan@tirrel.io' '~tirrel']
         'Your Studio login code'
       (email-body cod)^~
     [[address]~ ~ ~]~
@@ -158,8 +159,8 @@
     =.  users.srv  (~(put by users.srv) ship [~ ~])
     `this(services (~(put by services) i.wire srv))
   ::
-      [%email @ @ @ ~]
-    =/  email  (slav %tas i.t.t.wire)
+      [%email @ @ ~]
+    =/  email  `@tas`i.t.t.wire
     ?.  (~(has by users.srv) [%email email])
       `this
     =.  users.srv  (~(put by users.srv) [%email email] [~ ~])

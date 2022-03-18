@@ -4,6 +4,7 @@
 /+  default-agent, dbug, verb, server
 |%
 +$  card  card:agent:gall
+++  service  %example
 --
 ::
 %-  agent:dbug
@@ -58,77 +59,118 @@
       ^-  [(list card) simple-payload:http]
       ?+    site.req  `[[404 ~] ~]
           [%content ~]
-        ?~  bod
-          `[[400 ~] ~]
+        ?~  bod     `[[400 ~] ~]
         =/  parsed=(unit (list [key=@t value=@t]))
           (rush q.u.bod yquy:de-purl:html)
-        ?~  parsed
-          `[[400 ~] ~]
+        ?~  parsed  `[[400 ~] ~]
         =/  email=(unit @t)
           (get-header:http 'email' u.parsed)
-        ?~  email
-           `[[400 ~] ~]
-        =-  `[[303 -] ~]
-        ['location' (cat 3 '/content/login?email=' u.email)]^~
+        ?~  email   `[[400 ~] ~]
+        :-  =-  [%pass /magic %agent [our.bowl %magic] %poke -]^~
+            :-  %magic-update
+            !>  ^-  update:magic
+            [%ask-access service email+u.email]
+        =-  [[303 -] ~]
+        =/  email-segment=@t  (crip (en-urlt:html (trip u.email)))
+        ['location' (cat 3 '/content/login?email=' email-segment)]^~
       ::
           [%content %login ~]
         ?~  bod
           `[[400 ~] ~]
+        ~&  bod
         =/  parsed=(unit (list [key=@t value=@t]))
           (rush q.u.bod yquy:de-purl:html)
+        ~&  parsed
         ?~  parsed
           `[[400 ~] ~]
-        =/  email=(unit @t)
-          (get-header:http 'email' u.parsed)
-        ?~  email
+        =/  code-bod=(unit @t)
+          (get-header:http 'code' u.parsed)
+        ?~  code-bod
            `[[400 ~] ~]
+        =/  email-hed=(unit @t)
+          (get-header:http 'email' args.req)
+        ?~  email-hed
+           `[[400 ~] ~]
+        =/  email  (de-urlt:html (trip u.email-hed))
+        ~&  email
+        ?~  email
+          `[[400 ~] ~]
+        =/  user=(unit user:magic)
+          %^  scry-for  %magic  (unit user:magic)
+          /user/[service]/email/(crip u.email)
+        ~&  user
+        ?~  user
+          `[[400 ~] ~]
+        ?~  access-code.u.user
+          `[[400 ~] ~]
+        ?.  =((rsh [3 2] (scot %q u.access-code.u.user)) u.code-bod)
+          `[[401 ~] ~]
         =-  `[[303 -] ~]
         ^-  header-list:http
-        ::  TODO: make a real cookie that looks like
-        ::  logan@tirrel.io|~something-something
-        ::  and add a max-age
-        :~  ['set-cookie' (cat 3 studio-auth-cookie '=true;')]
+        :~  ['set-cookie' (gen-cookie (crip u.email) u.access-code.u.user)]
             ['location' '/content']
         ==
       ==
     ::
     ++  studio-auth-cookie  (cat 3 'studio-auth-' (scot %p our.bowl))
     ::
+    ++  gen-cookie
+      |=  [email=@t code=@q]
+      ^-  @t
+      %+  rap  3
+      :~  studio-auth-cookie
+          '='
+          email
+          '|'
+          `@t`(rsh [3 2] (scot %q code))
+          ::';max-age=604800'  ::  XX: currently one week
+      ==
+    ::
     ++  handle-get-request
       =*  srv  server
       |=  [hed=header-list:http req=request-line:srv]
       ^-  simple-payload:http
-      ~&  req
       ?+    site.req  [[404 ~] ~]
           [%content ~]
         ?~  cookie=(get-cookie hed)
           request-email-page
-        =*  email  -.u.cookie
-        =*  code   +.u.cookie
-        =/  user=(unit user:magic)
-          %^  scry-for  %magic  (unit user:magic)
-          /user/example-auth/email/[email]
-        ?~  user
-          ~&  %no-such-user
-          request-email-page
-        ?.  =(access-code.u.user code)
+        ?.  (validate-cookie u.cookie)
           request-email-page
         content-page
       ::
           [%content %login ~]
         =/  cookie  (get-cookie hed)
-        ?^  cookie
-          [[302 ['location' '/content']^~] ~]
         =/  email=(unit @t)
           (get-header:http 'email' args.req)
+        ?^  cookie
+          ?:  (validate-cookie u.cookie)
+            [[302 ['location' '/content']^~] ~]
+          ?~  email
+            [[302 ['location' '/content']^~] ~]
+          (login-page (need email))
         ?~  email
           [[302 ['location' '/content']^~] ~]
         (login-page (need email))
       ==
     ::
+    ++  validate-cookie
+      |=  [email=@t code=@q]
+      ^-  ?
+      =/  user=(unit user:magic)
+        %^  scry-for  %magic  (unit user:magic)
+        /user/[service]/email/[email]
+      ?~  user
+        ~&  %no-such-user
+        %.n
+      ?~  access-code.u.user
+        %.n
+      ?.  =(u.access-code.u.user code)
+        %.n
+      %.y
+    ::
     ++  get-cookie
       |=  hed=header-list:http
-      ^-  (unit [email=@t code=@t])
+      ^-  (unit [email=@t code=@q])
       ?~  cookie-hed=(get-header:http 'cookie' hed)
         ~&  %no-cookie
         ~
@@ -138,10 +180,12 @@
       ?~  auth=(get-header:http studio-auth-cookie u.cookies)
         ~&  %no-studio-cookie
         ~
+      ~&  cookie+u.auth
       ?~  index=(find "|" (trip u.auth))
         ~
       =/  trimmed  (trim u.index (trip u.auth))
-      `[(crip p.trimmed) (crip q.trimmed)]
+      =/  code=@q  (slav %q (cat 3 '.~' (rsh [3 1] (crip q.trimmed))))
+      `[(crip p.trimmed) code]
     ::
     ++  login-page
       =*  srv  server
@@ -157,7 +201,7 @@
           ;link(rel "stylesheet", href "https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css");
         ==
         ;body.absolute.w-100.h-100.flex.flex-column.justify-center.items-center
-          ;form.mw6.pa2(method "POST", action "/content")
+          ;form.mw6.pa2(method "POST", action "#")
             ;h3: Please enter the code we sent to your email.
             ;p: {(trip email)}
             ;span.w-100.flex.justify-between.items-center.mv3
