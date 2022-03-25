@@ -46,16 +46,16 @@
   `@ux`(swp 3 (cat 3 res bits))
 ::
 ++  make-email
-  |=  [address=@t sold=(map ship @q) now=@da cc-num=@t]
+  |=  [address=@t sold=(map ship @q) now=@da cc-num=@t tid=@ud]
   ^-  email:mailer
   :*  ['delivery@tirrel.io' '~tirrel']
       'You got a planet!'
-      (email-body address sold now cc-num)^~
+      (email-body address sold now cc-num tid)^~
       [[address]~ ~ ~]~
   ==
   ::
 ++  email-body
-  |=  [address=@t sold=(map ship @q) now=@da cc-num=@t]
+  |=  [address=@t sold=(map ship @q) now=@da cc-num=@t tid=@ud]
   ^-  content-field:mailer
   =/  num  ~(wyt by sold)
   =/  orange  "color: #ff6300"
@@ -111,12 +111,18 @@
         ;a(href "https://planet.market", style orange): https://planet.market
       ==
       ;br;
-      ;p: Activate planet link: {bu}
+      ;p
+        ; Activate planet link:
+        ;a(href bu, style orange): {bu}
+      ==
       ;hr(style "margin: 30px 0", color "black", size "1");
       ;b: Planet Market Receipt
-      ;p: Receipt #00009
-      ;p: March 23, 2022
-      ;p: Delivery to: {(trip address)}
+      ;p: Receipt #{(trip (rsh [3 2] (scot %ui tid)))}
+      ;p: {(trip (print-date-full now))}
+      ;p
+        ; Delivery to:
+        ;a(href "mailto:{(trip address)}", style orange): {(trip address)}
+      ==
       ;table(width "100%", style "margin-top: 30px")
         ;tr
           ;td(style "width: 50%", align "left")
@@ -140,12 +146,43 @@
           ==
         ==
         ;tr
-          ;td(style "width: 50%", align "left"): VISA 4111
-          ;td(style "width: 50%", align "right"): 03/23/22, 9:26 AM
+          ;td(style "width: 50%", align "left"): {(trip cc-num)}
+          ;td(style "width: 50%", align "right"): {(trip (print-date-num now))}
         ==
       ==
     ==
   !!
+::
+++  print-date-full
+  |=  d=@da
+  ^-  @t
+  =/  date   (yore d)
+  =/  month  (crip (snag (dec m.date) mon:yu:chrono:userlib))
+  %:  rap  3
+    month
+    ' '
+    (scot %ud d.t.date)
+    ', '
+    (rsh [3 2] (scot %ui y.date))
+    ~
+  ==
+++  print-date-num
+  |=  d=@da
+  ^-  @t
+  =/  date   (yore d)
+
+  %:  rap  3
+    (scot %ud m.date)
+    '/'
+    (scot %ud d.t.date)
+    '/'
+    (rsh [3 2] (scot %ui y.date))
+    ' '
+    (scot %ud h.t.date)
+    ':'
+    (scot %ud m.t.date)
+    ~
+  ==
 ::
 ++  bridge-url
   |=  [p=@p t=@q]
