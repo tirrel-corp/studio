@@ -46,16 +46,16 @@
   `@ux`(swp 3 (cat 3 res bits))
 ::
 ++  make-email
-  |=  [address=@t sold=(map ship @q)]
+  |=  [address=@t sold=(map ship @q) now=@da cc-num=@t]
   ^-  email:mailer
   :*  ['delivery@tirrel.io' '~tirrel']
       'You got a planet!'
-      (email-body address sold)^~
+      (email-body address sold now cc-num)^~
       [[address]~ ~ ~]~
   ==
   ::
 ++  email-body
-  |=  [address=@t sold=(map ship @q)]
+  |=  [address=@t sold=(map ship @q) now=@da cc-num=@t]
   ^-  content-field:mailer
   =/  num  ~(wyt by sold)
   =/  orange  "color: #ff6300"

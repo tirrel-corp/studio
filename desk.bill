@@ -1,3 +1,5 @@
 :~  %mailer
     %pipe
+    %nmi
+    %shop
 ==

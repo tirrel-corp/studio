@@ -1,6 +1,6 @@
 :: shop [tirrel]
 ::
-/-  dice, mailer
+/-  dice, mailer, nmi
 /+  *shop, ntx=naive-transactions, eth=ethereum, default-agent, dbug, verb
 |%
 +$  card  card:agent:gall
@@ -258,7 +258,14 @@
       ++  send-email
         |=  sold=(map ship @q)
         ^-  card
-        =/  send-email=action:mailer  [%send-email (make-email email sold)]
+        =/  tx=(unit transaction:nmi)
+          %^  scry-for  %nmi  (unit transaction:nmi)
+          /transaction/(scot %da time)
+        ?>  ?=(^ tx)
+        ?>  ?=(%success -.u.tx)
+        =*  fin  finis.u.tx
+        =/  send-email=action:mailer
+          [%send-email (make-email email sold now.bowl cc-num.fin)]
         =/  =cage  [%mailer-action !>(send-email)]
         [%pass /fulfillment-email %agent [our.bowl %mailer] %poke cage]
       --

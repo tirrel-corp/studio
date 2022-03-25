@@ -21,6 +21,7 @@
       authorization-code=@ud
       cvv-result=@tas
       email=@t
+      cc-num=@t
   ==
 +$  transaction
   $%  [%success =info token=(unit @t) =finis]

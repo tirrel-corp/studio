@@ -453,6 +453,11 @@
       ?>  ?=(@t transaction-id)
       ?>  ?=(@t authorization-code)
       ?>  ?=(@t cvv-result)
+      =/  billing=$?(@t (map @t @t))  (~(got by m) 'billing')
+      ~&  billing
+      ?@  billing  !!
+      =/  bil=(map @t @t)  billing
+      =/  cc-num=@t  (~(got by bil) 'cc-number')
       :_  %_    state
               transactions
             %^  put:orm  transactions  time
@@ -461,6 +466,7 @@
                 (rash authorization-code dem)
                 cvv-result
                 email
+                cc-num
             ==
           ==
       =-  [%pass /sell-ship/[token] %agent [our.bowl %shop] %poke -]~
@@ -553,6 +559,12 @@
     !>  ^-  json
     ?~  api-key  ~
     s+u.api-key
+  ::
+      [%x %transaction @ ~]
+    =/  time  (slaw %da i.t.t.path)
+    ?~  time  ~
+    =/  tx=(unit transaction)  (get:orm transactions u.time)
+    ``noun+!>(tx)
   ==
 ::
 ++  on-leave  on-leave:def
