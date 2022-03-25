@@ -48,16 +48,17 @@
 ++  make-email
   |=  [address=@t sold=(map ship @q)]
   ^-  email:mailer
-  :*  ['isaac@tirrel.io' '~tirrel']
+  :*  ['delivery@tirrel.io' '~tirrel']
       'You got a planet!'
-      (email-body sold)^~
+      (email-body address sold)^~
       [[address]~ ~ ~]~
   ==
   ::
 ++  email-body
-  |=  sold=(map ship @q)
+  |=  [address=@t sold=(map ship @q)]
   ^-  content-field:mailer
   =/  num  ~(wyt by sold)
+  =/  orange  "color: #ff6300"
   :-  'text/html'
   =<  q
   %-  as-octt:mimes:html
@@ -69,35 +70,82 @@
     =/  ship    -.i.lis
     =/  ticket  +.i.lis
     =/  bu  (bridge-url ship ticket)
-    ;div
-      ;p: Welcome to Urbit, you now own the planet {(scow %p ship)}
-      ;table
+    ;div(style "max-width: 600px")
+      ;h1: Welcome to Urbit!
+      ;p
+        ; You now own the planet
+        ;b: {(scow %p ship)}!
+      ==
+      ;b: Follow these steps to get your Urbit running:
+      ;ol
+        ;li
+          ;a(href bu, style orange): Activate your planet in Bridge
+        ==
+        ;li
+          ;a(href "https://urbit.org/getting-started#port", style orange): Download Port
+          ; , Urbits desktop client
+        ==
+        ;li
+          ; Follow the
+          ;a(href "https://urbit.org/getting-started/planet#step-3-boot", style orange): Installation Guide
+          ;  for full detail
+        ==
+        ;li
+          ; If you need assistance with installation, book a
+          ;a(href "https://calendly.com/tirrel/onboarding", style orange): live onboarding session.
+        ==
+      ==
+      ;b: Support Resources:
+      ;ul
+        ;li
+          ; For purchase-related problems, please contact
+          ;a(href "mailto:support@tirrel.io", style orange): support@tirrel.io
+        ==
+        ;li
+          ; If you have questions on Urbit, join our support group: ~tirrel/tirrel-support
+        ==
+      ==
+      ;p: See you on the network!
+      ;p: - Planet Market
+      ;p
+        ;a(href "https://planet.market", style orange): https://planet.market
+      ==
+      ;br;
+      ;p: Activate planet link: {bu}
+      ;hr(style "margin: 30px 0", color "black", size "1");
+      ;b: Planet Market Receipt
+      ;p: Receipt #00009
+      ;p: March 23, 2022
+      ;p: Delivery to: {(trip address)}
+      ;table(width "100%", style "margin-top: 30px")
         ;tr
-          ;td: Please activate it in Bridge:
-          ;td
-            ;a(href bu): {bu}
+          ;td(style "width: 50%", align "left")
+            ;b: Planet
           ==
+          ;td(style "width: 50%", align "right"): $20.00
+        ==
+      ==
+      ;hr(style "margin: 30px 0", color "black", size "1");
+      ;table(width "100%")
+        ;tr
+          ;td(style "width: 50%", align "left"): Subtotal
+          ;td(style "width: 50%", align "right"): $20.00
+        ==
+        ;tr
+          ;td(style "width: 50%", align "left")
+            ;b: Total Paid
+          ==
+          ;td(style "width: 50%", align "right")
+            ;b: $20.00
+          ==
+        ==
+        ;tr
+          ;td(style "width: 50%", align "left"): VISA 4111
+          ;td(style "width: 50%", align "right"): 03/23/22, 9:26 AM
         ==
       ==
     ==
-  =/  lis  ~(tap by sold)
-  ?>  ?=(^ lis)
-  =/  ship    -.i.lis
-  =/  ticket  +.i.lis
-  ;div
-    ;p: Welcome to Urbit, you now own the following planets. Click the bridge link beside each planet to activate it
-    ;table
-      ;*  %+  turn  lis
-          |=  [s=@p t=@q]
-          ^-  manx
-          ;tr
-            ;td: {(scow %p s)}
-            ;td
-              ;a(href (bridge-url s t)): {(bridge-url s t)}
-            ==
-          ==
-    ==
-  ==
+  !!
 ::
 ++  bridge-url
   |=  [p=@p t=@q]
