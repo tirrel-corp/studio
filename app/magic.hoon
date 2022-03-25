@@ -138,7 +138,7 @@
     %-  en-xml:html
     ^-  manx
     ;div
-      ;p: Your Studio login code is: {(scow %q cod)}
+      ;p: Your Studio login code is: {(trip (rsh [3 2] (scot %q cod)))}
     ==
   --
 ::
