@@ -83,22 +83,22 @@
         ==
         ;li
           ;a(href "https://urbit.org/getting-started#port", style orange): Download Port
-          ; , Urbits desktop client
+          ; , Urbit's desktop client
         ==
         ;li
           ; Follow the
           ;a(href "https://urbit.org/getting-started/planet#step-3-boot", style orange): Installation Guide
-          ;  for full detail
+          ;  for detailed instructions
         ==
         ;li
           ; If you need assistance with installation, book a
-          ;a(href "https://calendly.com/tirrel/onboarding", style orange): live onboarding session.
+          ;a(href "https://calendly.com/tirrel/onboarding", style orange): live onboarding session
         ==
       ==
       ;b: Support Resources:
       ;ul
         ;li
-          ; For purchase-related problems, please contact
+          ; For purchase-related problems, please contact:
           ;a(href "mailto:support@tirrel.io", style orange): support@tirrel.io
         ==
         ;li
@@ -170,7 +170,12 @@
   |=  d=@da
   ^-  @t
   =/  date   (yore d)
-
+  =/  hour=@t
+    ?:  (gte h.t.date 10)  (scot %ud h.t.date)
+    (cat 3 '0' (scot %ud h.t.date))
+  =/  minute=@t
+    ?:  (gte m.t.date 10)  (scot %ud m.t.date)
+    (cat 3 '0' (scot %ud m.t.date))
   %:  rap  3
     (scot %ud m.date)
     '/'
@@ -178,9 +183,9 @@
     '/'
     (rsh [3 2] (scot %ui y.date))
     ' '
-    (scot %ud h.t.date)
+    hour
     ':'
-    (scot %ud m.t.date)
+    minute
     ~
   ==
 ::
