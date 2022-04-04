@@ -39,7 +39,7 @@
       msg
       ~
     ==
-  =/  hax    (swp 3 (shax msg-2))
+  =/  hax    (keccak-256:keccak:crypto (met 3 msg-2) msg-2)
   =/  raw-sig    (ecdsa-raw-sign:secp256k1:secp:secp:crypto hax priv)
   =/  res    (cat 3 (swp 3 r.raw-sig) (swp 3 s.raw-sig))
   =/  bits   (add 27 (mod (cut 3 [31 1] (swp 3 res)) 2))
