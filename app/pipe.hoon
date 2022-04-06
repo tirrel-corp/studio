@@ -11,12 +11,13 @@
     *pipe-templates,
     pipe-render,
     resource,
-    meta-lib=metadata-store
+    meta-lib=metadata-store,
+    grate
 |%
 +$  card  card:agent:gall
 --
 ::
-=|  [%4 state-3]
+=|  [%5 state-4]
 =*  state  -
 ::
 %-  agent:dbug
@@ -30,7 +31,7 @@
 ::
 ++  on-init
   ^-  (quip card _this)
-  :_  this(state [%4 *state-3])
+  :_  this(state [%5 *state-4])
   [%pass /graph %agent [our.bowl %graph-store] %watch /updates]~
 ::
 ++  on-save  !>(state)
@@ -39,19 +40,41 @@
   ^-  (quip card _this)
   |^
   =+  !<(old=versioned-state old-vase)
+  =|  cards=(list card)
   |-
   ?-    -.old
+      %5
+    [cards this(state old)]
+  ::
       %4
-    :_  this(state old)
-    %+  turn  ~(tap by flows.old)
-    |=  [=term =flow]
-    [%pass /update-site/[term] %arvo %b %wait now.bowl]
+    =/  cards-4
+      %+  turn  ~(tap by flows.old)
+      |=  [=term =flow]
+      [%pass /update-site/[term] %arvo %b %wait now.bowl]
+    $(old (state-4-to-5 old), cards cards-4)
   ::
     %3  $(old (state-3-to-4 old))
     %2  $(old (state-2-to-3 old))
     %1  $(old (state-1-to-2 old))
     %0  $(old (state-0-to-1 old))
   ==
+  ::
+  ++  state-4-to-5
+    |=  [%4 s=state-3]
+    ^-  [%5 state-4]
+    :-  %5
+    %=    s
+        custom-site  ~
+        sites
+      %-  ~(run by sites.s)
+      |=  w=website-1
+      ^-  website
+      %-  ~(run by w)
+      |=  p=webpage-1
+      ^-  webpage
+      [-.p +.p ~]
+    ==
+  ::
   ++  state-3-to-4
     |=  [%3 s=state-2]
     ^-  [%4 state-3]
@@ -151,9 +174,10 @@
   ::
       %handle-http-request
     =+  !<([eyre-id=@ta req=inbound-request:eyre] vase)
+    =/  res=(pair (list card) simple-payload:http)  (handle-http-request req)
     :_  this
-    %+  give-simple-payload:app:server  eyre-id
-    (handle-http-request req)
+    %+  weld  p.res
+    (give-simple-payload:app:server eyre-id q.res)
   ==
   ::
   ++  pipe-action
@@ -335,7 +359,7 @@
   ::
   ++  handle-http-request
     |=  req=inbound-request:eyre
-    ^-  simple-payload:http
+    ^-  [(list card) simple-payload:http]
     |^
     =/  req-line=request-line:server
       (parse-request-line:server url.request.req)
@@ -353,16 +377,17 @@
       `[name (spat u.suffix)]
     ::
     ?~  flow-req
-      not-found:gen:server
+      `not-found:gen:server
     ::
     =/  web=(unit website)
       (~(get by sites) name.u.flow-req)
-    =/  page=(unit [mime (unit tang)])
-      ?~  web  ~
+    ?~  web
+      `not-found:gen:server
+    =/  page=(unit webpage)
       (~(get by u.web) path.u.flow-req)
-    ?~  page
-      not-found:gen:server
-    [[200 [['content-type' 'text/html'] ~]] `q.-.u.page]
+    ?.  ?|(=(/login path) ?=(^ page))
+      `not-found:gen:server
+    ~(open grate page (stab path.u.flow-req) request.req [our now]:bowl)
     ::
     ++  get-suffix
       |=  [a=path b=path]
@@ -717,8 +742,8 @@
       ?~  temp
         [~ ~]
       =/  site  (u.temp lorem-ipsum:pipe-render)
-      =/  [index=mime (unit tang)]    (~(got by site) '/')
-      =/  [article=mime (unit tang)]  (~(got by site) '/ut-enim-ad-minim-veniam')
+      =/  [index=mime *]    (~(got by site) '/')
+      =/  [article=mime *]  (~(got by site) '/ut-enim-ad-minim-veniam')
       :^  ~  ~  %json  !>
       %-  pairs:enjs:format
       :~  index+s+q.q.index
@@ -929,7 +954,7 @@
   ^-  (map @t tang)
   %-  ~(gas by *(map @t tang))
   %+  murn  ~(tap by website)
-  |=  [path=@t page=mime err=(unit tang)]
+  |=  [path=@t page=mime err=(unit tang) auth=(unit @tas)]
   ^-  (unit [@t tang])
   ?~  err  ~
   `[path u.err]
