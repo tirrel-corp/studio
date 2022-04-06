@@ -14,7 +14,9 @@
     ?:  ?&  !=(~ path)
             =((rear path) %login)
         ==
-      `(login-page 'logan@tirrel.io')
+      ?~  email-hed=(get-header:http 'email' args.req-line)
+        `(error 'missing email field')
+      `(login-page u.email-hed)
     =*  service  auth.page
     :-  ~
     ?~  service
