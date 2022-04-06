@@ -366,15 +366,15 @@
     =/  host=(unit @t)
       (~(get by (~(gas by *(map @t @t)) header-list.request.req)) 'host')
     ::
-    =/  flow-req=(unit [name=term path=@t])
+    =/  flow-req=(unit [name=term =path])
       %-  ~(rep by flows)
-      |=  [[name=term =flow] out=(unit [term @t])]
+      |=  [[name=term =flow] out=(unit [term path])]
       ?~  site.flow  out
       ?.  =(site.binding.u.site.flow host)  out
       =/  suffix=(unit path)
         (get-suffix path.binding.u.site.flow site.req-line)
       ?~  suffix  out
-      `[name (spat u.suffix)]
+      `[name u.suffix]
     ::
     ?~  flow-req
       `not-found:gen:server
@@ -384,10 +384,18 @@
     ?~  web
       `not-found:gen:server
     =/  page=(unit webpage)
-      (~(get by u.web) path.u.flow-req)
-    ?.  ?|(=(/login path) ?=(^ page))
+      %-  ~(get by u.web)
+      %-  spat
+      ?:  =(~ path.u.flow-req)
+        path.u.flow-req
+      ?:  =(%login (rear path.u.flow-req))
+        `path`(snip path.u.flow-req)
+      path.u.flow-req
+    ?~  page
       `not-found:gen:server
-    ~(open grate page (stab path.u.flow-req) request.req [our now]:bowl)
+    =.  u.page
+      u.page(auth `%example)
+    ~(open grate u.page path.u.flow-req request.req [our now]:bowl)
     ::
     ++  get-suffix
       |=  [a=path b=path]

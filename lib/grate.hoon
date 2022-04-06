@@ -1,79 +1,94 @@
 /-  *pipe, magic
 /+  server
-|_  [page=(unit webpage) =path req=request:http our=ship now=time]  :: include prefix
+|_  [page=webpage =path req=request:http our=ship now=time]  :: include prefix
 ::
 ++  open
+  =/  req-line=request-line:server
+    %-  parse-request-line:server
+    url.req
   |^
   ^-  [(list card:agent:gall) simple-payload:http]
-  ?:  =(path /login)
-    ?~  page  !!
-    !!
-  ?~  page  !!
+  ~&  path
   ?+    method.req  !!
       %'GET'
+    ?:  ?&  !=(~ path)
+            =((rear path) %login)
+        ==
+      `(login-page 'logan@tirrel.io')
+    =*  service  auth.page
     :-  ~
-    ?~  auth.u.page
+    ?~  service
       ~&  %no-auth
-      [[200 [['content-type' 'text/html'] ~]] `q.dat.u.page]
+      (content page)
     ?~  cookie=(get:coo header-list.req)
+      ~&  %no-cookie
       request-email-page
-    ?.  (validate:coo u.cookie)
+    ?.  (validate:coo -.u.cookie +.u.cookie u.service)
+      ~&  %invalid-cookie
       request-email-page
-    [[200 [['content-type' 'text/html'] ~]] `q.dat.u.page]
+    (content page)
   ::
       %'POST'
-    ?:  =(/login path)
-      post-login
-    post-content
-  ==
-  ::
-  ++  post-content
-    ^-  [(list card:agent:gall) simple-payload:http]
-    =/  service  %blog
+    ?:  ?&  !=(~ path)
+            =((rear path) %login)
+        ==
+      ::  login post
+      =/  service  %example
+      ?~  body.req
+        `(error 'null body')
+      ?~  parsed=(rush q.u.body.req yquy:de-purl:html)
+        `(error 'body failed to parse')
+      ?~  code-bod=(get-header:http 'code' u.parsed)
+         `(error 'missing code field')
+      ?~  email-hed=(get-header:http 'email' args.req-line)
+         `(error 'missing email field')
+      ?~  email=(de-urlt:html (trip u.email-hed))
+         `(error 'invalid email')
+      =/  user=(unit user:magic)
+        %^  scry-for  %magic  (unit user:magic)
+        /user/[service]/email/(crip u.email)
+      ?~  user
+         `(error 'missing user')
+      ?~  access-code.u.user
+         `(error 'missing access code')
+      ?.  =((rsh [3 2] (scot %q u.access-code.u.user)) u.code-bod)
+        `[[401 ~] ~]
+      =-  `[[303 -] ~]
+      ^-  header-list:http
+      =/  loc=^path  (snip site.req-line)
+      :~  ['set-cookie' (generate:coo (crip u.email) u.access-code.u.user)]
+          ['location' (spat loc)]
+      ==
+    ::  request email post
+    ?>  ?=(^ auth.page)
+    =*  service  u.auth.page
     ?~  body.req
-      `[[400 ~] ~]
+      `(error 'empty body')
     ?~  parsed=(rush q.u.body.req yquy:de-purl:html)
-      `[[400 ~] ~]
+      `(error 'failed to parse')
     ?~  email=(get-header:http 'email' u.parsed)
-      `[[400 ~] ~]
+      `(error 'missing email')
     :-  =-  [%pass /magic %agent [our %magic] %poke -]^~
         :-  %magic-update
         !>  ^-  update:magic
         [%ask-access service email+u.email]
     =-  [[303 -] ~]
     =/  email-segment=@t  (crip (en-urlt:html (trip u.email)))
-    ['location' (cat 3 '/login?email=' email-segment)]^~
+    ['location' (rap 3 (spat site.req-line) '/login?email=' email-segment ~)]^~
+  ==
   ::
-  ++  post-login
-    ^-  [(list card:agent:gall) simple-payload:http]
-    =/  service  %blog
-    ?~  body.req
-      `[[400 ~] ~]
-    ?~  parsed=(rush q.u.body.req yquy:de-purl:html)
-      `[[400 ~] ~]
-    ?~  code-bod=(get-header:http 'code' u.parsed)
-       `[[400 ~] ~]
-    =/  req-line=request-line:server
-      %-  parse-request-line:server
-      url.req
-    ?~  email-hed=(get-header:http 'email' args.req-line)
-       `[[400 ~] ~]
-    ?~  email=(de-urlt:html (trip u.email-hed))
-      `[[400 ~] ~]
-    =/  user=(unit user:magic)
-      %^  scry-for  %magic  (unit user:magic)
-      /user/[service]/email/(crip u.email)
-    ?~  user
-      `[[400 ~] ~]
-    ?~  access-code.u.user
-      `[[400 ~] ~]
-    ?.  =((rsh [3 2] (scot %q u.access-code.u.user)) u.code-bod)
-      `[[401 ~] ~]
-    =-  `[[303 -] ~]
-    ^-  header-list:http
-    :~  ['set-cookie' (generate:coo (crip u.email) u.access-code.u.user)]
-        ['location' '/content']
-    ==
+  ++  error
+    |=  msg=@t
+    ^-  simple-payload:http
+    =/  =manx
+      ;p: {(trip msg)}
+    :_  `(manx-to-octs:server manx)
+    [400 [['content-type' 'text/html'] ~]]
+  ::
+  ++  content
+    |=  wag=webpage
+    ^-  simple-payload:http
+    [[200 [['content-type' 'text/html'] ~]] `q.dat.wag]
   ::
   ++  request-email-page
     =*  srv  server
@@ -88,7 +103,7 @@
         ;link(rel "stylesheet", href "https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css");
       ==
       ;body.absolute.w-100.h-100.flex.flex-column.justify-center.items-center
-        ;form.mw6.pa2(method "POST", action (trip (spat path)))
+        ;form.mw6.pa2(method "POST", action "#")
           ;h3: Want to view the article? Enter your email.
           ;span.w-100.flex.justify-between.items-center.mv3
             ;label.b: Email
@@ -126,7 +141,6 @@
     ==
   --
 ::
-::
 ++  coo
   |%
   ++  studio-auth-cookie  (cat 3 'studio-auth-' (scot %p our))
@@ -144,9 +158,8 @@
     ==
   ::
   ++  validate
-    |=  [email=@t code=@q]
+    |=  [email=@t code=@q service=@tas]
     ^-  ?
-    =/  service  %blog
     =/  user=(unit user:magic)
       %^  scry-for  %magic  (unit user:magic)
       /user/[service]/email/[email]
