@@ -5,6 +5,7 @@
   =,  dejs:format
   |%
   ++  action
+    ^-  $-(json ^action)
     %-  of
     :~  [%add (ot name+so flow+flow ~)]
         [%remove so]
@@ -14,15 +15,25 @@
     ==
   ::
   ++  flow
+    ^-  $-(json ^flow)
     %-  ot
     :~  resource+dejs:resource
         index+(su ;~(pfix fas (more fas dem)))
-        site+site
+        site+(mu site)
         email+(mu so)
+        auth+(mu auth-rule)
+    ==
+  ::
+  ++  auth-rule
+    ^-  $-(json ^auth-rule)
+    %-  of
+    :~  all+so
+        subpaths+so
+        per-subpath+ul
     ==
   ::
   ++  site
-    %-  mu
+    ^-  $-(json ^site)
     %-  ot
     :~  template+so
         binding+binding
@@ -42,12 +53,14 @@
     !!
   ::
   ++  binding
+    ^-  $-(json binding:eyre)
     %-  ot
     :~  site+(mu so)
         path+pa
     ==
   ::
   ++  edit
+    ^-  $-(json ^edit)
     %-  of
     :~  [%resource dejs:resource]
         [%site edit-site]
@@ -55,6 +68,7 @@
     ==
   ::
   ++  edit-site
+    ^-  $-(json ^edit-site)
     %-  of
     :~  [%template so]
         [%binding binding]
@@ -62,7 +76,7 @@
         [%width width]
         [%lit bo]
         [%accent nu]
-        [%whole site]
+        [%whole (mu site)]
     ==
   --
 ++  enjs

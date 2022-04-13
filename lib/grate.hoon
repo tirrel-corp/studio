@@ -1,6 +1,7 @@
 /-  *pipe, magic
 /+  server
 |_  [page=webpage =path req=request:http our=ship now=time]  :: include prefix
+::  TODO: remove /login special casing and use a request arg
 ::
 ++  open
   =/  req-line=request-line:server
@@ -9,10 +10,12 @@
   |^
   ^-  [(list card:agent:gall) simple-payload:http]
   ~&  path
+  =/  action-arg=(unit @t)
+   (get-header:http 'action' args.req-line)
   ?+    method.req  !!
       %'GET'
-    ?:  ?&  !=(~ path)
-            =((rear path) %login)
+    ?:  ?&  ?=(^ action-arg)
+            =(%login u.action-arg)
         ==
       ?~  email-hed=(get-header:http 'email' args.req-line)
         `(error 'missing email field')
@@ -31,8 +34,8 @@
     (content page)
   ::
       %'POST'
-    ?:  ?&  !=(~ path)
-            =((rear path) %login)
+    ?:  ?&  ?=(^ action-arg)
+            =(%login u.action-arg)
         ==
       ::  login post
       =/  service  %example
@@ -57,9 +60,8 @@
         `[[401 ~] ~]
       =-  `[[303 -] ~]
       ^-  header-list:http
-      =/  loc=^path  (snip site.req-line)
       :~  ['set-cookie' (generate:coo (crip u.email) u.access-code.u.user)]
-          ['location' (spat loc)]
+          ['location' (spat site.req-line)]
       ==
     ::  request email post
     ?>  ?=(^ auth.page)
@@ -76,7 +78,7 @@
         [%ask-access service email+u.email]
     =-  [[303 -] ~]
     =/  email-segment=@t  (crip (en-urlt:html (trip u.email)))
-    ['location' (rap 3 (spat site.req-line) '/login?email=' email-segment ~)]^~
+    ['location' (rap 3 (spat site.req-line) '?action=login&email=' email-segment ~)]^~
   ==
   ::
   ++  error

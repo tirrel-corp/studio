@@ -48,8 +48,8 @@
   ::
       %4
     =/  cards-4
-      %+  turn  ~(tap by flows.old)
-      |=  [=term =flow]
+      %+  turn  ~(tap in ~(key by flows.old))
+      |=  =term
       [%pass /update-site/[term] %arvo %b %wait now.bowl]
     $(old (state-4-to-5 old), cards cards-4)
   ::
@@ -65,6 +65,7 @@
     :-  %5
     %=    s
         custom-site  ~
+    ::
         sites
       %-  ~(run by sites.s)
       |=  w=website-1
@@ -73,6 +74,17 @@
       |=  p=webpage-1
       ^-  webpage
       [-.p +.p ~]
+    ::
+        flows
+      %-  ~(run by flows.s)
+      |=  f=flow-2
+      ^-  flow
+      :*  resource.f
+          index.f
+          site.f
+          email.f
+          ~
+      ==
     ==
   ::
   ++  state-3-to-4
@@ -86,7 +98,7 @@
     :*  %3
         %-  ~(run by flows.s)
         |=  f=flow-1
-        ^-  flow
+        ^-  flow-2
         %=    f
             site
           ?~  site.f
@@ -186,23 +198,24 @@
     ?-    -.action
         %add
       ?<  (~(has by flows) name.action)
-      ?~  site.action  !!
-      ?:  (binding-taken binding.u.site.action)
-        ~|("binding already taken {<`path`path.binding.u.site.action>}" !!)
-      =.  flows  (~(put by flows) name.action +>.action)
+      ?~  site.flow.action  !!
+      ?:  (binding-taken binding.u.site.flow.action)
+        ~|("binding already taken {<`path`path.binding.u.site.flow.action>}" !!)
+      =.  flows  (~(put by flows) name.action flow.action)
       =.  uid-to-name
         %+  ~(put ju uid-to-name)
-          [resource.action index.action]
+          [resource.flow.action index.flow.action]
         name.action
       =/  =site-template
-        ~|  "no such template: {<template.u.site.action>}"
-        (need (get-site-template:pc template.u.site.action))
-      =/  =website  (site-template (get-site-inputs:pc name.action +>.action))
+        ~|  "no such template: {<template.u.site.flow.action>}"
+        (need (get-site-template:pc template.u.site.flow.action))
+      =/  =website  (site-template (get-site-inputs:pc name.action flow.action))
+      =.  website  (apply-auth-to-site:pc website auth-rule.flow.action)
       =.  sites     (~(put by sites) name.action website)
       :_  state
       :*  (give-site:pc name.action website)
           give-flows:pc
-          (serve:pc name.action binding.u.site.action)
+          (serve:pc name.action binding.u.site.flow.action)
       ==
     ::
         %remove
@@ -242,6 +255,7 @@
         ~|  "no such template: {<template.u.site.new>}"
         (need (get-site-template:pc template.u.site.new))
       =/  =website  (site-template (get-site-inputs:pc name.action new))
+      =.  website  (apply-auth-to-site:pc website auth-rule.new)
       =.  sites     (~(put by sites) name.action website)
       :_  state
       :*  give-flows:pc
@@ -364,7 +378,7 @@
     =/  req-line=request-line:server
       (parse-request-line:server url.request.req)
     =/  host=(unit @t)
-      (~(get by (~(gas by *(map @t @t)) header-list.request.req)) 'host')
+      (get-header:http 'host' header-list.request.req)
     ::
     =/  flow-req=(unit [name=term =path])
       %-  ~(rep by flows)
@@ -385,12 +399,7 @@
       `not-found:gen:server
     =/  page=(unit webpage)
       %-  ~(get by u.web)
-      %-  spat
-      ?:  =(~ path.u.flow-req)
-        path.u.flow-req
-      ?:  =(%login (rear path.u.flow-req))
-        `path`(snip path.u.flow-req)
-      path.u.flow-req
+      (spat path.u.flow-req)
     ?~  page
       `not-found:gen:server
     =.  u.page
@@ -946,11 +955,28 @@
     `state
   =/  =site-template  (need (get-site-template template.u.site.flow))
   =/  =website   (site-template (get-site-inputs name flow))
+  =.  website  (apply-auth-to-site website auth-rule.flow)
   =.  sites      (~(put by sites) name website)
   =/  errors=update  [%errors get-all-errors]
   :_  state
   :~  (give-site name website)
       [%give %fact [/updates]~ %pipe-update !>(errors)]
+  ==
+::
+++  apply-auth-to-site
+  |=  [w=website rule=(unit auth-rule)]
+  ^-  website
+  ?~  rule  w
+  =*  rul  u.rule
+  %-  ~(gas by *website)
+  %+  turn  ~(tap by w)
+  |=  [p=@t q=webpage]
+  ^-  [@t webpage]
+  :-  p
+  ?-  -.rul
+    %all          q(auth `p.rul)
+    %subpaths     q(auth ?:(=('' p) ~ `p.rul))
+    %per-subpath  q  ::  TODO: implement this
   ==
 ::
 ++  get-all-errors

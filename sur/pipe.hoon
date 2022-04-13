@@ -23,6 +23,13 @@
       =index
       site=(unit site)
       email=(unit term)
+      auth-rule=(unit auth-rule)
+  ==
+::
++$  auth-rule
+  $%  [%all p=@tas]
+      [%subpaths p=@tas]
+      [%per-subpath ~]
   ==
 ::
 +$  site
@@ -51,7 +58,7 @@
   ==
 ::
 +$  action
-  $%  [%add name=term flow]
+  $%  [%add name=term =flow]
       [%remove name=term]
       [%edit name=term edits=(list edit)]
       [%watch-templates =desk]
@@ -93,7 +100,7 @@
 ::  old versions
 ::
 +$  state-3
-  $:  flows=(map name=term flow)
+  $:  flows=(map name=term flow-2)
       sites=(map name=term website-1)
       uid-to-name=(jug uid name=term)
       template-desk=(unit desk)
@@ -103,9 +110,15 @@
 +$  website-1  (map @t webpage-1)
 +$  webpage-1  [dat=mime err=(unit tang)]
 +$  site-template-1   $-(site-inputs website-1)
++$  flow-2
+  $:  =resource
+      =index
+      site=(unit site)
+      email=(unit term)
+  ==
 ::
 +$  state-2
-  $:  flows=(map name=term flow)
+  $:  flows=(map name=term flow-2)
       sites=(map name=term website-0)
       uid-to-name=(jug uid name=term)
       template-desk=(unit desk)
