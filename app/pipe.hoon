@@ -239,9 +239,10 @@
         %+  roll  edits.action
         |=  [=edit cards=(list card) f=_fl rebuild=_|]
         ?-  -.edit
-            %resource  [cards f(resource resource.edit) %.y]
-            %email     [cards f(email email.edit) %.y]
-            %site      (site-edit edit-site.edit cards f %.y)
+            %resource   [cards f(resource resource.edit) %.y]
+            %email      [cards f(email email.edit) %.y]
+            %site       (site-edit edit-site.edit cards f %.y)
+            %auth-rule  [cards f(auth-rule rule.edit) %.y]
         ==
       =.  flows  (~(put by flows) name.action new)
       ?~  site.new
@@ -973,10 +974,14 @@
   |=  [p=@t q=webpage]
   ^-  [@t webpage]
   :-  p
-  ?-  -.rul
+  ?-    -.rul
     %all          q(auth `p.rul)
     %subpaths     q(auth ?:(=('' p) ~ `p.rul))
-    %per-subpath  q  ::  TODO: implement this
+  ::
+      %per-subpath
+    =/  val  (~(get by p.rul) p)
+    ?~  val  q(auth ~)
+    q(auth u.val)
   ==
 ::
 ++  get-all-errors

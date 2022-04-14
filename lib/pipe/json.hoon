@@ -29,7 +29,7 @@
     %-  of
     :~  all+so
         subpaths+so
-        per-subpath+ul
+        per-subpath+(om (mu (se %tas)))
     ==
   ::
   ++  site
@@ -65,6 +65,7 @@
     :~  [%resource dejs:resource]
         [%site edit-site]
         [%email (mu so)]
+        [%auth-rule (mu auth-rule)]
     ==
   ::
   ++  edit-site

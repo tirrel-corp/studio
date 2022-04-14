@@ -29,7 +29,7 @@
 +$  auth-rule
   $%  [%all p=@tas]
       [%subpaths p=@tas]
-      [%per-subpath ~]
+      [%per-subpath p=(map @t (unit @tas))]
   ==
 ::
 +$  site
@@ -55,6 +55,7 @@
   $%  [%resource =resource]
       [%site =edit-site]
       [%email email=(unit term)]
+      [%auth-rule rule=(unit auth-rule)]
   ==
 ::
 +$  action
