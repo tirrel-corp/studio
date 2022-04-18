@@ -977,6 +977,7 @@
   ?-    -.rul
     %all          q(auth `p.rul)
     %subpaths     q(auth ?:(=('' p) ~ `p.rul))
+    %none         q(auth ~)
   ::
       %per-subpath
     =/  val  (~(get by p.rul) p)

@@ -30,6 +30,7 @@
     :~  all+so
         subpaths+so
         per-subpath+(om (mu (se %tas)))
+        none+ul
     ==
   ::
   ++  site

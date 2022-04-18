@@ -30,6 +30,7 @@
   $%  [%all p=@tas]
       [%subpaths p=@tas]
       [%per-subpath p=(map @t (unit @tas))]
+      [%none ~]
   ==
 ::
 +$  site

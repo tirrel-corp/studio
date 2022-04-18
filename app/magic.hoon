@@ -1,7 +1,7 @@
 ::  magic [tirrel]: user database and login system
 ::
-/-  *magic, mailer
-/+  default-agent, dbug, verb
+/-  mailer
+/+  *magic, default-agent, dbug, verb
 |%
 +$  card  card:agent:gall
 +$  state-0

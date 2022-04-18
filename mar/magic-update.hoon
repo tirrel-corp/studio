@@ -1,4 +1,4 @@
-/-  *magic
+/+  *magic
 |_  upd=update
 ::
 ++  grow
@@ -9,6 +9,7 @@
 ++  grab
   |%
   ++  noun  update
+  ++  json  update:dejs
   --
 ::
 ++  grad  %noun
