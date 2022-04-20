@@ -403,8 +403,6 @@
       (spat path.u.flow-req)
     ?~  page
       `not-found:gen:server
-    =.  u.page
-      u.page(auth `%example)
     ~(open grate u.page path.u.flow-req request.req [our now]:bowl)
     ::
     ++  get-suffix
@@ -976,7 +974,7 @@
   :-  p
   ?-    -.rul
     %all          q(auth `p.rul)
-    %subpaths     q(auth ?:(=('' p) ~ `p.rul))
+    %subpaths     q(auth ?:(=('/' p) ~ `p.rul))
     %none         q(auth ~)
   ::
       %per-subpath

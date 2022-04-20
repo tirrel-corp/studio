@@ -43,11 +43,11 @@
     ^-  (quip card _state)
     ?-  -.upd
         %add-service
-      ?<  (~(has by services) p.upd)
+      ?:  (~(has by services) p.upd)  `state
       `state(services (~(put by services) p.upd q.upd))
     ::
         %del-service
-      ?>  (~(has by services) p.upd)
+      ?:  (~(has by services) p.upd)  `state
       `state(services (~(del by services) p.upd))
     ::
         %mod-access-duration
