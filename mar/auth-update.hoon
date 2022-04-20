@@ -1,4 +1,4 @@
-/+  *magic
+/+  *auth
 |_  upd=update
 ::
 ++  grow

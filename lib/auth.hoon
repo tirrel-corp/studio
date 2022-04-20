@@ -1,4 +1,4 @@
-/-  *magic
+/-  *auth
 |%
 ++  dejs
   =,  dejs:format

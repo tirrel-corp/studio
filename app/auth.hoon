@@ -1,7 +1,7 @@
-::  magic [tirrel]: user database and login system
+::  auth [tirrel]: user database and login system
 ::
 /-  mailer
-/+  *magic, default-agent, dbug, verb
+/+  *auth, default-agent, dbug, verb
 |%
 +$  card  card:agent:gall
 +$  state-0
@@ -32,13 +32,13 @@
   ?>  (team:title our.bowl src.bowl)
   |^
   ?+    mark  (on-poke:def mark vase)
-      %magic-update
+      %auth-update
     =^  cards  state
-      (magic-update !<(update vase))
+      (auth-update !<(update vase))
     [cards this]
   ==
   ::
-  ++  magic-update
+  ++  auth-update
     |=  upd=update
     ^-  (quip card _state)
     ?-  -.upd

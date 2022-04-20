@@ -1,4 +1,4 @@
-/-  *pipe, magic
+/-  *pipe, auth
 /+  server
 |_  [page=webpage =path req=request:http our=ship now=time]  :: include prefix
 ::  TODO: remove /login special casing and use a request arg
@@ -49,8 +49,8 @@
          `(error 'missing email field')
       ?~  email=(de-urlt:html (trip u.email-hed))
          `(error 'invalid email')
-      =/  user=(unit user:magic)
-        %^  scry-for  %magic  (unit user:magic)
+      =/  user=(unit user:auth)
+        %^  scry-for  %auth  (unit user:auth)
         /user/[service]/email/(crip u.email)
       ?~  user
          `(error 'missing user')
@@ -72,9 +72,9 @@
       `(error 'failed to parse')
     ?~  email=(get-header:http 'email' u.parsed)
       `(error 'missing email')
-    :-  =-  [%pass /magic %agent [our %magic] %poke -]^~
-        :-  %magic-update
-        !>  ^-  update:magic
+    :-  =-  [%pass /auth %agent [our %auth] %poke -]^~
+        :-  %auth-update
+        !>  ^-  update:auth
         [%ask-access service email+u.email]
     =-  [[303 -] ~]
     =/  email-segment=@t  (crip (en-urlt:html (trip u.email)))
@@ -164,8 +164,8 @@
   ++  validate
     |=  [email=@t code=@q service=@tas]
     ^-  ?
-    =/  user=(unit user:magic)
-      %^  scry-for  %magic  (unit user:magic)
+    =/  user=(unit user:auth)
+      %^  scry-for  %auth  (unit user:auth)
       /user/[service]/email/[email]
     ?~  user
       ::  ~&  %no-such-user
