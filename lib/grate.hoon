@@ -9,7 +9,6 @@
     url.req
   |^
   ^-  [(list card:agent:gall) simple-payload:http]
-  ~&  path
   =/  action-arg=(unit @t)
    (get-header:http 'action' args.req-line)
   ?+    method.req  !!
@@ -23,13 +22,13 @@
     =*  service  auth.page
     :-  ~
     ?~  service
-      ~&  %no-auth
+      ::  ~&  %no-auth
       (content page)
     ?~  cookie=(get:coo header-list.req)
-      ~&  %no-cookie
+      ::  ~&  %no-cookie
       request-email-page
     ?.  (validate:coo -.u.cookie +.u.cookie u.service)
-      ~&  %invalid-cookie
+      ::  ~&  %invalid-cookie
       request-email-page
     (content page)
   ::
@@ -38,7 +37,8 @@
             =(%login u.action-arg)
         ==
       ::  login post
-      =/  service  %example
+      ?>  ?=(^ auth.page)
+      =*  service  u.auth.page
       ?~  body.req
         `(error 'null body')
       ?~  parsed=(rush q.u.body.req yquy:de-purl:html)
@@ -168,7 +168,7 @@
       %^  scry-for  %magic  (unit user:magic)
       /user/[service]/email/[email]
     ?~  user
-      ~&  %no-such-user
+      ::  ~&  %no-such-user
       %.n
     ?~  access-code.u.user
       %.n
@@ -180,15 +180,14 @@
     |=  hed=header-list:http
     ^-  (unit [email=@t code=@q])
     ?~  cookie-hed=(get-header:http 'cookie' hed)
-      ~&  %no-cookie
+      ::  ~&  %no-cookie
       ~
     ?~  cookies=(rush u.cookie-hed cock:de-purl:html)
-      ~&  %null-cookie
+      ::  ~&  %null-cookie
       ~
     ?~  auth=(get-header:http studio-auth-cookie u.cookies)
-      ~&  %no-studio-cookie
+      ::  ~&  %no-studio-cookie
       ~
-    ~&  cookie+u.auth
     ?~  index=(find "|" (trip u.auth))
       ~
     =/  trimmed  (trim u.index (trip u.auth))
