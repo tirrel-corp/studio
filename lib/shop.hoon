@@ -39,25 +39,26 @@
       msg
       ~
     ==
-  =/  hax    (swp 3 (shax msg-2))
+  =/  hax    (keccak-256:keccak:crypto (met 3 msg-2) msg-2)
   =/  raw-sig    (ecdsa-raw-sign:secp256k1:secp:secp:crypto hax priv)
   =/  res    (cat 3 (swp 3 r.raw-sig) (swp 3 s.raw-sig))
   =/  bits   (add 27 (mod (cut 3 [31 1] (swp 3 res)) 2))
   `@ux`(swp 3 (cat 3 res bits))
 ::
 ++  make-email
-  |=  [address=@t sold=(map ship @q)]
+  |=  [address=@t sold=(map ship @q) now=@da cc-num=@t tid=@ud]
   ^-  email:mailer
-  :*  ['isaac@tirrel.io' '~tirrel']
+  :*  ['delivery@tirrel.io' '~tirrel']
       'You got a planet!'
-      (email-body sold)^~
+      (email-body address sold now cc-num tid)^~
       [[address]~ ~ ~]~
   ==
   ::
 ++  email-body
-  |=  sold=(map ship @q)
+  |=  [address=@t sold=(map ship @q) now=@da cc-num=@t tid=@ud]
   ^-  content-field:mailer
   =/  num  ~(wyt by sold)
+  =/  orange  "color: #ff6300"
   :-  'text/html'
   =<  q
   %-  as-octt:mimes:html
@@ -69,34 +70,123 @@
     =/  ship    -.i.lis
     =/  ticket  +.i.lis
     =/  bu  (bridge-url ship ticket)
-    ;div
-      ;p: Welcome to Urbit, you now own the planet {(scow %p ship)}
-      ;table
+    ;div(style "max-width: 600px")
+      ;h1: Welcome to Urbit!
+      ;p
+        ; You now own the planet
+        ;b: {(scow %p ship)}!
+      ==
+      ;b: Follow these steps to get your Urbit running:
+      ;ol
+        ;li
+          ;a(href bu, style orange): Activate your planet in Bridge
+        ==
+        ;li
+          ;a(href "https://urbit.org/getting-started#port", style orange): Download Port
+          ; , Urbit's desktop client
+        ==
+        ;li
+          ; Follow the
+          ;a(href "https://urbit.org/getting-started/planet#step-3-boot", style orange): Installation Guide
+          ;  for detailed instructions
+        ==
+        ;li
+          ; If you need assistance with installation, book a
+          ;a(href "https://calendly.com/tirrel/onboarding", style orange): live onboarding session
+        ==
+      ==
+      ;b: Support Resources:
+      ;ul
+        ;li
+          ; For purchase-related problems, please contact:
+          ;a(href "mailto:support@tirrel.io", style orange): support@tirrel.io
+        ==
+        ;li
+          ; If you have questions on Urbit, join our support group: ~tirrel/tirrel-support
+        ==
+      ==
+      ;p: See you on the network!
+      ;p: - Planet Market
+      ;p
+        ;a(href "https://planet.market", style orange): https://planet.market
+      ==
+      ;br;
+      ;p
+        ; Activate planet link:
+        ;a(href bu, style orange): {bu}
+      ==
+      ;hr(style "margin: 30px 0", color "black", size "1");
+      ;b: Planet Market Receipt
+      ;p: Receipt #{(trip (rsh [3 2] (scot %ui tid)))}
+      ;p: {(trip (print-date-full now))}
+      ;p
+        ; Delivery to:
+        ;a(href "mailto:{(trip address)}", style orange): {(trip address)}
+      ==
+      ;table(width "100%", style "margin-top: 30px")
         ;tr
-          ;td: Please activate it in Bridge:
-          ;td
-            ;a(href bu): {bu}
+          ;td(style "width: 50%", align "left")
+            ;b: Planet
           ==
+          ;td(style "width: 50%", align "right"): $20.00
+        ==
+      ==
+      ;hr(style "margin: 30px 0", color "black", size "1");
+      ;table(width "100%")
+        ;tr
+          ;td(style "width: 50%", align "left"): Subtotal
+          ;td(style "width: 50%", align "right"): $20.00
+        ==
+        ;tr
+          ;td(style "width: 50%", align "left")
+            ;b: Total Paid
+          ==
+          ;td(style "width: 50%", align "right")
+            ;b: $20.00
+          ==
+        ==
+        ;tr
+          ;td(style "width: 50%", align "left"): {(trip cc-num)}
+          ;td(style "width: 50%", align "right"): {(trip (print-date-num now))}
         ==
       ==
     ==
-  =/  lis  ~(tap by sold)
-  ?>  ?=(^ lis)
-  =/  ship    -.i.lis
-  =/  ticket  +.i.lis
-  ;div
-    ;p: Welcome to Urbit, you now own the following planets. Click the bridge link beside each planet to activate it
-    ;table
-      ;*  %+  turn  lis
-          |=  [s=@p t=@q]
-          ^-  manx
-          ;tr
-            ;td: {(scow %p s)}
-            ;td
-              ;a(href (bridge-url s t)): {(bridge-url s t)}
-            ==
-          ==
-    ==
+  !!
+::
+++  print-date-full
+  |=  d=@da
+  ^-  @t
+  =/  date   (yore d)
+  =/  month  (crip (snag (dec m.date) mon:yu:chrono:userlib))
+  %:  rap  3
+    month
+    ' '
+    (scot %ud d.t.date)
+    ', '
+    (rsh [3 2] (scot %ui y.date))
+    ~
+  ==
+++  print-date-num
+  |=  d=@da
+  ^-  @t
+  =/  date   (yore d)
+  =/  hour=@t
+    ?:  (gte h.t.date 10)  (scot %ud h.t.date)
+    (cat 3 '0' (scot %ud h.t.date))
+  =/  minute=@t
+    ?:  (gte m.t.date 10)  (scot %ud m.t.date)
+    (cat 3 '0' (scot %ud m.t.date))
+  %:  rap  3
+    (scot %ud m.date)
+    '/'
+    (scot %ud d.t.date)
+    '/'
+    (rsh [3 2] (scot %ui y.date))
+    ' '
+    hour
+    ':'
+    minute
+    ~
   ==
 ::
 ++  bridge-url

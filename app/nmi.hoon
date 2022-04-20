@@ -10,16 +10,6 @@
   $:  api-key=(unit cord)
       site=(unit [host=cord suffix=(unit term)])
       redirect-url=(unit cord)
-      transactions=transactions-0
-      =request-to-time
-      =request-to-token
-      =token-to-request
-  ==
-::
-+$  state-1
-  $:  api-key=(unit cord)
-      site=(unit [host=cord suffix=(unit term)])
-      redirect-url=(unit cord)
       =transactions
       =request-to-time
       =request-to-token
@@ -27,14 +17,15 @@
   ==
 ::
 +$  versioned-state
-  $%  [%0 state-0]
-      [%1 state-1]
+  $%  [%0 *]
+      [%1 *]
+      [%2 state-0]
   ==
 ++  api-url  'https://secure.networkmerchants.com/api/v2/three-step'
 ++  timeout-interval  ~m1
 --
 ::
-=|  [%1 state-1]
+=|  [%2 state-0]
 =*  state  -
 ::
 %-  agent:dbug
@@ -56,17 +47,11 @@
   =/  old  !<(versioned-state old-vase)
   |-
   ?-    -.old
-      %1
+      %2
     `this(state old)
   ::
-    %0  $(old (state-0-to-1 old))
+    ?(%0 %1)  `this
   ==
-  ::
-  ++  state-0-to-1
-    |=  [%0 s=state-0]
-    ^-  [%1 state-1]
-    :-  %1
-    s(transactions *^transactions)
   --
 ::
 ++  on-poke
@@ -453,6 +438,11 @@
       ?>  ?=(@t transaction-id)
       ?>  ?=(@t authorization-code)
       ?>  ?=(@t cvv-result)
+      =/  billing=$?(@t (map @t @t))  (~(got by m) 'billing')
+      ~&  billing
+      ?@  billing  !!
+      =/  bil=(map @t @t)  billing
+      =/  cc-num=@t  (~(got by bil) 'cc-number')
       :_  %_    state
               transactions
             %^  put:orm  transactions  time
@@ -461,6 +451,7 @@
                 (rash authorization-code dem)
                 cvv-result
                 email
+                cc-num
             ==
           ==
       =-  [%pass /sell-ship/[token] %agent [our.bowl %shop] %poke -]~
@@ -553,6 +544,12 @@
     !>  ^-  json
     ?~  api-key  ~
     s+u.api-key
+  ::
+      [%x %transaction @ ~]
+    =/  time  (slaw %da i.t.t.path)
+    ?~  time  ~
+    =/  tx=(unit transaction)  (get:orm transactions u.time)
+    ``noun+!>(tx)
   ==
 ::
 ++  on-leave  on-leave:def
