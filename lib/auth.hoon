@@ -40,4 +40,62 @@
         duration+(mu ri)
     ==
   --
+::
+++  enjs
+  =,  enjs:format
+  |%
+  ++  update
+    |=  u=^update
+    ^-  json
+    %+  frond  -.u
+    ?+  -.u  !!
+        %add-service
+      %-  pairs
+      :~  name+s+p.u
+          service+(service q.u)
+      ==
+    ::
+        %mod-access-duration
+      %-  pairs
+      :~  name+s+p.u
+          duration+?~(q.u ~ n+(rsh [3 2] (scot %ui (div u.q.u ~s1))))
+      ==
+    ::
+        %add-user
+      %-  pairs
+      :~  name+s+p.u
+          :-  %user
+          ?>  ?=(^ q.u)
+          s+p.q.u
+      ==
+    ::
+        %del-user
+      %-  pairs
+      :~  name+s+p.u
+          :-  %user
+          ?>  ?=(^ q.u)
+          s+p.q.u
+      ==
+    ==
+  ::
+  ++  service
+    |=  s=^service
+    ^-  json
+    =*  ad  access-duration.s
+    %-  pairs
+    :~  users+(users users.s)
+        duration+?~(ad ~ n+(rsh [3 2] (scot %ui (div u.ad ~s1))))
+    ==
+  ::
+  ++  users
+    |=  u=(map id user)
+    ^-  json
+    :-  %a
+    ::%-  ~(gas by *(map @t json))
+    %+  turn  ~(tap by u)
+    |=  [p=id q=user]
+    ^-  json
+    ?>  ?=(^ p)
+    s+p.p
+  --
 --

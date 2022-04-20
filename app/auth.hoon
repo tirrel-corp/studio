@@ -44,28 +44,33 @@
     ?-  -.upd
         %add-service
       ?:  (~(has by services) p.upd)  `state
-      `state(services (~(put by services) p.upd q.upd))
+      :-  [%give %fact /all^~ %auth-update !>(upd)]^~
+      state(services (~(put by services) p.upd q.upd))
     ::
         %del-service
       ?:  (~(has by services) p.upd)  `state
-      `state(services (~(del by services) p.upd))
+      :-  [%give %fact /all^~ %auth-update !>(upd)]^~
+      state(services (~(del by services) p.upd))
     ::
         %mod-access-duration
       =/  srv=service  (~(got by services) p.upd)
       =.  access-duration.srv  q.upd
-      `state(services (~(put by services) p.upd srv))
+      :-  [%give %fact /all^~ %auth-update !>(upd)]^~
+      state(services (~(put by services) p.upd srv))
     ::
         %add-user
       =/  srv=service  (~(got by services) p.upd)
       ?<  (~(has by users.srv) q.upd)
       =.  users.srv  (~(put by users.srv) q.upd r.upd)
-      `state(services (~(put by services) p.upd srv))
+      :-  [%give %fact /all^~ %auth-update !>(upd)]^~
+      state(services (~(put by services) p.upd srv))
     ::
         %del-user
       =/  srv=service  (~(got by services) p.upd)
       ?>  (~(has by users.srv) q.upd)
       =.  users.srv  (~(del by users.srv) q.upd)
-      `state(services (~(put by services) p.upd srv))
+      :-  [%give %fact /all^~ %auth-update !>(upd)]^~
+      state(services (~(put by services) p.upd srv))
     ::
         %ask-access
       =/  srv=service      (~(got by services) p.upd)
@@ -115,7 +120,6 @@
   ++  send-email
     |=  [email=@tas cod=@q]
     ^-  card
-    ~&  email^cod
     =-  [%pass /email/[email] %agent [our.bowl %mailer] %poke -]
     :-  %mailer-action
     !>  ^-  action:mailer
@@ -181,7 +185,21 @@
     (~(get by users.u.srv) (slav %p i.t.t.t.t.path))
   ==
 ::
-++  on-watch  on-watch:def
+++  on-watch
+  |=  =path
+  ^-  (quip card _this)
+  ?>  (team:title our.bowl src.bowl)
+  ?+    path  (on-watch:def path)
+      [%all ~]
+    :_  this
+    %+  turn  ~(tap by services)
+    |=  [p=@tas q=service]
+    ^-  card
+    =-  [%give %fact ~ %auth-update -]
+    !>  ^-  update
+    [%add-service p q]
+  ==
+::
 ++  on-leave  on-leave:def
 ++  on-agent  on-agent:def
 ++  on-fail   on-fail:def
