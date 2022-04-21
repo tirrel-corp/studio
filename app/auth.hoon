@@ -48,7 +48,7 @@
       state(services (~(put by services) p.upd q.upd))
     ::
         %del-service
-      ?:  (~(has by services) p.upd)  `state
+      ?.  (~(has by services) p.upd)  `state
       :-  [%give %fact /all^~ %auth-update !>(upd)]^~
       state(services (~(del by services) p.upd))
     ::

@@ -55,6 +55,11 @@
           service+(service q.u)
       ==
     ::
+        %del-service
+      %-  pairs
+      :~  name+s+p.u
+      ==
+    ::
         %mod-access-duration
       %-  pairs
       :~  name+s+p.u
