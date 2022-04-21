@@ -142,6 +142,17 @@
         index+(index:enjs:graph-store index.f)
         site+(site site.f)
         email+?~(email.f ~ [%s u.email.f])
+        auth+?~(auth-rule.f ~ (auth-rule u.auth-rule.f))
+    ==
+  ::
+  ++  auth-rule
+    |=  rul=^auth-rule
+    ^-  json
+    ?-  -.rul
+      %none       (frond %none ~)
+      %all        (frond %all s+p.rul)
+      %subpaths   (frond %subpaths s+p.rul)
+      %per-subpath  !!
     ==
   ::
   ++  site

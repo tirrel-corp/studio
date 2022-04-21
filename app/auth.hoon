@@ -125,6 +125,8 @@
     !>  ^-  action:mailer
     [%send-email (make-email email cod)]
   ::
+  ::  TODO: add URL to email
+  ::
   ++  make-email
     |=  [address=@tas cod=@q]
     ^-  email:mailer

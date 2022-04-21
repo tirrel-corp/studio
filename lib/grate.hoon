@@ -1,7 +1,6 @@
 /-  *pipe, auth
 /+  server
 |_  [page=webpage =path req=request:http our=ship now=time]  :: include prefix
-::  TODO: remove /login special casing and use a request arg
 ::
 ++  open
   =/  req-line=request-line:server
@@ -107,13 +106,14 @@
         ;link(rel "stylesheet", href "https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css");
       ==
       ;body.absolute.w-100.h-100.flex.flex-column.justify-center.items-center
-        ;form.mw6.pa2(method "POST", action "#")
-          ;h3: Want to view the article? Enter your email.
-          ;span.w-100.flex.justify-between.items-center.mv3
-            ;label.b: Email
-            ;input.w-60.ba.pa2(name "email");
+        ;form.mw6.pa2.flex.flex-column(method "POST", action "#")
+          ;span.w-100
+            ;h3.w-70-ns.w-100: Want to view the post? Enter your email.
+            ;span.w-100.flex.justify-between.items-center.mv3
+              ;input.w-100.ba.bw1.pa2.br2(name "email", placeholder "me@example.com");
+            ==
           ==
-          ;input.w-100.bg-black.white.bn.pv2.ph4.dim.pointer(type "submit");
+          ;input.w-60.bg-black.br2.white.bn.pv2.ph4.dim.pointer(type "submit");
         ==
       ==
     ==
