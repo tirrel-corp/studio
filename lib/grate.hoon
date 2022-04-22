@@ -107,12 +107,8 @@
       ==
       ;body.absolute.w-100.h-100.flex.flex-column.justify-center.items-center
         ;form.mw6.pa2.flex.flex-column(method "POST", action "#")
-          ;span.w-100
-            ;h3.w-70-ns.w-100: Want to view the post? Enter your email.
-            ;span.w-100.flex.justify-between.items-center.mv3
-              ;input.w-100.ba.bw1.pa2.br2(name "email", placeholder "me@example.com");
-            ==
-          ==
+          ;h3.w-70-ns.w-100: Want to view the post? Enter your email.
+          ;input.w-100.ba.bw1.pa2.br2.mb3(name "email", placeholder "me@example.com");
           ;input.w-60.bg-black.br2.white.bn.pv2.ph4.dim.pointer(type "submit");
         ==
       ==
@@ -132,14 +128,10 @@
         ;link(rel "stylesheet", href "https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css");
       ==
       ;body.absolute.w-100.h-100.flex.flex-column.justify-center.items-center
-        ;form.mw6.pa2(method "POST", action "#")
-          ;h3: Please enter the code we sent to your email.
-          ;p: {(trip email)}
-          ;span.w-100.flex.justify-between.items-center.mv3
-            ;label.b: Access Code
-            ;input.w-60.ba.pa2(name "code");
-          ==
-          ;input.w-100.bg-black.white.bn.pv2.ph4.dim.pointer(type "submit");
+        ;form.mw6.pa5-ns.pa2.flex.flex-column(method "POST", action "#")
+          ;h3.w-70-ns.w-100: Please enter the code we emailed to {(trip email)}.
+          ;input.w-100.ba.bw1.pa2.br2.mb3(name "code", placeholder "tacryt-socryp");
+          ;input.w-60.bg-black.br2.white.bn.pv2.ph4.dim.pointer(type "submit");
         ==
       ==
     ==
