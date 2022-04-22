@@ -5,6 +5,7 @@
   =,  dejs:format
   |%
   ++  action
+    ^-  $-(json ^action)
     %-  of
     :~  [%add (ot name+so flow+flow ~)]
         [%remove so]
@@ -14,15 +15,26 @@
     ==
   ::
   ++  flow
+    ^-  $-(json ^flow)
     %-  ot
     :~  resource+dejs:resource
         index+(su ;~(pfix fas (more fas dem)))
-        site+site
+        site+(mu site)
         email+(mu so)
+        auth+(mu auth-rule)
+    ==
+  ::
+  ++  auth-rule
+    ^-  $-(json ^auth-rule)
+    %-  of
+    :~  all+so
+        subpaths+so
+        per-subpath+(om (mu (se %tas)))
+        none+ul
     ==
   ::
   ++  site
-    %-  mu
+    ^-  $-(json ^site)
     %-  ot
     :~  template+so
         binding+binding
@@ -42,19 +54,23 @@
     !!
   ::
   ++  binding
+    ^-  $-(json binding:eyre)
     %-  ot
     :~  site+(mu so)
         path+pa
     ==
   ::
   ++  edit
+    ^-  $-(json ^edit)
     %-  of
     :~  [%resource dejs:resource]
         [%site edit-site]
         [%email (mu so)]
+        [%auth-rule (mu auth-rule)]
     ==
   ::
   ++  edit-site
+    ^-  $-(json ^edit-site)
     %-  of
     :~  [%template so]
         [%binding binding]
@@ -62,7 +78,7 @@
         [%width width]
         [%lit bo]
         [%accent nu]
-        [%whole site]
+        [%whole (mu site)]
     ==
   --
 ++  enjs
@@ -126,6 +142,17 @@
         index+(index:enjs:graph-store index.f)
         site+(site site.f)
         email+?~(email.f ~ [%s u.email.f])
+        auth+?~(auth-rule.f ~ (auth-rule u.auth-rule.f))
+    ==
+  ::
+  ++  auth-rule
+    |=  rul=^auth-rule
+    ^-  json
+    ?-  -.rul
+      %none       (frond %none ~)
+      %all        (frond %all s+p.rul)
+      %subpaths   (frond %subpaths s+p.rul)
+      %per-subpath  !!
     ==
   ::
   ++  site

@@ -11,12 +11,13 @@
     *pipe-templates,
     pipe-render,
     resource,
-    meta-lib=metadata-store
+    meta-lib=metadata-store,
+    grate
 |%
 +$  card  card:agent:gall
 --
 ::
-=|  [%4 state-3]
+=|  [%5 state-4]
 =*  state  -
 ::
 %-  agent:dbug
@@ -30,7 +31,7 @@
 ::
 ++  on-init
   ^-  (quip card _this)
-  :_  this(state [%4 *state-3])
+  :_  this(state [%5 *state-4])
   [%pass /graph %agent [our.bowl %graph-store] %watch /updates]~
 ::
 ++  on-save  !>(state)
@@ -39,19 +40,53 @@
   ^-  (quip card _this)
   |^
   =+  !<(old=versioned-state old-vase)
+  =|  cards=(list card)
   |-
   ?-    -.old
+      %5
+    [cards this(state old)]
+  ::
       %4
-    :_  this(state old)
-    %+  turn  ~(tap by flows.old)
-    |=  [=term =flow]
-    [%pass /update-site/[term] %arvo %b %wait now.bowl]
+    =/  cards-4
+      %+  turn  ~(tap in ~(key by flows.old))
+      |=  =term
+      [%pass /update-site/[term] %arvo %b %wait now.bowl]
+    $(old (state-4-to-5 old), cards cards-4)
   ::
     %3  $(old (state-3-to-4 old))
     %2  $(old (state-2-to-3 old))
     %1  $(old (state-1-to-2 old))
     %0  $(old (state-0-to-1 old))
   ==
+  ::
+  ++  state-4-to-5
+    |=  [%4 s=state-3]
+    ^-  [%5 state-4]
+    :-  %5
+    %=    s
+        custom-site  ~
+    ::
+        sites
+      %-  ~(run by sites.s)
+      |=  w=website-1
+      ^-  website
+      %-  ~(run by w)
+      |=  p=webpage-1
+      ^-  webpage
+      [-.p +.p ~]
+    ::
+        flows
+      %-  ~(run by flows.s)
+      |=  f=flow-2
+      ^-  flow
+      :*  resource.f
+          index.f
+          site.f
+          email.f
+          ~
+      ==
+    ==
+  ::
   ++  state-3-to-4
     |=  [%3 s=state-2]
     ^-  [%4 state-3]
@@ -63,7 +98,7 @@
     :*  %3
         %-  ~(run by flows.s)
         |=  f=flow-1
-        ^-  flow
+        ^-  flow-2
         %=    f
             site
           ?~  site.f
@@ -151,9 +186,10 @@
   ::
       %handle-http-request
     =+  !<([eyre-id=@ta req=inbound-request:eyre] vase)
+    =/  res=(pair (list card) simple-payload:http)  (handle-http-request req)
     :_  this
-    %+  give-simple-payload:app:server  eyre-id
-    (handle-http-request req)
+    %+  weld  p.res
+    (give-simple-payload:app:server eyre-id q.res)
   ==
   ::
   ++  pipe-action
@@ -162,23 +198,24 @@
     ?-    -.action
         %add
       ?<  (~(has by flows) name.action)
-      ?~  site.action  !!
-      ?:  (binding-taken binding.u.site.action)
-        ~|("binding already taken {<`path`path.binding.u.site.action>}" !!)
-      =.  flows  (~(put by flows) name.action +>.action)
+      ?~  site.flow.action  !!
+      ?:  (binding-taken binding.u.site.flow.action)
+        ~|("binding already taken {<`path`path.binding.u.site.flow.action>}" !!)
+      =.  flows  (~(put by flows) name.action flow.action)
       =.  uid-to-name
         %+  ~(put ju uid-to-name)
-          [resource.action index.action]
+          [resource.flow.action index.flow.action]
         name.action
       =/  =site-template
-        ~|  "no such template: {<template.u.site.action>}"
-        (need (get-site-template:pc template.u.site.action))
-      =/  =website  (site-template (get-site-inputs:pc name.action +>.action))
+        ~|  "no such template: {<template.u.site.flow.action>}"
+        (need (get-site-template:pc template.u.site.flow.action))
+      =/  =website  (site-template (get-site-inputs:pc name.action flow.action))
+      =.  website  (apply-auth-to-site:pc website auth-rule.flow.action)
       =.  sites     (~(put by sites) name.action website)
       :_  state
       :*  (give-site:pc name.action website)
           give-flows:pc
-          (serve:pc name.action binding.u.site.action)
+          (serve:pc name.action binding.u.site.flow.action)
       ==
     ::
         %remove
@@ -202,9 +239,10 @@
         %+  roll  edits.action
         |=  [=edit cards=(list card) f=_fl rebuild=_|]
         ?-  -.edit
-            %resource  [cards f(resource resource.edit) %.y]
-            %email     [cards f(email email.edit) %.y]
-            %site      (site-edit edit-site.edit cards f %.y)
+            %resource   [cards f(resource resource.edit) %.y]
+            %email      [cards f(email email.edit) %.y]
+            %site       (site-edit edit-site.edit cards f %.y)
+            %auth-rule  [cards f(auth-rule rule.edit) %.y]
         ==
       =.  flows  (~(put by flows) name.action new)
       ?~  site.new
@@ -218,6 +256,7 @@
         ~|  "no such template: {<template.u.site.new>}"
         (need (get-site-template:pc template.u.site.new))
       =/  =website  (site-template (get-site-inputs:pc name.action new))
+      =.  website  (apply-auth-to-site:pc website auth-rule.new)
       =.  sites     (~(put by sites) name.action website)
       :_  state
       :*  give-flows:pc
@@ -335,34 +374,36 @@
   ::
   ++  handle-http-request
     |=  req=inbound-request:eyre
-    ^-  simple-payload:http
+    ^-  [(list card) simple-payload:http]
     |^
     =/  req-line=request-line:server
       (parse-request-line:server url.request.req)
     =/  host=(unit @t)
-      (~(get by (~(gas by *(map @t @t)) header-list.request.req)) 'host')
+      (get-header:http 'host' header-list.request.req)
     ::
-    =/  flow-req=(unit [name=term path=@t])
+    =/  flow-req=(unit [name=term =path])
       %-  ~(rep by flows)
-      |=  [[name=term =flow] out=(unit [term @t])]
+      |=  [[name=term =flow] out=(unit [term path])]
       ?~  site.flow  out
       ?.  =(site.binding.u.site.flow host)  out
       =/  suffix=(unit path)
         (get-suffix path.binding.u.site.flow site.req-line)
       ?~  suffix  out
-      `[name (spat u.suffix)]
+      `[name u.suffix]
     ::
     ?~  flow-req
-      not-found:gen:server
+      `not-found:gen:server
     ::
     =/  web=(unit website)
       (~(get by sites) name.u.flow-req)
-    =/  page=(unit [mime (unit tang)])
-      ?~  web  ~
-      (~(get by u.web) path.u.flow-req)
+    ?~  web
+      `not-found:gen:server
+    =/  page=(unit webpage)
+      %-  ~(get by u.web)
+      (spat path.u.flow-req)
     ?~  page
-      not-found:gen:server
-    [[200 [['content-type' 'text/html'] ~]] `q.-.u.page]
+      `not-found:gen:server
+    ~(open grate u.page path.u.flow-req request.req [our now]:bowl)
     ::
     ++  get-suffix
       |=  [a=path b=path]
@@ -717,8 +758,8 @@
       ?~  temp
         [~ ~]
       =/  site  (u.temp lorem-ipsum:pipe-render)
-      =/  [index=mime (unit tang)]    (~(got by site) '/')
-      =/  [article=mime (unit tang)]  (~(got by site) '/ut-enim-ad-minim-veniam')
+      =/  [index=mime *]    (~(got by site) '/')
+      =/  [article=mime *]  (~(got by site) '/ut-enim-ad-minim-veniam')
       :^  ~  ~  %json  !>
       %-  pairs:enjs:format
       :~  index+s+q.q.index
@@ -913,11 +954,33 @@
     `state
   =/  =site-template  (need (get-site-template template.u.site.flow))
   =/  =website   (site-template (get-site-inputs name flow))
+  =.  website  (apply-auth-to-site website auth-rule.flow)
   =.  sites      (~(put by sites) name website)
   =/  errors=update  [%errors get-all-errors]
   :_  state
   :~  (give-site name website)
       [%give %fact [/updates]~ %pipe-update !>(errors)]
+  ==
+::
+++  apply-auth-to-site
+  |=  [w=website rule=(unit auth-rule)]
+  ^-  website
+  ?~  rule  w
+  =*  rul  u.rule
+  %-  ~(gas by *website)
+  %+  turn  ~(tap by w)
+  |=  [p=@t q=webpage]
+  ^-  [@t webpage]
+  :-  p
+  ?-    -.rul
+    %all          q(auth `p.rul)
+    %subpaths     q(auth ?:(=('/' p) ~ `p.rul))
+    %none         q(auth ~)
+  ::
+      %per-subpath
+    =/  val  (~(get by p.rul) p)
+    ?~  val  q(auth ~)
+    q(auth u.val)
   ==
 ::
 ++  get-all-errors
@@ -929,7 +992,7 @@
   ^-  (map @t tang)
   %-  ~(gas by *(map @t tang))
   %+  murn  ~(tap by website)
-  |=  [path=@t page=mime err=(unit tang)]
+  |=  [path=@t page=mime err=(unit tang) auth=(unit @tas)]
   ^-  (unit [@t tang])
   ?~  err  ~
   `[path u.err]
