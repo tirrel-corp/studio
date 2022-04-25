@@ -21,9 +21,9 @@
             lit.sinp
         ==
       :-  (snoc previews pre)
-      (~(put by pages) path page)
+      (~(put by pages) path [-.page +.page ~])
     =/  m  (index-page sinp previews)
-    (~(put by pages) '/' [m ~])
+    (~(put by pages) '/' [m ~ ~])
 ::
 +$  article-inputs
   $:  name=term
