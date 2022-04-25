@@ -44,6 +44,9 @@
 ::
 ++  on-init
   :_  this
+  :: pass to eyre: bind /mailer HTTP endpoint
+  :: https://urbit.org/docs/arvo/eyre/tasks#connect
+  :: https://urbit.org/docs/arvo/eyre/guide#agents-direct-http
   [%pass /connect %arvo %e %connect [~ /'mailer'] dap.bowl]~
 ::
 ++  on-save   !>(state)
@@ -81,11 +84,12 @@
   ?>  (team:title our.bowl src.bowl)
   |^
   ?+    mark  (on-poke:def mark vase)
+  :: handle pokes from other gall agents
       %mailer-action
     =^  cards  state
       (mailer-action !<(action vase))
     [cards this]
-  ::
+  :: handle HTTP requests to /mailer eyre endpoint
       %handle-http-request
     =+  !<([eyre-id=@ta =inbound-request:eyre] vase)
     =^  cards  state
@@ -124,34 +128,35 @@
         [%mailer %subscribe ~]
       ?.  ?=(%'POST' method.request)
         :_  state
+        :: what does `give-simple-payload` actually do?
         (give-simple-payload:app:server eyre-id not-found:gen:server)
       =/  headers=(map @t @t)  (~(gas by *(map @t @t)) header-list.request)
       =/  type=(unit @t)       (~(get by headers) 'content-type')
       ?:  ?|(?=(~ body.request) ?=(~ type))
-        :_  state
+        :_  state :: no-op?
         (give-simple-payload:app:server eyre-id not-found:gen:server)
       =/  parsed-form  (rush q.u.body.request yquy:de-purl:html)
       ?~  parsed-form
-        :_  state
+        :_  state :: no-op?
         (give-simple-payload:app:server eyre-id not-found:gen:server)
       =/  args=(map @t @t)   (~(gas by *(map @t @t)) u.parsed-form)
-      =/  who=(unit @t)      (~(get by args) 'who')
-      =/  book=(unit @t)     (~(get by args) 'book')
+      =/  who=(unit @t)      (~(get by args) 'who') :: email? token?
+      =/  book=(unit @t)     (~(get by args) 'book') :: blog name?
       ?:  ?|(?=(~ who) ?=(~ book))
-        :_  state
+        :_  state :: no-op?
         (give-simple-payload:app:server eyre-id not-found:gen:server)
       =/  old-ml=(unit mailing-list)  (~(get by ml) u.book)
       ?~  old-ml
-        :_  state
+        :_  state :: no-op?
         (give-simple-payload:app:server eyre-id not-found:gen:server)
       ?:  (~(has by u.old-ml) u.who)
-        :_  state
+        :_  state :: no-op?
         %+  give-simple-payload:app:server  eyre-id
         (manx-response:gen:server (subscribe-landing:do u.book))
-      =/  token=@uv  (sham u.who eny.bowl)
+      =/  token=@uv  (sham u.who eny.bowl) :: todo: what does `sham` do?
       =/  new-ml  (~(put by u.old-ml) u.who token %.n)
       :_  state(ml (~(put by ml) u.book new-ml))
-      :*  (confirm-email:do u.who u.book token)
+      :*  (confirm-email:do u.who u.book token) :: send confirmation email
           %+  give-simple-payload:app:server  eyre-id
           (manx-response:gen:server (subscribe-landing:do u.book))
       ==
