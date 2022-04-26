@@ -24,13 +24,24 @@
       ==
       ml=(map term mailing-list)
   ==
++$  state-2
+  $:  %2
+      $=  creds
+      $:  api-key=(unit @t)
+          email=(unit @t)
+          ship-url=(unit @t)
+      ==
+      ml=(map term mailing-list)
+      timer=@da
+  ==
 +$  versioned-state
   $%  state-0
       state-1
+      state-2
   ==
 --
 ::
-=|  state-1
+=|  state-2
 =*  state  -
 ::
 %-  agent:dbug
@@ -58,7 +69,8 @@
   =|  cards=(list card)
   |-
   ?-  -.old
-    %1  [cards this(state old)]
+    %2  [cards this(state old)]
+    %1  [cards this(state *state-2)]
     %0  $(old (state-0-to-1 old))
   ==
   ::
@@ -95,6 +107,14 @@
     =^  cards  state
       (handle-http-request eyre-id inbound-request)
     [cards this]
+      %noun
+    ?:  =(q.vase %start)
+      :_  this(timer now.bowl)
+      [%pass /timer %arvo %b %wait now.bowl]^~
+    ?:  =(q.vase %stop)
+      :_  this
+      [%pass /timer %arvo %b %rest timer]^~
+    [~ this]
   ==
   ::
   ++  handle-http-request
@@ -301,11 +321,15 @@
     ~?  !accepted.sign-arvo :: if unable to bind path w/ eyre
       [dap.bowl "bind rejected!" binding.sign-arvo]
     [~ this]
-  ?.  ?=(%http-response +<.sign-arvo)
-    (on-arvo:def wire sign-arvo) :: if not http response
-  =^  cards  state               :: if http response ... ?
-    (http-response wire client-response.sign-arvo)
-  [cards this]
+  ?:  ?=(%http-response +<.sign-arvo)
+    =^  cards  state               :: if http response ... ?
+      (http-response wire client-response.sign-arvo)
+    [cards this]
+  ?:  ?=([%behn %wake *] sign-arvo)
+    ~&  "timer fired!"
+    :_  this(timer (add now.bowl ~s5))
+    [%pass /timer %arvo %b %wait (add now.bowl ~s5)]^~
+  (on-arvo:def wire sign-arvo) :: no-op
   ::
   ++  http-response
     |=  [=^wire res=client-response:iris]
