@@ -89,7 +89,7 @@
     =^  cards  state
       (mailer-action !<(action vase))
     [cards this]
-  :: handle HTTP requests to /mailer eyre endpoint
+  :: handle HTTP requests to /mailer eyre endpoint ?
       %handle-http-request
     =+  !<([eyre-id=@ta =inbound-request:eyre] vase)
     =^  cards  state
@@ -160,7 +160,7 @@
           %+  give-simple-payload:app:server  eyre-id
           (manx-response:gen:server (subscribe-landing:do u.book))
       ==
-    ::
+    :: handle email confirmation
         [%mailer %confirm ~]
       =/  args=(map @t @t)  (~(gas by *(map @t @t)) args.req-line)
       =/  b64tok=(unit @t)  (~(get by args) 'token')
@@ -178,7 +178,7 @@
       :_  state(ml (~(put by ml) term.u.details new-ml))
       %+  give-simple-payload:app:server  eyre-id
       (manx-response:gen:server (confirm-landing:do term.u.details))
-    ::
+    :: upload mailing list CSV
         [%mailer %upload ~]
       ?.  ?=(%'POST' method.request)
         :_  state
@@ -224,6 +224,8 @@
         %send-email
       =/  =wire  /send-email/(scot %uv eny.bowl)
       :_  state
+      :: %i - iris (HTTP Client) https://urbit.org/docs/arvo/iris/iris
+      :: Presumably /send-email calls ++send-email
       =-  [%pass wire %arvo %i %request -]~
       [(send-email:do email.act) *outbound-config:iris]
     ::
@@ -290,18 +292,18 @@
       [give-update:do]~
     ==
   --
-::
+:: on response from vane
 ++  on-arvo
   |=  [=wire =sign-arvo]
   ^-  (quip card:agent:gall _this)
   |^
   ?:  ?=([%eyre %bound *] sign-arvo)
-    ~?  !accepted.sign-arvo
+    ~?  !accepted.sign-arvo :: if unable to bind path w/ eyre
       [dap.bowl "bind rejected!" binding.sign-arvo]
     [~ this]
   ?.  ?=(%http-response +<.sign-arvo)
-    (on-arvo:def wire sign-arvo)
-  =^  cards  state
+    (on-arvo:def wire sign-arvo) :: if not http response
+  =^  cards  state               :: if http response ... ?
     (http-response wire client-response.sign-arvo)
   [cards this]
   ::
@@ -309,6 +311,7 @@
     |=  [=^wire res=client-response:iris]
     ^-  (quip card _state)
     ?.  ?=(%finished -.res)  `state
+    :: only recognized wire (request type) is %send-email
     ?+    wire  ~|('unknown request type coming from mailer' !!)
         [%send-email @ ~]
       ?~  full-file.res
@@ -316,7 +319,7 @@
       [~ state]
     ==
   --
-::
+:: what is subscribing to mailer?
 ++  on-watch
   |=  =path
   ^-  (quip card _this)
@@ -340,34 +343,40 @@
     =*  li  i.t.t.path
     ``noun+!>((~(has by ml) li))
   ==
-::
+:: handle ack's from other agents
 ++  on-agent
   |=  [=wire =sign:agent:gall]
   ^-  (quip card _this)
   ?+  -.sign  (on-agent:def wire sign)
       %kick
-    ?>  ?=([%pipe @ ~] wire)
+    ?>  ?=([%pipe @ ~] wire) :: crash if kicked from agent other than %pipe
     =*  name  i.t.wire
     :_  this
+    :: attempt to subscribe again if kicked by %pipe?
     [%pass /pipe/[name] %agent [our.bowl %pipe] %watch /email/[name]]~
   ::
       %fact
     ?>  ?=([%pipe @ ~] wire)
     ?>  ?=(%pipe-update p.cage.sign)
+    :: series of null-checks
     ?~  api-key.creds
       `this
     ?~  email.creds
       `this
     ?~  ship-url.creds
       `this
+    :: =* -> alias (evaluate every time)
+    :: =/ -> pin (evaluate once)
+    :: why alias instead of pin here?
     =*  name  i.t.wire
     =+  !<(=update:pipe q.cage.sign)
     ?.  ?=(%email -.update)
       `this
     =/  content=(list [@t @t])
       =*  a  body.email.update
-      [[(rsh [3 1] (spat p.a)) q.q.a] ~]
+      [[(rsh [3 1] (spat p.a)) q.q.a] ~] :: ???
     =/  =mailing-list  (~(got by ml) name)
+    :: personalization-field defined in /sur/mailer.hoon
     =/  person=(list personalization-field)
       %+  murn  ~(tap by mailing-list)
       |=  [address=@t token=@uv confirmed=?]
@@ -384,6 +393,7 @@
           ~
           [['%unsubscribe-callback%' callback] ~]
       ==
+    :: build email from components
     =/  =email
       :*  [u.email.creds (scot %p our.bowl)]
           subject.email.update
@@ -391,6 +401,7 @@
           person
       ==
     :_  this
+    :: iris: make HTTP request to /send-email ?
     =-  [%pass /send-email/(scot %uv eny.bowl) %arvo %i %request -]~
     [(send-email:do email) *outbound-config:iris]
   ==
@@ -576,13 +587,14 @@
   ?~  email.creds  !!
   =/  =email
     :*  [u.email.creds (scot %p our.bowl)]
+        :: why all these (cat 3 x y) ?
         (cat 3 'Confirm your subscription to ' title)
         (confirm-body title token)
         [[addr]~ ~ ~]~
     ==
   =-  [%pass /send-email/(scot %uv eny.bowl) %arvo %i %request -]
   [(send-email email) *outbound-config:iris]
-::
+:: gets title of notebook from graph-store
 ++  get-title
   |=  name=term
   ^-  @t
