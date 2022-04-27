@@ -327,8 +327,11 @@
     [cards this]
   ?:  ?=([%behn %wake *] sign-arvo)
     ~&  "timer fired!"
-    :_  this(timer (add now.bowl ~s5))
-    [%pass /timer %arvo %b %wait (add now.bowl ~s5)]^~
+    =^  cards  state
+      (email-campaign:do ~)
+    :_  this(timer (add now.bowl ~m5))
+    :-  [%pass /timer %arvo %b %wait (add now.bowl ~m5)]
+    cards
   (on-arvo:def wire sign-arvo) :: no-op
   ::
   ++  http-response
@@ -398,7 +401,7 @@
       `this
     =/  content=(list [@t @t])
       =*  a  body.email.update
-      [[(rsh [3 1] (spat p.a)) q.q.a] ~] :: ???
+      [[(rsh [3 1] (spat p.a)) q.q.a] ~] :: converts (path) /text/html -> (cord) text/html
     =/  =mailing-list  (~(got by ml) name)
     :: personalization-field defined in /sur/mailer.hoon
     =/  person=(list personalization-field)
@@ -494,6 +497,26 @@
   ^-  card
   =/  =update  [%initial creds ml]
   [%give %fact [/updates]~ %mailer-update !>(update)]
+::
+++  email-campaign
+  |=  *
+  ^-  (quip card _state)
+  =/  =content-field
+    :-  'text/html'
+    %-  crip
+    %-  en-xml:html
+    ;div: Hello world
+  =/  =personalization-field
+    [['rivmud.fabwen@gmail.com' ~] ~ ~]
+  =/  =email
+    :*  ['studio@choom.cool' '~zod']
+        'Email Campaign'
+        content-field^~
+        personalization-field^~
+    ==
+  :_  state
+  =+  [(send-email email) *outbound-config:iris]
+  [%pass /send-email/(scot %uv eny.bowl) %arvo %i %request -]^~
 ::
 ++  send-email
   |=  =email
