@@ -34,14 +34,26 @@
       ml=(map term mailing-list)
       timer=@da
   ==
++$  state-3
+  $:  %3
+      $=  creds
+      $:  api-key=(unit @t)
+          email=(unit @t)
+          ship-url=(unit @t)
+      ==
+      ml=(map term mailing-list)
+      timer=@da
+      count=@ud
+  ==
 +$  versioned-state
   $%  state-0
       state-1
       state-2
+      state-3
   ==
 --
 ::
-=|  state-2
+=|  state-3
 =*  state  -
 ::
 %-  agent:dbug
@@ -69,8 +81,9 @@
   =|  cards=(list card)
   |-
   ?-  -.old
-    %2  [cards this(state old)]
-    %1  [cards this(state *state-2)]
+    %3  [cards this(state old)]
+    %2  $(old *state-3)
+    %1  $(old *state-2)
     %0  $(old (state-0-to-1 old))
   ==
   ::
@@ -329,7 +342,7 @@
     ~&  "timer fired!"
     =^  cards  state
       (email-campaign:do ~)
-    :_  this(timer (add now.bowl ~m5))
+    :_  this(timer (add now.bowl ~m5), count +(count))
     :-  [%pass /timer %arvo %b %wait (add now.bowl ~m5)]
     cards
   (on-arvo:def wire sign-arvo) :: no-op
@@ -505,7 +518,10 @@
     :-  'text/html'
     %-  crip
     %-  en-xml:html
-    ;div: Hello world
+    ;div
+      ;h1: Email #{<count>}!
+      ;p: Hello world
+    ==
   =/  =personalization-field
     [['rivmud.fabwen@gmail.com' ~] ~ ~]
   =/  =email
