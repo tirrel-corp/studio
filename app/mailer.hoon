@@ -45,15 +45,28 @@
       timer=@da
       count=@ud
   ==
++$  state-4
+  $:  %4
+      $=  creds
+      $:  api-key=(unit @t)
+          email=(unit @t)
+          ship-url=(unit @t)
+      ==
+      ml=(map term mailing-list)
+      timer=@da
+      count=@ud
+      recipient=@t
+  ==
 +$  versioned-state
   $%  state-0
       state-1
       state-2
       state-3
+      state-4
   ==
 --
 ::
-=|  state-3
+=|  state-4
 =*  state  -
 ::
 %-  agent:dbug
@@ -81,7 +94,8 @@
   =|  cards=(list card)
   |-
   ?-  -.old
-    %3  [cards this(state old)]
+    %4  [cards this(state old)]
+    %3  $(old (state-3-to-4 old))
     %2  $(old *state-3)
     %1  $(old *state-2)
     %0  $(old (state-0-to-1 old))
@@ -101,6 +115,18 @@
     %-  ~(run by m)
     |=  t=@uv
     [t %.y]
+  ::
+  ++  state-3-to-4
+    |=  s=state-3
+    ^-  state-4
+    =|  new=state-4
+    %=  new
+      creds      creds.s
+      ml         ml.s
+      timer      timer.s
+      count      count.s
+      recipient  ''
+    ==
   --
 ::
 ++  on-poke
@@ -323,6 +349,12 @@
       =.  ml  (~(put by ml) name.act new)
       :_  state
       [give-update:do]~
+    ::
+        %start-recurring
+      =/  address=@t  address.act
+      ~&  >  "starting recurring emails for {<address>}"
+      :_  state(timer now.bowl, recipient address)
+      [%pass /timer %arvo %b %wait now.bowl]~
     ==
   --
 :: on response from vane
@@ -523,7 +555,7 @@
       ;p: Hello world
     ==
   =/  =personalization-field
-    [['rivmud.fabwen@gmail.com' ~] ~ ~]
+    [[recipient ~] ~ ~]
   =/  =email
     :*  ['studio@choom.cool' '~zod']
         'Email Campaign'

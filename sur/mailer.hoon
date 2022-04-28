@@ -21,7 +21,7 @@
       [%del-list name=term]
       [%add-recipients name=term mailing-list=(set @t)]
       [%del-recipients name=term mailing-list=(set @t)]
-      :: %send-campaign ?
+      [%start-recurring address=@t]
       :: %schedule-recurring 
   ==
 ::
