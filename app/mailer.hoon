@@ -32,41 +32,16 @@
           ship-url=(unit @t)
       ==
       ml=(map term mailing-list)
-      timer=@da
-  ==
-+$  state-3
-  $:  %3
-      $=  creds
-      $:  api-key=(unit @t)
-          email=(unit @t)
-          ship-url=(unit @t)
-      ==
-      ml=(map term mailing-list)
-      timer=@da
-      count=@ud
-  ==
-+$  state-4
-  $:  %4
-      $=  creds
-      $:  api-key=(unit @t)
-          email=(unit @t)
-          ship-url=(unit @t)
-      ==
-      ml=(map term mailing-list)
-      timer=@da
-      count=@ud
-      recipient=@t
+      campaigns=(map term campaign)
   ==
 +$  versioned-state
   $%  state-0
       state-1
       state-2
-      state-3
-      state-4
   ==
 --
 ::
-=|  state-4
+=|  state-2
 =*  state  -
 ::
 %-  agent:dbug
@@ -90,13 +65,12 @@
   |=  old-vase=vase
   ^-  (quip card _this)
   |^
+  ?:  %.y  [~ this(state *state-2)] :: reset state on every load
   =+  !<(old=versioned-state old-vase)
   =|  cards=(list card)
   |-
   ?-  -.old
-    %4  [cards this(state old)]
-    %3  $(old (state-3-to-4 old))
-    %2  $(old *state-3)
+    %2  [cards this(state old)]
     %1  $(old *state-2)
     %0  $(old (state-0-to-1 old))
   ==
@@ -115,18 +89,6 @@
     %-  ~(run by m)
     |=  t=@uv
     [t %.y]
-  ::
-  ++  state-3-to-4
-    |=  s=state-3
-    ^-  state-4
-    =|  new=state-4
-    %=  new
-      creds      creds.s
-      ml         ml.s
-      timer      timer.s
-      count      count.s
-      recipient  ''
-    ==
   --
 ::
 ++  on-poke
@@ -147,18 +109,11 @@
       (handle-http-request eyre-id inbound-request)
     [cards this]
       %noun
-    ?:  =(q.vase %start)
-      ?.  =(timer *@da)
-        ~&  >>  'timer already set!'  [~ this]
-      ?:  =(recipient '')  ~|('recipient email address not set!' !!)
-      :_  this(timer now.bowl)
-      [%pass /timer %arvo %b %wait now.bowl]^~
-    ?:  =(q.vase %stop)
-      :_  this(timer *@da)
-      [%pass /timer %arvo %b %rest timer]^~
-    ?:  =(q.vase %reset)
-      :_  this(timer *@da, recipient '', count 0)
-      [%pass /timer %arvo %b %rest timer]^~
+    ?:  ?=([%stop term] q.vase)
+      =/  campaign-name=term  +.q.vase
+      =/  =campaign  (~(got by campaigns) campaign-name)
+      :_  this(campaigns (~(del by campaigns) campaign-name))
+      [%pass /timer/[campaign-name] %arvo %b %rest next-time.campaign]^~
     [~ this]
   ==
   ::
@@ -356,13 +311,16 @@
       :_  state
       [give-update:do]~
     ::
-        %start-recurring
-      ?.  =(timer *@da)
-        ~&  >>  'already enrolled in recurring emails!'  [~ state]
-      =/  address=@t  address.act
-      ~&  >  "starting recurring emails for {<address>}"
-      :_  state(timer now.bowl, recipient address)
-      [%pass /timer %arvo %b %wait now.bowl]~
+        %start-campaign
+      ?:  (~(has by campaigns) name.act)
+        ~&  >>  'campaign already exists!'  [~ state]
+      ?:  ?&  ?=(%.n -.recipients.act)
+              !(~(has by ml) p.recipients.act)
+          ==
+        ~&  >>>  'mailing list does not exist!'  [~ state]
+      =/  =campaign  [now.bowl 0 recipients.act]
+      :_  state(campaigns (~(put by campaigns) name.act campaign))
+      [%pass /timer/[name.act] %arvo %b %wait now.bowl]~
     ==
   --
 :: on response from vane
@@ -380,10 +338,16 @@
     [cards this]
   ?:  ?=([%behn %wake *] sign-arvo)
     ~&  "timer fired!"
+    ?>  ?=([%timer @ ~] wire)
+    =*  name  i.t.wire
+    =/  campaign  (~(get by campaigns) name)
+    ?~  campaign  ~&  >>>  "campaign {<name>} does not exist!"  [~ this]
     =^  cards  state
-      (email-campaign:do ~)
-    :_  this(timer (add now.bowl ~m5), count +(count))
-    :-  [%pass /timer %arvo %b %wait (add now.bowl ~m5)]
+      (email-campaign:do u.campaign)
+    =.  next-time.u.campaign  (add now.bowl ~s30)
+    =.  index.u.campaign  +(index.u.campaign)
+    :_  this(campaigns (~(put by campaigns) name u.campaign))
+    :-  [%pass wire %arvo %b %wait next-time.u.campaign]
     cards
   (on-arvo:def wire sign-arvo) :: no-op
   ::
@@ -551,24 +515,28 @@
   [%give %fact [/updates]~ %mailer-update !>(update)]
 ::
 ++  email-campaign
-  |=  *
+  |=  =campaign
   ^-  (quip card _state)
-  ?~  recipient  ~|('no recipient email address!' !!)
   =/  =content-field
     :-  'text/html'
     %-  crip
     %-  en-xml:html
     ;div
-      ;h1: Email #{<count>}!
+      ;h1: Email #{<index.campaign>}!
       ;p: Hello world
     ==
-  =/  =personalization-field
-    [[recipient ~] ~ ~]
+  =/  personalizations=(list personalization-field)
+    ?:  ?=(%.y -.recipients.campaign)
+      [[p.recipients.campaign ~] ~ ~]^~
+    =/  mailing-list  (~(got by ml) p.recipients.campaign)
+    %+  turn  ~(tap by mailing-list)
+    |=  [address=@t *]
+    [[address ~] ~ ~]
   =/  =email
     :*  ['studio@choom.cool' '~zod']
         'Email Campaign'
         content-field^~
-        personalization-field^~
+        personalizations
     ==
   :_  state
   =+  [(send-email email) *outbound-config:iris]

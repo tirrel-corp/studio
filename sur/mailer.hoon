@@ -2,7 +2,7 @@
 +$  from-field     [email=cord name=cord]
 +$  content-field  [type=cord value=cord]
 +$  personalization-field
-  $:  to=(list cord) :: email address?
+  $:  to=(list cord) :: cc'd email addresses
       headers=(map cord cord)
       substitutions=(list [cord cord])
   ==
@@ -10,7 +10,7 @@
   $:  from=from-field
       subject=cord
       content=(list content-field)
-      personalizations=(list personalization-field) :: one email or multiple emails?
+      personalizations=(list personalization-field) :: multiple emails
   ==
 ::
 +$  action
@@ -21,8 +21,7 @@
       [%del-list name=term]
       [%add-recipients name=term mailing-list=(set @t)]
       [%del-recipients name=term mailing-list=(set @t)]
-      [%start-recurring address=@t]
-      :: %schedule-recurring 
+      [%start-campaign name=term recipients=(each @t term)]
   ==
 ::
 +$  update
@@ -30,4 +29,10 @@
   ==
 ::
 +$  mailing-list  (map @t [token=@uv confirmed=?])
+::
++$  campaign
+  $:  next-time=@da
+      index=@ud
+      recipients=(each @t term)
+  ==
 --
