@@ -148,10 +148,16 @@
     [cards this]
       %noun
     ?:  =(q.vase %start)
+      ?.  =(timer *@da)
+        ~&  >>  'timer already set!'  [~ this]
+      ?:  =(recipient '')  ~|('recipient email address not set!' !!)
       :_  this(timer now.bowl)
       [%pass /timer %arvo %b %wait now.bowl]^~
     ?:  =(q.vase %stop)
-      :_  this(timer *@da, recipient '')
+      :_  this(timer *@da)
+      [%pass /timer %arvo %b %rest timer]^~
+    ?:  =(q.vase %reset)
+      :_  this(timer *@da, recipient '', count 0)
       [%pass /timer %arvo %b %rest timer]^~
     [~ this]
   ==
@@ -351,6 +357,8 @@
       [give-update:do]~
     ::
         %start-recurring
+      ?.  =(timer *@da)
+        ~&  >>  'already enrolled in recurring emails!'  [~ state]
       =/  address=@t  address.act
       ~&  >  "starting recurring emails for {<address>}"
       :_  state(timer now.bowl, recipient address)
