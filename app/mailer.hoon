@@ -151,7 +151,7 @@
       :_  this(timer now.bowl)
       [%pass /timer %arvo %b %wait now.bowl]^~
     ?:  =(q.vase %stop)
-      :_  this
+      :_  this(timer *@da, recipient '')
       [%pass /timer %arvo %b %rest timer]^~
     [~ this]
   ==
@@ -430,7 +430,6 @@
       %fact
     ?>  ?=([%pipe @ ~] wire)
     ?>  ?=(%pipe-update p.cage.sign)
-    :: series of null-checks
     ?~  api-key.creds
       `this
     ?~  email.creds
@@ -546,6 +545,7 @@
 ++  email-campaign
   |=  *
   ^-  (quip card _state)
+  ?~  recipient  ~|('no recipient email address!' !!)
   =/  =content-field
     :-  'text/html'
     %-  crip
