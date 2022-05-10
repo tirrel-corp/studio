@@ -21,7 +21,8 @@
       [%del-list name=term]
       [%add-recipients name=term mailing-list=(set @t)]
       [%del-recipients name=term mailing-list=(set @t)]
-      [%start-campaign name=term recipients=(each @t term)]
+      [%create-campaign name=term from=from-field body=(list [subject=cord content=cord])]
+      [%start-campaign name=term recipients=(each @t term) interval=@dr]
   ==
 ::
 +$  update
@@ -34,5 +35,8 @@
   $:  next-time=@da
       index=@ud
       recipients=(each @t term)
+      from=from-field
+      body=(list [subject=cord content=cord])
+      interval=@dr
   ==
 --

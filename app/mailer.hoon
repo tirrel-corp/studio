@@ -114,6 +114,8 @@
       =/  =campaign  (~(got by campaigns) campaign-name)
       :_  this(campaigns (~(del by campaigns) campaign-name))
       [%pass /timer/[campaign-name] %arvo %b %rest next-time.campaign]^~
+    ?:  ?=(%stop q.vase)
+      ~|("must provide name of campaign" !!)
     [~ this]
   ==
   ::
@@ -311,15 +313,23 @@
       :_  state
       [give-update:do]~
     ::
-        %start-campaign
+        %create-campaign
       ?:  (~(has by campaigns) name.act)
         ~&  >>  'campaign already exists!'  [~ state]
+      =|  =campaign
+      =.  campaign  campaign(from from.act, body body.act)
+      `state(campaigns (~(put by campaigns) name.act campaign))
+    ::
+        %start-campaign
+      =/  campaign=(unit campaign)  (~(get by campaigns) name.act)
+      ?~  campaign
+        ~&  >>>  'campaign does not exist'  [~ state]
       ?:  ?&  ?=(%.n -.recipients.act)
               !(~(has by ml) p.recipients.act)
           ==
         ~&  >>>  'mailing list does not exist!'  [~ state]
-      =/  =campaign  [now.bowl 0 recipients.act]
-      :_  state(campaigns (~(put by campaigns) name.act campaign))
+      =.  u.campaign  u.campaign(next-time now.bowl, recipients recipients.act, interval interval.act)
+      :_  state(campaigns (~(put by campaigns) name.act u.campaign))
       [%pass /timer/[name.act] %arvo %b %wait now.bowl]~
     ==
   --
@@ -344,7 +354,7 @@
     ?~  campaign  ~&  >>>  "campaign {<name>} does not exist!"  [~ this]
     =^  cards  state
       (email-campaign:do u.campaign)
-    =.  next-time.u.campaign  (add now.bowl ~s30)
+    =.  next-time.u.campaign  (add now.bowl interval.u.campaign)
     =.  index.u.campaign  +(index.u.campaign)
     :_  this(campaigns (~(put by campaigns) name u.campaign))
     :-  [%pass wire %arvo %b %wait next-time.u.campaign]
@@ -419,7 +429,6 @@
       =*  a  body.email.update
       [[(rsh [3 1] (spat p.a)) q.q.a] ~] :: converts (path) /text/html -> (cord) text/html
     =/  =mailing-list  (~(got by ml) name)
-    :: personalization-field defined in /sur/mailer.hoon
     =/  person=(list personalization-field)
       %+  murn  ~(tap by mailing-list)
       |=  [address=@t token=@uv confirmed=?]
@@ -517,14 +526,10 @@
 ++  email-campaign
   |=  =campaign
   ^-  (quip card _state)
-  =/  =content-field
-    :-  'text/html'
-    %-  crip
-    %-  en-xml:html
-    ;div
-      ;h1: Email #{<index.campaign>}!
-      ;p: Hello world
-    ==
+  ?:  (gte index.campaign (lent body.campaign))
+    [~ state]
+  =/  [subject=cord html=cord]  (snag index.campaign body.campaign)
+  =/  content-field  ['text/html' html]
   =/  personalizations=(list personalization-field)
     ?:  ?=(%.y -.recipients.campaign)
       [[p.recipients.campaign ~] ~ ~]^~
@@ -533,8 +538,8 @@
     |=  [address=@t *]
     [[address ~] ~ ~]
   =/  =email
-    :*  ['studio@choom.cool' '~zod']
-        'Email Campaign'
+    :*  from.campaign
+        subject
         content-field^~
         personalizations
     ==
