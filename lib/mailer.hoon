@@ -13,7 +13,25 @@
         [%del-list (ot name+so ~)]
         [%add-recipients (ot name+so list+(as so) ~)]
         [%del-recipients (ot name+so list+(as so) ~)]
+        [%create-campaign (ot name+so from+(ot email+so name+so ~) body+(ar (ot subject+so content+so ~)) ~)]
+        [%start-campaign (ot name+so recipients+recipients interval+date-relative ~)]
     ==
+  ++  recipients
+    |=  jon=json
+    ^-  (each @t term)
+    ?>  ?=([%o *] jon)
+    =/  which=json  (~(got by p.jon) 'which')
+    ?>  ?=([%b *] which)
+    =/  what=json  (~(got by p.jon) 'what')
+    ?>  ?=([%s *] what)
+    ?:  p.which  [%.y p.what]
+    [%.n `@tas`p.what]
+  ++  date-relative
+    |=  jon=json
+    ^-  @dr
+    ?>  ?=([%n *] jon)
+    =/  num=@  (rash p.jon dem)
+    (mul ~s1 num)
   ++  email
     %-  ot
     :~  from+(ot email+so name+so ~)
