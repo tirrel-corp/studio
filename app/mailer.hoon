@@ -32,6 +32,7 @@
           ship-url=(unit @t)
       ==
       ml=(map term mailing-list)
+      campaign-templates=(map term campaign-template)
       campaigns=(map term campaign)
   ==
 +$  versioned-state
@@ -313,23 +314,31 @@
       :_  state
       [give-update:do]~
     ::
-        %create-campaign
-      ?:  (~(has by campaigns) name.act)
-        ~&  >>  'campaign already exists!'  [~ state]
-      =|  =campaign
-      =.  campaign  campaign(from from.act, body body.act)
-      `state(campaigns (~(put by campaigns) name.act campaign))
-    ::
+          %create-campaign-template
+      ?:  (~(has by campaign-templates) name.act)
+        ~&  >>  'campaign template already exists!'  [~ state]
+      =|  template=campaign-template
+      =.  template  template(from from.act, email-sequence email-sequence.act)
+      `state(campaign-templates (~(put by campaign-templates) name.act template))
         %start-campaign
-      =/  campaign=(unit campaign)  (~(get by campaigns) name.act)
-      ?~  campaign
-        ~&  >>>  'campaign does not exist'  [~ state]
+      ?:  (~(has by campaigns) name.act)
+        ~&  >>  'campaign already started!'  [~ state]
+      =/  template=(unit campaign-template)  (~(get by campaign-templates) template-name.act)
+      ?~  template
+        ~&  >>>  'campaign-template does not exist'  [~ state]
       ?:  ?&  ?=(%.n -.recipients.act)
               !(~(has by ml) p.recipients.act)
           ==
         ~&  >>>  'mailing list does not exist!'  [~ state]
-      =.  u.campaign  u.campaign(next-time now.bowl, recipients recipients.act, interval interval.act)
-      :_  state(campaigns (~(put by campaigns) name.act u.campaign))
+      =|  =campaign
+      =.  campaign
+      %=  campaign
+        next-time  now.bowl
+        recipients  recipients.act
+        template-name  template-name.act
+        interval  interval.act
+      ==
+      :_  state(campaigns (~(put by campaigns) name.act campaign))
       [%pass /timer/[name.act] %arvo %b %wait now.bowl]~
     ==
   --
@@ -526,9 +535,11 @@
 ++  email-campaign
   |=  =campaign
   ^-  (quip card _state)
-  ?:  (gte index.campaign (lent body.campaign))
+  =/  template  (~(got by campaign-templates) template-name.campaign)
+  =/  email-sequence  email-sequence.template
+  ?:  (gte index.campaign (lent email-sequence))
     [~ state]
-  =/  [subject=cord html=cord]  (snag index.campaign body.campaign)
+  =/  [subject=cord html=cord]  (snag index.campaign email-sequence)
   =/  content-field  ['text/html' html]
   =/  personalizations=(list personalization-field)
     ?:  ?=(%.y -.recipients.campaign)
@@ -538,7 +549,7 @@
     |=  [address=@t *]
     [[address ~] ~ ~]
   =/  =email
-    :*  from.campaign
+    :*  from.template
         subject
         content-field^~
         personalizations

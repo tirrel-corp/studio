@@ -21,8 +21,8 @@
       [%del-list name=term]
       [%add-recipients name=term mailing-list=(set @t)]
       [%del-recipients name=term mailing-list=(set @t)]
-      [%create-campaign name=term from=from-field body=(list [subject=cord content=cord])]
-      [%start-campaign name=term recipients=(each @t term) interval=@dr]
+      [%create-campaign-template name=term from=from-field email-sequence=(list [subject=cord content=cord])]
+      [%start-campaign name=term template-name=term recipients=(each @t term) interval=@dr]
   ==
 ::
 +$  update
@@ -31,12 +31,16 @@
 ::
 +$  mailing-list  (map @t [token=@uv confirmed=?])
 ::
++$  campaign-template
+  $:  from=from-field
+      email-sequence=(list [subject=cord content=cord])
+  ==
+::
 +$  campaign
   $:  next-time=@da
       index=@ud
       recipients=(each @t term)
-      from=from-field
-      body=(list [subject=cord content=cord])
+      template-name=term
       interval=@dr
   ==
 --
