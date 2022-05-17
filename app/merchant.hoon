@@ -1,5 +1,4 @@
-/-  circle
-/+  default-agent, dbug, verb, server
+/+  default-agent, dbug, verb, server, *merchant
 |%
 +$  card  card:agent:gall
 ::
@@ -29,8 +28,11 @@
   ?>  (team:title our.bowl src.bowl)
   ?+    mark  (on-poke:def mark vase)
       %circle-ask
+    =/  =ask
+      !<(ask vase)
+    =.  p.ask  our.bowl
     :_  this
-    [%pass /ask %agent [provider %circle] %poke [%circle-ask vase]]^~
+    [%pass /ask %agent [provider %circle] %poke [%circle-ask !>(ask)]]^~
   ::
       %noun
     :_  this
@@ -55,8 +57,8 @@
       [%master ~]
     ?+    -.sign  ~&  [wire sign]  ~
         %fact
-      =/  upd=update:circle
-        !<(update:circle q.cage.sign)
+      =/  upd=update
+        !<(update q.cage.sign)
       ~&  upd
       ~
     ::

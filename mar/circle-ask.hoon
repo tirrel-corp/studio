@@ -1,4 +1,4 @@
-/-  *circle
+/+  *merchant
 |_  a=ask
 ++  grad  %noun
 ++  grow
@@ -10,5 +10,6 @@
 ++  grab
   |%
   ++  noun  ask
+  ++  json  ask:dejs
   --
 --
