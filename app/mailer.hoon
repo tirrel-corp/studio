@@ -314,9 +314,10 @@
       :_  state
       [give-update:do]~
     ::
-          %create-campaign-template
+        %create-campaign-template
       ?:  (~(has by campaign-templates) name.act)
         ~&  >>  'campaign template already exists!'  [~ state]
+      ~&  >  'creating new campaign template'
       =|  template=campaign-template
       =.  template  template(from from.act, email-sequence email-sequence.act)
       `state(campaign-templates (~(put by campaign-templates) name.act template))
@@ -361,6 +362,10 @@
     =*  name  i.t.wire
     =/  campaign  (~(get by campaigns) name)
     ?~  campaign  ~&  >>>  "campaign {<name>} does not exist!"  [~ this]
+    =/  template  (~(got by campaign-templates) template-name.u.campaign)
+    ?:  (gte index.u.campaign (lent email-sequence.template))
+      ~&  "campaign {<name>}: finished!"  [~ this]
+    ~&  "campaign {<name>}: {<+(index.u.campaign)>} of {<(lent email-sequence.template)>}!"
     =^  cards  state
       (email-campaign:do u.campaign)
     =.  next-time.u.campaign  (add now.bowl interval.u.campaign)
@@ -537,8 +542,6 @@
   ^-  (quip card _state)
   =/  template  (~(got by campaign-templates) template-name.campaign)
   =/  email-sequence  email-sequence.template
-  ?:  (gte index.campaign (lent email-sequence))
-    [~ state]
   =/  [subject=cord html=cord]  (snag index.campaign email-sequence)
   =/  content-field  ['text/html' html]
   =/  personalizations=(list personalization-field)
