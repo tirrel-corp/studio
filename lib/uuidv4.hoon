@@ -29,9 +29,7 @@
   |=  [n=@ l=@]
   =/  s  `@t`(rsh [3 2] (scot %x n))
   =/  m  (met 3 s)
-  ?>  (lte m l)
-  |-
-  ?:  =(m l)
-    s
-  $(m +(m), s (cat 3 '0' s))
+  ?:  =(m l)  s
+  ?>  (lth m l)
+  (cat 3 (crip (reap (sub l m) '0')) s)
 --

@@ -138,9 +138,7 @@
   |=  [=wire =sign:agent:gall]
   ^-  (quip card _this)
   ?+    wire  !!
-      [%ask ~]
-    ~&  [wire sign]
-    `this
+    [%ask ~]  `this
   ::
       [%master ~]
     ?+    -.sign  ~&  [wire sign]  `this
