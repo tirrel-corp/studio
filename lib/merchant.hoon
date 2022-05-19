@@ -162,5 +162,51 @@
         card-list+ul
         payment-list+ul
     ==
+  ::
+  +$  payment-details
+    $:  idempotency-key=@tas
+        key-id=(unit @tas)
+        =^amount
+        =^verification
+        ver-succ-url=(unit @t)
+        ver-fail-url=(unit @t)
+        source=^payment-source
+        description=(unit @t)
+        encrypted-data=@t
+        channel=(unit @t)
+    ==
+  ::
+  ++  create-payment
+    ^-  $-(json payment-details)
+    %-  ot
+    :~  %'idempotencyKey'^so
+        %'keyId'^(mu so)
+        amount+amount
+        verification+verification
+        %'verificationSuccessUrl'^(mu so)
+        %'verificationFailureUrl'^(mu so)
+        source+payment-source
+        description+(mu so)
+        %'encryptedData'^so
+        channel+(mu so)
+    ==
+  ::
+  +$  card-details
+    $:  idempotency-key=@t
+        encrypted-data=@t
+        billing-details=[country=@t district=@t]
+        exp-month=@ud
+        exp-year=@ud
+    ==
+  ::
+  ++  create-card
+    ^-  $-(json card-details)
+    %-  ot
+    :~  %'idempotencyKey'^so
+        %'encryptedData'^so
+        %'billingDetails'^(ot country+so district+so ~)
+        %'expMonth'^ni
+        %'expYear'^ni
+    ==
   --
 --
