@@ -118,7 +118,6 @@
     ^-  $-(json ^verification)
     |=  j=json
     ^-  ^verification
-    ~&  j
     ?>  ?=(%s -.j)
     ?>  ?=(^verification p.j)
     p.j
@@ -165,7 +164,7 @@
   ::
   +$  payment-details
     $:  idempotency-key=@tas
-        key-id=(unit @tas)
+        key-id=@tas
         =^amount
         =^verification
         ver-succ-url=(unit @t)
@@ -180,7 +179,7 @@
     ^-  $-(json payment-details)
     %-  ot
     :~  %'idempotencyKey'^so
-        %'keyId'^(mu so)
+        %'keyId'^so
         amount+amount
         verification+verification
         %'verificationSuccessUrl'^(mu so)
@@ -191,10 +190,23 @@
         channel+(mu so)
     ==
   ::
+  ++  billing-details
+    ^-  $-(json ^billing-details)
+    %-  ot
+    :~  name+so
+        city+so
+        country+so
+        line1+so
+        line2+(mu so)
+        district+(mu so)
+        %'postalCode'^so
+    ==
+  ::
   +$  card-details
     $:  idempotency-key=@t
+        key-id=@t
         encrypted-data=@t
-        billing-details=[country=@t district=@t]
+        =^billing-details
         exp-month=@ud
         exp-year=@ud
     ==
@@ -203,8 +215,9 @@
     ^-  $-(json card-details)
     %-  ot
     :~  %'idempotencyKey'^so
+        %'keyId'^so
         %'encryptedData'^so
-        %'billingDetails'^(ot country+so district+so ~)
+        %'billingDetails'^billing-details
         %'expMonth'^ni
         %'expYear'^ni
     ==

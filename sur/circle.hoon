@@ -7,19 +7,19 @@
           [%card-list ~]
           [%payment-list ~]
           $:  %create-card
+              =metadata
               idempotency-key=@tas
-              key-id=(unit @tas)
+              key-id=@tas
               encrypted-data=@t
               =billing-details
               exp-month=@ud
               exp-year=@ud
-              =metadata
           ==
         ::
           $:  %create-payment
-              idempotency-key=@tas
-              key-id=(unit @tas)
               =metadata
+              idempotency-key=@tas
+              key-id=@tas
               =amount
               =verification
               ver-succ-url=(unit @t)

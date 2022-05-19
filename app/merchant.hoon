@@ -1,4 +1,4 @@
-/+  default-agent, dbug, verb, server, *merchant, merchant-js
+/+  default-agent, dbug, verb, server, *merchant, merchant-js, uuidv4
 |%
 +$  card  card:agent:gall
 ::
@@ -59,43 +59,70 @@
   ++  handle-http-request
     |=  [eyre-id=@ta =inbound-request:eyre]
     ^-  [(list card) simple-payload:http]
+    =/  url  (stab url.request.inbound-request)
     ?+    method.request.inbound-request  `not-found:gen:server
         %'GET'
-      =-  `[[200 ~] ~ -]
-      %-  manx-to-octs:server
-      ;html
-        ;body
-          ;h1: Merchant
-          ;button#card-btn: Create Card
-          ;button#pay-btn: Create Payment
-          ;script@"https://unpkg.com/openpgp@5.2.1/dist/openpgp.min.js";
-          ;script@"https://unpkg.com/uuid@latest/dist/umd/uuidv4.min.js";
-          ;script(type "text/javascript"): {pk-var-definition:mjs}
-          ;script(type "text/javascript"): {encrypt-function:mjs}
-          ;script(type "text/javascript"): {create-card-function:mjs}
-          ;script(type "text/javascript"): {create-payment-function:mjs}
-          ;script(type "text/javascript"): {card-button:mjs}
-          ;script(type "text/javascript"): {pay-button:mjs}
+      ?+    url  `[[404 ~] ~]
+          [%merchant ~]
+        =-  `[[200 ~] ~ -]
+        %-  manx-to-octs:server
+        ;html
+          ;body
+            ;h1: Merchant
+            ;button#card-btn: Create Card
+            ;button#pay-btn: Create Payment
+            ;script@"https://unpkg.com/openpgp@5.2.1/dist/openpgp.min.js";
+            ;script@"https://unpkg.com/uuid@latest/dist/umd/uuidv4.min.js";
+            ;script(type "text/javascript"): {pk-var-definition:mjs}
+            ;script(type "text/javascript"): {encrypt-function:mjs}
+            ;script(type "text/javascript"): {create-card-function:mjs}
+            ;script(type "text/javascript"): {create-payment-function:mjs}
+            ;script(type "text/javascript"): {card-button:mjs}
+            ;script(type "text/javascript"): {pay-button:mjs}
+          ==
         ==
+      ::
+          [%merchant %card @ ~]
+        =*  id  i.t.t.url
+        =/  =ask
+          [our.bowl %card id]
+        :_  [[200 ~] ~]
+        [%pass /ask %agent [provider %circle] %poke %circle-ask !>(ask)]^~
+      ::
+          [%merchant %payment @ ~]
+        =*  id  i.t.t.url
+        =/  =ask
+          [our.bowl %payment id]
+        :_  [[200 ~] ~]
+        [%pass /ask %agent [provider %circle] %poke %circle-ask !>(ask)]^~
       ==
     ::
         %'POST'
-      |^
       =*  bod  body.request.inbound-request
       ?~  bod
         `[[400 ~] ~]
+      =*  ip  address.inbound-request
+      =/  =metadata
+        ['logan@tirrel.io' ~ (to-uuid:uuidv4 eny.bowl) (rsh [3 1] (scot %if +.ip))]
       ?+    url.request.inbound-request  `[[404 ~] ~]
           %'/merchant/card'
         =/  jon  (de-json:html `@t`q.u.bod)
         =/  car-deet  (bind jon create-card:dejs)
-        `[[200 ~] `(json-to-octs:server s+'card')]
+        ?~  car-deet  `[[500 ~] ~]
+        =/  =ask
+          [our.bowl %create-card metadata u.car-deet]
+        :_  [[200 ~] `(json-to-octs:server s+'card')]
+        [%pass /ask %agent [provider %circle] %poke [%circle-ask !>(ask)]]^~
       ::
           %'/merchant/payment'
         =/  jon  (de-json:html `@t`q.u.bod)
         =/  pay-deet  (bind jon create-payment:dejs)
-        `[[200 ~] `(json-to-octs:server s+'pay')]
+        ?~  pay-deet  `[[500 ~] ~]
+        =/  =ask
+          [our.bowl %create-payment metadata u.pay-deet]
+        :_  [[200 ~] `(json-to-octs:server s+'payment')]
+        [%pass /ask %agent [provider %circle] %poke [%circle-ask !>(ask)]]^~
       ==
-      --
     ==
   --
 ::
@@ -120,9 +147,17 @@
         %fact
       =/  upd=update
         !<(update q.cage.sign)
-      ?+  -.upd  !!
+      ?+  -.upd  `this
           %public-key
         `this(public-key `key.p.upd)
+      ::
+          %card
+        ~&  upd
+        `this
+      ::
+          %payment
+        ~&  upd
+        `this
       ==
     ::
         %kick
