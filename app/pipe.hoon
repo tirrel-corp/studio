@@ -333,7 +333,7 @@
         :~  (template-warp:pc /t/site desk.action %t /site %sing)
             (template-warp:pc /t/email desk.action %t /email %sing)
         ==
-      :_  state(template-desk `desk.action)
+      :_  state(template-desk `desk.action, custom-site ~, custom-email ~)
       ?~  template-desk
         cards
       ~&  "replacing old template desk {<u.template-desk>}"
@@ -356,7 +356,7 @@
         |=  =path
         =/  wire  [%a (scag (dec (lent path)) path)]
         (template-warp:pc wire u.template-desk %a path ~)
-      :_  state(template-desk ~)
+      :_  state(template-desk ~, custom-site ~, custom-email ~)
       :*  (template-warp:pc /t/site u.template-desk %t /site ~)
           (template-warp:pc /t/email u.template-desk %t /email ~)
           cards
@@ -565,6 +565,10 @@
     `this
   ?.  ?=([%clay %writ *] sign-arvo)
     (on-arvo:def wire sign-arvo)
+  =/  update-cards=(list card)
+    %+  turn  ~(tap in ~(key by flows))
+    |=  =term
+    [%pass /update-site/[term] %arvo %b %wait now.bowl]
   ?+  wire  (on-arvo:def wire sign-arvo)
   ::
       [%t ?(%site %email) ~]
@@ -582,6 +586,7 @@
       |=  [=term out=_custom-email]
       (~(del by out) term)
     :_  this
+    %+  weld  update-cards
     ?~  template-desk  ~
     :-  (template-warp:pc wire u.template-desk %t /[which] %next)
     %+  weld
@@ -626,8 +631,8 @@
         %-  (slog leaf+"template build failure: {<path>}" ~)
         (~(del by custom-email) name)
       ==
-
     :_  this
+    %+  weld  update-cards
     ?~  template-desk  [give-templates:pc]~
     ?~  p.sign-arvo    [give-templates:pc]~
     :~  give-templates:pc
