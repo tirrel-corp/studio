@@ -702,6 +702,12 @@
     :_  this
     [%give %fact ~ %pipe-update !>(update)]~
   ::
+      [%switch @ ~]
+    =*  name  i.t.path
+    =/  =update  [%site name (~(got by sites) name)]
+    :_  this
+    [%give %fact ~ %pipe-update !>(update)]~
+  ::
   ==
 ::
 ++  on-peek
