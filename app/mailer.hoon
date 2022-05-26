@@ -340,8 +340,10 @@
         template-name  template-name.act
         interval  interval.act
       ==
-      :_  state(campaigns (~(put by campaigns) name.act campaign))
-      [%pass /timer/[name.act] %arvo %b %wait now.bowl]~
+      :-  :~  [give-update:do]
+              [%pass /timer/[name.act] %arvo %b %wait now.bowl]
+          ==
+      state(campaigns (~(put by campaigns) name.act campaign))
     ==
   --
 :: on response from vane
@@ -396,7 +398,7 @@
   ?:  ?=([%http-response *] path)
     `this
   ?:  ?=([%updates ~] path)
-    =/  =update  [%initial creds ml campaign-templates]
+    =/  =update  [%initial creds ml campaign-templates campaigns]
     :_  this
     [%give %fact ~ %mailer-update !>(update)]~
   (on-watch:def path)
@@ -535,7 +537,7 @@
 ::
 ++  give-update
   ^-  card
-  =/  =update  [%initial creds ml campaign-templates]
+  =/  =update  [%initial creds ml campaign-templates campaigns]
   [%give %fact [/updates]~ %mailer-update !>(update)]
 ::
 ++  email-campaign

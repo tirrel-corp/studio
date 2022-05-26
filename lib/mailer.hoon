@@ -60,6 +60,7 @@
       :~  creds+(creds creds.u)
           mailing-lists+(mailing-lists ml.u)
           campaign-templates+(campaign-templates campaign-templates.u)
+          campaigns+(campaigns campaigns.u)
       ==
     ==
   ::
@@ -119,6 +120,41 @@
     %-  pairs:enjs:format
     :~  subject+s+subject
         content+s+content
+    ==
+  ::
+  ++  campaigns
+    |=  email-campaigns=(map term ^campaign)
+    ^-  json
+    :-  %o
+    (~(run by email-campaigns) campaign)
+  ::
+  ++  campaign
+    |=  email-campaign=^campaign
+    ^-  json
+    %-  pairs:enjs:format
+    :~  template-name+s+template-name.email-campaign
+        index+(numb:enjs:format index.email-campaign)
+        next-time+(time:enjs:format next-time.email-campaign)
+        interval-seconds+(date-relative-seconds interval.email-campaign)
+        recipients+(recipients recipients.email-campaign)
+    ==
+  ::
+  ++  date-relative-seconds
+    |=  date=@dr
+    ^-  json
+    (numb:enjs:format (div date ~s1))
+  ::
+  ++  recipients
+    |=  rec=(each @t term)
+    ^-  json
+    =/  type=@t
+    ?:  ?=(%.y -.rec)
+      'SINGLE_ADDRESS'
+    'MAILING_LIST'
+    =/  value=@t  p.rec
+    %-  pairs:enjs:format
+    :~  type+s+type
+        value+s+value
     ==
   --
 --
