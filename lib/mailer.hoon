@@ -59,6 +59,7 @@
       %-  pairs
       :~  creds+(creds creds.u)
           mailing-lists+(mailing-lists ml.u)
+          campaign-templates+(campaign-templates campaign-templates.u)
       ==
     ==
   ::
@@ -84,5 +85,40 @@
     %+  turn  ~(tap by m)
     |=  [w=@t *]
     [%s w]
+  ::
+  ++  campaign-templates
+    |=  templates=(map term ^campaign-template)
+    ^-  json
+    :-  %o
+    (~(run by templates) campaign-template)
+  ::
+  ++  campaign-template
+    |=  template=^campaign-template
+    ^-  json
+    %-  pairs:enjs:format
+    :~  from+(from-field from.template)
+        email-sequence+(email-sequence email-sequence.template)
+    ==
+  ::
+  ++  from-field
+    |=  from=^from-field
+    ^-  json
+    %-  pairs:enjs:format
+    :~  name+s+name.from
+        email+s+email.from
+    ==
+  ::
+  ++  email-sequence
+    |=  sequence=(list [subject=cord content=cord])
+    ^-  json
+    :-  %a
+    (turn sequence email-sequence-item)
+  ::
+  ++  email-sequence-item
+    |=  [subject=cord content=cord]
+    %-  pairs:enjs:format
+    :~  subject+s+subject
+        content+s+content
+    ==
   --
 --

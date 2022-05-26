@@ -320,7 +320,8 @@
       ~&  >  'creating new campaign template'
       =|  template=campaign-template
       =.  template  template(from from.act, email-sequence email-sequence.act)
-      `state(campaign-templates (~(put by campaign-templates) name.act template))
+      :-  [give-update:do]~
+      state(campaign-templates (~(put by campaign-templates) name.act template))
         %start-campaign
       ?:  (~(has by campaigns) name.act)
         ~&  >>  'campaign already started!'  [~ state]
@@ -395,7 +396,7 @@
   ?:  ?=([%http-response *] path)
     `this
   ?:  ?=([%updates ~] path)
-    =/  =update  [%initial creds ml]
+    =/  =update  [%initial creds ml campaign-templates]
     :_  this
     [%give %fact ~ %mailer-update !>(update)]~
   (on-watch:def path)
@@ -534,7 +535,7 @@
 ::
 ++  give-update
   ^-  card
-  =/  =update  [%initial creds ml]
+  =/  =update  [%initial creds ml campaign-templates]
   [%give %fact [/updates]~ %mailer-update !>(update)]
 ::
 ++  email-campaign
