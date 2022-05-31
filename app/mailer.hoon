@@ -66,13 +66,12 @@
   |=  old-vase=vase
   ^-  (quip card _this)
   |^
-  ?:  %.y  [~ this(state *state-2)] :: reset state on every load
   =+  !<(old=versioned-state old-vase)
   =|  cards=(list card)
   |-
   ?-  -.old
     %2  [cards this(state old)]
-    %1  $(old *state-2)
+    %1  $(old (state-1-to-2 old))
     %0  $(old (state-0-to-1 old))
   ==
   ::
@@ -90,6 +89,16 @@
     %-  ~(run by m)
     |=  t=@uv
     [t %.y]
+  ::
+  ++  state-1-to-2
+    |=  s=state-1
+    ^-  state-2
+    :*  %2
+      creds.s
+      ml.s
+      ~
+      ~
+    ==
   --
 ::
 ++  on-poke
@@ -320,8 +329,9 @@
       ~&  >  'creating new campaign template'
       =|  template=campaign-template
       =.  template  template(from from.act, email-sequence email-sequence.act)
-      :-  [give-update:do]~
-      state(campaign-templates (~(put by campaign-templates) name.act template))
+      =.  campaign-templates  (~(put by campaign-templates) name.act template)
+      :_  state
+      [give-update:do]~
         %start-campaign
       ?:  (~(has by campaigns) name.act)
         ~&  >>  'campaign already started!'  [~ state]
@@ -340,10 +350,11 @@
         template-name  template-name.act
         interval  interval.act
       ==
-      :-  :~  [give-update:do]
-              [%pass /timer/[name.act] %arvo %b %wait now.bowl]
-          ==
-      state(campaigns (~(put by campaigns) name.act campaign))
+      =.  campaigns  (~(put by campaigns) name.act campaign)
+      :_  state
+      :~  [give-update:do]
+          [%pass /timer/[name.act] %arvo %b %wait now.bowl]
+      ==
     ==
   --
 :: on response from vane
@@ -373,8 +384,10 @@
       (email-campaign:do u.campaign)
     =.  next-time.u.campaign  (add now.bowl interval.u.campaign)
     =.  index.u.campaign  +(index.u.campaign)
-    :_  this(campaigns (~(put by campaigns) name u.campaign))
-    :-  [%pass wire %arvo %b %wait next-time.u.campaign]
+    =.  campaigns  (~(put by campaigns) name u.campaign)
+    :_  this
+    :+  give-update:do
+      [%pass wire %arvo %b %wait next-time.u.campaign]
     cards
   (on-arvo:def wire sign-arvo) :: no-op
   ::

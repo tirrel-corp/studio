@@ -26,7 +26,12 @@
   ==
 ::
 +$  update
-  $%  [%initial creds=[(unit @t) (unit @t) (unit @t)] ml=(map term mailing-list) campaign-templates=(map term campaign-template) campaigns=(map term campaign)]
+  $%  $:  %initial
+      creds=[(unit @t) (unit @t) (unit @t)]
+      ml=(map term mailing-list)
+      campaign-templates=(map term campaign-template)
+      campaigns=(map term campaign)
+    ==
   ==
 ::
 +$  mailing-list  (map @t [token=@uv confirmed=?])
