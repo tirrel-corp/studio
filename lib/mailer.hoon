@@ -15,6 +15,8 @@
         [%del-recipients (ot name+so list+(as so) ~)]
         [%create-campaign-template (ot name+so from+(ot email+so name+so ~) email-sequence+(ar (ot subject+so content+so ~)) ~)]
         [%start-campaign (ot name+so template-name+so recipients+recipients interval+date-relative ~)]
+        [%del-campaign-template (ot name+so ~)]
+        [%del-campaign (ot name+so ~)]
     ==
   ++  recipients
     |=  jon=json
