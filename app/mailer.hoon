@@ -332,6 +332,7 @@
       =.  campaign-templates  (~(put by campaign-templates) name.act template)
       :_  state
       [give-update:do]~
+    ::
         %start-campaign
       ?:  (~(has by campaigns) name.act)
         ~&  >>  'campaign already started!'  [~ state]
@@ -355,6 +356,29 @@
       :~  [give-update:do]
           [%pass /timer/[name.act] %arvo %b %wait now.bowl]
       ==
+    ::
+        %del-campaign-template
+      ?.  (~(has by campaign-templates) name.act)
+        ~&  >>  'template does not exist!'  [~ state]
+      =.  campaign-templates  (~(del by campaign-templates) name.act)
+      =.  campaigns
+        %-  ~(gas by *(map term campaign))
+        %+  murn  ~(tap by campaigns)
+        |=  [name=term camp=campaign]
+        ^-  (unit [term campaign])
+        ~&  [name.act template-name.camp]
+        ?:  =(name.act template-name.camp)
+          ~
+        `[name camp]
+      :_  state
+      [give-update:do]~
+    ::
+        %del-campaign
+      ?.  (~(has by campaigns) name.act)
+        ~&  >>  'campaign does not exist!'  [~ state]
+      =.  campaigns  (~(del by campaigns) name.act)
+      :_  state
+      [give-update:do]~
     ==
   --
 :: on response from vane

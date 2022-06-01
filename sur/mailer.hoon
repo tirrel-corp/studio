@@ -23,6 +23,8 @@
       [%del-recipients name=term mailing-list=(set @t)]
       [%create-campaign-template name=term from=from-field email-sequence=(list [subject=cord content=cord])]
       [%start-campaign name=term template-name=term recipients=(each @t term) interval=@dr]
+      [%del-campaign-template name=term]
+      [%del-campaign name=term]
   ==
 ::
 +$  update
