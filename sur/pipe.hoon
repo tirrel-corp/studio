@@ -44,7 +44,6 @@
 ::
 +$  edit-site
   $%  [%template =term]
-      [%binding =binding:eyre]
       [%comments comments=?]
       [%width width=?(%1 %2 %3)]
       [%lit lit=?]

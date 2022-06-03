@@ -183,13 +183,6 @@
     =^  cards  state
       (pipe-action !<(action vase))
     [cards this]
-  ::
-      %handle-http-request
-    =+  !<([eyre-id=@ta req=inbound-request:eyre] vase)
-    =/  res=(pair (list card) simple-payload:http)  (handle-http-request req)
-    :_  this
-    %+  weld  p.res
-    (give-simple-payload:app:server eyre-id q.res)
   ==
   ::
   ++  pipe-action
@@ -199,8 +192,6 @@
         %add
       ?<  (~(has by flows) name.action)
       ?~  site.flow.action  !!
-      ?:  (binding-taken binding.u.site.flow.action)
-        ~|("binding already taken {<`path`path.binding.u.site.flow.action>}" !!)
       =.  flows  (~(put by flows) name.action flow.action)
       =.  uid-to-name
         %+  ~(put ju uid-to-name)
@@ -213,16 +204,13 @@
       =.  website  (apply-auth-to-site:pc website auth-rule.flow.action)
       =.  sites     (~(put by sites) name.action website)
       :_  state
-      :*  (give-site:pc name.action website)
+      :~  (give-site:pc name.action website)
+          (give-switch:pc name.action website)
           give-flows:pc
-          (serve:pc name.action binding.u.site.flow.action)
       ==
     ::
         %remove
       =/  =flow  (~(got by flows) name.action)
-      =/  cards=(list card)
-        ?~  site.flow  ~
-        [%pass /eyre %arvo %e %disconnect binding.u.site.flow]~
       =.  flows  (~(del by flows) name.action)
       =.  sites  (~(del by sites) name.action)
       =.  uid-to-name
@@ -230,7 +218,9 @@
           [resource.flow index.flow]
         name.action
       :_  state
-      [give-flows:pc cards]
+      :~  give-flows:pc
+          [%give %kick [/switch/[name.action] ~] ~]
+      ==
     ::
         %edit
       |^
@@ -261,6 +251,7 @@
       :_  state
       :*  give-flows:pc
           (give-site:pc name.action website)
+          (give-switch:pc name.action website)
           cards
       ==
       ::
@@ -270,46 +261,15 @@
         ?~  site.f
           ?>  ?=(%whole -.edit-site)
           ?~  site.edit-site  [cards f rebuild]  :: no change
-          :+  [(connect binding.u.site.edit-site) cards]
-            f(site site.edit-site)
-          %.y
+          [cards f(site site.edit-site) %.y]
         ?-  -.edit-site
           %template  [cards f(template.u.site term.edit-site) %.y]
           %comments  [cards f(comments.u.site comments.edit-site) %.y]
           %width     [cards f(width.u.site width.edit-site) %.y]
           %lit       [cards f(lit.u.site lit.edit-site) %.y]
           %accent    [cards f(accent.u.site accent.edit-site) %.y]
-        ::
-            %binding
-          ?:  (binding-taken binding.edit-site)
-            [cards f rebuild]
-          :+  :*  (disconnect binding.u.site.f)
-                  (connect binding.edit-site)
-                  cards
-              ==
-            f(binding.u.site binding.edit-site)
-          %.y
-        ::
-            %whole
-          ?~  site.edit-site
-            [[(disconnect binding.u.site.f) cards] f(site ~) %.y]
-          :+  :*  (disconnect binding.u.site.f)
-                  (connect binding.u.site.edit-site)
-                  cards
-              ==
-            f(site site.edit-site)
-          %.y
+          %whole     [cards f(site site.edit-site) %.y]
         ==
-      ::
-      ++  connect
-        |=  =binding:eyre
-        ^-  card
-        [%pass /eyre %arvo %e %connect binding dap.bowl]
-      ::
-      ++  disconnect
-        |=  =binding:eyre
-        ^-  card
-        [%pass /eyre %arvo %e %disconnect binding]
       --
     ::
         %watch-templates
@@ -362,62 +322,6 @@
           cards
       ==
     ==
-  ::
-  ++  binding-taken
-    |=  =binding:eyre
-    ^-  ?
-    %-  ~(rep by flows)
-    |=  [[term f=flow] out=_|]
-    ?~  site.f       out
-    ?:  out          out
-    =(binding.u.site.f binding)
-  ::
-  ++  handle-http-request
-    |=  req=inbound-request:eyre
-    ^-  [(list card) simple-payload:http]
-    |^
-    =/  req-line=request-line:server
-      (parse-request-line:server url.request.req)
-    =/  host=(unit @t)
-      (get-header:http 'host' header-list.request.req)
-    ::
-    =/  flow-req=(unit [name=term =path])
-      %-  ~(rep by flows)
-      |=  [[name=term =flow] out=(unit [term path])]
-      ?~  site.flow  out
-      ?.  =(site.binding.u.site.flow host)  out
-      =/  suffix=(unit path)
-        (get-suffix path.binding.u.site.flow site.req-line)
-      ?~  suffix  out
-      `[name u.suffix]
-    ::
-    ?~  flow-req
-      `not-found:gen:server
-    ::
-    =/  web=(unit website)
-      (~(get by sites) name.u.flow-req)
-    ?~  web
-      `not-found:gen:server
-    =/  page=(unit webpage)
-      %-  ~(get by u.web)
-      (spat path.u.flow-req)
-    ?~  page
-      `not-found:gen:server
-    ~(open grate u.page path.u.flow-req request.req [our now]:bowl)
-    ::
-    ++  get-suffix
-      |=  [a=path b=path]
-      ^-  (unit path)
-      ?:  (gth (lent a) (lent b))  ~
-      |-
-      ?~  a  `b
-      ?~  b  ~
-      ?.  =(i.a i.b)  ~
-      %=  $
-        a  t.a
-        b  t.b
-      ==
-    --
   --
 ::
 ++  on-agent
@@ -789,19 +693,6 @@
   ^-  beak
   [our.bowl q.byk.bowl %da now.bowl]
 ::
-++  serve
-  |=  [name=term =binding:eyre]
-  ^-  (list card)
-  =/  cards=(list card)
-    [%pass /eyre %arvo %e %connect binding dap.bowl]~
-  =/  flo  (~(get by flows) name)
-  ?~  flo
-    cards
-  ?~  site.u.flo
-    cards
-  :_  cards
-  [%pass /eyre %arvo %e %disconnect binding.u.site.u.flo]
-::
 ++  get-email-template
   |=  name=term
   ^-  (unit email-template)
@@ -821,6 +712,12 @@
   ^-  card
   =/  =update  [%site name website]
   [%give %fact [/site/[name]]~ %pipe-update !>(update)]
+::
+++  give-switch
+  |=  [name=term =website]
+  ^-  card
+  =/  =update  [%site name website]
+  [%give %fact [/switch/[name]]~ %pipe-update !>(update)]
 ::
 ++  give-errors
   |=  [name=term =website]
@@ -914,8 +811,11 @@
   |=  [name=term =flow]
   ^-  site-inputs
   =/  s  (need site.flow)
+  =/  [host=@t =path]
+    %-  need
+    (scry %switchboard ,(unit [@t path]) /site-by-plugin/pipe/[name]/noun)
   :*  name
-      binding.s
+      [`host path]
       (get-posts resource.flow comments.s)
       (get-metadata resource.flow)
       comments.s
@@ -928,11 +828,11 @@
 ++  get-email-inputs
   |=  [name=term =flow =post:store:graph]
   ^-  email-inputs
-  =/  site-binding=(unit binding:eyre)
-    ?~  site.flow  ~
-    `binding.u.site.flow
+  =/  [host=@t =path]
+    %-  need
+    (scry %switchboard ,(unit [@t path]) /site-by-plugin/pipe/[name]/noun)
   :*  name
-      site-binding
+      `[`host path]
       post
       (get-metadata resource.flow)
   ==
@@ -970,6 +870,7 @@
   =/  errors=update  [%errors get-all-errors]
   :_  state
   :~  (give-site name website)
+      (give-switch name website)
       [%give %fact [/updates]~ %pipe-update !>(errors)]
   ==
 ::

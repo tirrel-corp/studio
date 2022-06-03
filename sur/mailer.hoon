@@ -19,7 +19,7 @@
       [%unset-creds api-key=? email=? ship-url=?]
       [%add-list name=term mailing-list=(set @t)]
       [%del-list name=term]
-      [%add-recipients name=term mailing-list=(set @t)]
+      [%add-recipients name=term mailing-list=(set @t) confirm=?]
       [%del-recipients name=term mailing-list=(set @t)]
   ==
 ::

@@ -43,8 +43,7 @@
     do    ~(. +> bowl)
 ::
 ++  on-init
-  :_  this
-  [%pass /connect %arvo %e %connect [~ /'mailer'] dap.bowl]~
+  `this
 ::
 ++  on-save   !>(state)
 ++  on-load
@@ -52,7 +51,8 @@
   ^-  (quip card _this)
   |^
   =+  !<(old=versioned-state old-vase)
-  =|  cards=(list card)
+  =/  cards=(list card)
+    [%pass /connect %arvo %e %disconnect [~ /'mailer']]^~
   |-
   ?-  -.old
     %1  [cards this(state old)]
@@ -85,132 +85,7 @@
     =^  cards  state
       (mailer-action !<(action vase))
     [cards this]
-  ::
-      %handle-http-request
-    =+  !<([eyre-id=@ta =inbound-request:eyre] vase)
-    =^  cards  state
-      (handle-http-request eyre-id inbound-request)
-    [cards this]
   ==
-  ::
-  ++  handle-http-request
-    |=  [eyre-id=@ta inbound-request:eyre]
-    ^-  (quip card _state)
-    |^
-    =/  req-line=request-line:server
-      %-  parse-request-line:server
-      url.request
-    ?+  site.req-line
-      :_  state
-      (give-simple-payload:app:server eyre-id not-found:gen:server)
-    ::
-        [%mailer %unsubscribe ~]
-      =/  args=(map @t @t)  (~(gas by *(map @t @t)) args.req-line)
-      =/  b64tok=(unit @t)  (~(get by args) 'token')
-      ?~  b64tok
-        :_  state
-        (give-simple-payload:app:server eyre-id not-found:gen:server)
-      =/  details=(unit [=term email=@t token=@uv confirmed=?])
-        (get-user-by-token:do u.b64tok)
-      ?~  details
-        :_  state
-        (give-simple-payload:app:server eyre-id not-found:gen:server)
-      =/  old-ml  (~(got by ml) term.u.details)
-      =/  new-ml  (~(del by old-ml) email.u.details)
-      :_  state(ml (~(put by ml) term.u.details new-ml))
-      %+  give-simple-payload:app:server  eyre-id
-      (manx-response:gen:server (unsubscribe-landing:do term.u.details))
-    ::
-        [%mailer %subscribe ~]
-      ?.  ?=(%'POST' method.request)
-        :_  state
-        (give-simple-payload:app:server eyre-id not-found:gen:server)
-      =/  headers=(map @t @t)  (~(gas by *(map @t @t)) header-list.request)
-      =/  type=(unit @t)       (~(get by headers) 'content-type')
-      ?:  ?|(?=(~ body.request) ?=(~ type))
-        :_  state
-        (give-simple-payload:app:server eyre-id not-found:gen:server)
-      =/  parsed-form  (rush q.u.body.request yquy:de-purl:html)
-      ?~  parsed-form
-        :_  state
-        (give-simple-payload:app:server eyre-id not-found:gen:server)
-      =/  args=(map @t @t)   (~(gas by *(map @t @t)) u.parsed-form)
-      =/  who=(unit @t)      (~(get by args) 'who')
-      =/  book=(unit @t)     (~(get by args) 'book')
-      ?:  ?|(?=(~ who) ?=(~ book))
-        :_  state
-        (give-simple-payload:app:server eyre-id not-found:gen:server)
-      =/  old-ml=(unit mailing-list)  (~(get by ml) u.book)
-      ?~  old-ml
-        :_  state
-        (give-simple-payload:app:server eyre-id not-found:gen:server)
-      ?:  (~(has by u.old-ml) u.who)
-        :_  state
-        %+  give-simple-payload:app:server  eyre-id
-        (manx-response:gen:server (subscribe-landing:do u.book))
-      =/  token=@uv  (sham u.who eny.bowl)
-      =/  new-ml  (~(put by u.old-ml) u.who token %.n)
-      :_  state(ml (~(put by ml) u.book new-ml))
-      :*  (confirm-email:do u.who u.book token)
-          %+  give-simple-payload:app:server  eyre-id
-          (manx-response:gen:server (subscribe-landing:do u.book))
-      ==
-    ::
-        [%mailer %confirm ~]
-      =/  args=(map @t @t)  (~(gas by *(map @t @t)) args.req-line)
-      =/  b64tok=(unit @t)  (~(get by args) 'token')
-      ?~  b64tok
-        :_  state
-        (give-simple-payload:app:server eyre-id not-found:gen:server)
-      =/  details=(unit [=term email=@t token=@uv confirmed=?])
-        (get-user-by-token:do u.b64tok)
-      ?~  details
-        :_  state
-        (give-simple-payload:app:server eyre-id not-found:gen:server)
-      =/  new-token  (sham email.u.details eny.bowl)
-      =/  old-ml     (~(got by ml) term.u.details)
-      =/  new-ml     (~(put by old-ml) email.u.details new-token %.y)
-      :_  state(ml (~(put by ml) term.u.details new-ml))
-      %+  give-simple-payload:app:server  eyre-id
-      (manx-response:gen:server (confirm-landing:do term.u.details))
-    ::
-        [%mailer %upload ~]
-      ?.  ?=(%'POST' method.request)
-        :_  state
-        (give-simple-payload:app:server eyre-id not-found:gen:server)
-      ?~  parts=(de-request:multipart [header-list body]:request)
-        ~|("failed to parse submitted data" !!)
-      =/  parts-map  (~(gas by *(map @t part:multipart)) u.parts)
-      =/  name  (~(get by parts-map) 'name')
-      ?~  name
-        :_  state
-        (give-simple-payload:app:server eyre-id not-found:gen:server)
-      =/  csv  (~(get by parts-map) 'csv')
-      ?~  csv
-        :_  state
-        (give-simple-payload:app:server eyre-id not-found:gen:server)
-      ::
-      =/  addresses=(set @t)  (parse-csv:do body.u.csv)
-      ::
-      =/  old=(unit mailing-list)  (~(get by ml) body.u.name)
-      ?~  old  ~|("no such mailing list: {<u.name>}" !!)
-      =/  recipients=mailing-list
-        %-  ~(run in addresses)
-        |=  email=@t
-        [email (sham email eny.bowl) %.y]
-      =/  new=mailing-list  (~(uni by u.old) recipients)
-      =.  ml  (~(put by ml) body.u.name new)
-      :_  state
-      (give-simple-payload:app:server eyre-id not-found:gen:server)
-      ::[give-update:do]~
-    ==
-    ::
-    ++  fip
-      =,  de-purl:html
-      %+  cook
-        |=(pork (weld q (drop p)))
-      (cook deft (more fas smeg))
-    --
   ::
   ++  mailer-action
     |=  act=action
@@ -267,7 +142,7 @@
       =/  recipients=mailing-list
         %-  ~(run in mailing-list.act)
         |=  email=@t
-        [email (sham email eny.bowl) %.y]
+        [email (sham email eny.bowl) confirm.act]
       =/  new=mailing-list  (~(uni by u.old) recipients)
       =.  ml  (~(put by ml) name.act new)
       :_  state
@@ -334,6 +209,22 @@
       [%x %has-list @ ~]
     =*  li  i.t.t.path
     ``noun+!>((~(has by ml) li))
+  ::
+      [%x %ship-token @ ~]
+    =*  token  i.t.t.path
+    ``noun+!>((get-user-by-token:do token))
+  ::
+      [%x %subscribe-landing @ ~]
+    =*  name  i.t.t.path
+    ``hymn+!>((subscribe-landing:do name))
+  ::
+      [%x %unsubscribe-landing @ ~]
+    =*  name  i.t.t.path
+    ``hymn+!>((unsubscribe-landing:do name))
+  ::
+      [%x %confirm-landing @ ~]
+    =*  name  i.t.t.path
+    ``hymn+!>((confirm-landing:do name))
   ==
 ::
 ++  on-agent
