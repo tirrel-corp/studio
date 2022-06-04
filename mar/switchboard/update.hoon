@@ -1,16 +1,16 @@
 /-  *switchboard
 /+  switchboard
-|_  act=action
+|_  upd=update
 ::
 ++  grow
   |%
-  ++  noun  act
+  ++  noun  upd
+  ++  json  (update:enjs:switchboard upd)
   --
 ::
 ++  grab
   |%
-  ++  noun  action
-  ++  json  action:dejs:switchboard
+  ++  noun  update
   --
 ::
 ++  grad  %noun

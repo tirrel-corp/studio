@@ -73,7 +73,6 @@
     ^-  $-(json ^edit-site)
     %-  of
     :~  [%template so]
-        [%binding binding]
         [%comments bo]
         [%width width]
         [%lit bo]

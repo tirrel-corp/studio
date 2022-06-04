@@ -11,7 +11,7 @@
         [%unset-creds (ot api-key+bo email+bo ship-url+bo ~)]
         [%add-list (ot name+so list+(as so) ~)]
         [%del-list (ot name+so ~)]
-        [%add-recipients (ot name+so list+(as so) ~)]
+        [%add-recipients (ot name+so list+(as so) confirm+bo ~)]
         [%del-recipients (ot name+so list+(as so) ~)]
     ==
   ++  email
