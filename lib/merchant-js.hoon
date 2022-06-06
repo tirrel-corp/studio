@@ -17,11 +17,20 @@
     number: "4007400000000007",
     cvv: "111"
   };
+  let cardIdKey = uuidv4();
+
+  let cardId = null;
+
   cardBtn.onclick = () => {
     encrypt(JSON.stringify(cardDetails), publicKey).then((msg) => {
-     createCard(msg.encryptedMessage).then((r) => {
-       console.log(r);
-     });
+      createCard(cardIdKey, msg.encryptedMessage).then((r) => {
+        console.log(r);
+      });
+
+      setTimeout(async () => {
+        cardId = await getCard(cardIdKey);
+        console.log(cardId);
+      }, 5000);
     });
   };
   '''
@@ -33,12 +42,17 @@
   let cvv = {
     cvv: "111"
   };
+  let payIdKey = uuidv4();
 
   payBtn.onclick = () => {
     encrypt(JSON.stringify(cvv), publicKey).then((msg) => {
-     createPayment(msg.encryptedMessage).then((r) => {
+     createPayment(payIdKey, msg.encryptedMessage, cardId, '10.00').then((r) => {
       console.log(r);
      });
+
+      setTimeout(async () => {
+        getPayment(payIdKey);
+      }, 5000);
     });
   };
   '''
@@ -46,24 +60,32 @@
 ++  create-card-function
   %-  trip
   '''
-  const createCard = async (msgKey) => {
+  const getCard = async (cardIdKey) => {
+    let r = await fetch('/merchant/card/' + cardIdKey);
+    let j = await r.json();
+    console.log(j);
+
+    return j.card.id;
+  };
+
+  const createCard = async (cardIdKey, msgKey) => {
     let result = await fetch('/merchant/card', {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        idempotencyKey: uuidv4(),
+        idempotencyKey: cardIdKey,
         keyId: 'key1',
         encryptedData: msgKey,
         billingDetails: {
-          name: '',
-          city: '',
+          name: 'Logan Allen',
+          city: 'Austin',
           country: 'US',
-          'line1': '',
+          'line1': '1800 Enchanted Rock Dr',
           'line2': null,
           district: 'TX',
-          postalCode: ''
+          postalCode: '78613'
         },
         expMonth: 12,
         expYear: 2023
@@ -76,24 +98,30 @@
 ++  create-payment-function
   %-  trip
   '''
-  const createPayment = async (msgKey) => {
+  const getPayment = async (payIdKey) => {
+    let r = await fetch('/merchant/payment/' + payIdKey);
+    let j = await r.json();
+    console.log(j);
+  };
+
+  const createPayment = async (payIdKey, msgKey, cardId, amount) => {
     let result = await fetch('/merchant/payment', {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        idempotencyKey: uuidv4(),
+        idempotencyKey: payIdKey,
         keyId: 'key1',
         amount: {
-          amount: '10.00',
+          amount: amount,
           currency: 'USD'
         },
         verification: 'cvv', // or cvv
         verificationSuccessUrl: null,
         verificationFailureUrl: null,
         source: {
-          id: 'uuid',
+          id: cardId,
           type: 'card'
         },
         description: null,
