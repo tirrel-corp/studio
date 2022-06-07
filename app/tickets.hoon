@@ -1,26 +1,24 @@
 /-  circle
-/+  default-agent, dbug, verb, server
+/+  default-agent, dbug, verb, server, circle
 |%
-+$  card  card:agent:gall
++$  card  $+(card card:agent:gall)
 ::
 +$  ticket
   $:  token=@uv
       used=?
-      =ticket-class
-  ==
-::
-+$  ticket-class  ?(%1 %2 %3)
-::
-++  price
-  ^-  (map ticket-class amount:circle)
-  %-  ~(gas by *(map ticket-class amount:circle))
-  :~  1+[20 0 'USD']
+      type=@t
   ==
 ::
 +$  state-0
-  $:  tickets=(map @uv ticket)
+  $:  sold=(map @uv ticket)
+      stock=(map @t [count=@ud =amount:circle])
   ==
+::
 ++  provider  ~bus  :: hardcode tirrel gateway moon
+::
++$  action
+  $%  [%set-stock type=@t count=@ud =amount:circle]
+  ==
 --
 ::
 =|  state-0
@@ -32,7 +30,6 @@
 |_  =bowl:gall
 +*  this  .
     def   ~(. (default-agent this %|) bowl)
-    mjs   ~(. merchant-js public-key)
 ::
 ++  on-init
   :_  this
@@ -44,8 +41,9 @@
 ++  on-save  !>(state)
 ++  on-load
   |=  old-vase=vase
-  :_  this(state !<(state-0 old-vase))
-  ~
+::  :_  this(state !<(state-0 old-vase))
+::  ~
+  `this
 ::  =-  [%pass - %agent [provider %gateway] %watch -]^~
 ::  /master/(scot %p our.bowl)
 ::
@@ -57,9 +55,10 @@
   ?+    mark  (on-poke:def mark vase)
   ::
       %noun
-    :_  this
-    =-  [%pass - %agent [provider %gateway] %watch -]^~
-    /master/(scot %p our.bowl)
+    =+  !<(act=action vase)
+    ?-  -.act
+      %set-stock  `this(stock (~(put by stock) +.act))
+    ==
   ::
       %handle-http-request
     =+  !<([eyre-id=@ta =inbound-request:eyre] vase)
@@ -71,25 +70,41 @@
     (give-simple-payload:app:server eyre-id sim)
   ==
   ::
+  ++  enjs-stock
+    |=  stock=(map @t [@ud amount:circle])
+    ^-  json
+    %-  pairs:enjs:format
+    %+  turn  ~(tap by stock)
+    |=  [type=@t count=@ud =amount:circle]
+    ^-  [@t json]
+    :-  type
+    %-  pairs:enjs:format
+    :~  count+(numb:enjs:format count)
+        price+(amount:enjs:req:circle amount)
+    ==
+  ::
   ++  handle-http-request
     |=  [eyre-id=@ta req=inbound-request:eyre]
     ^-  [(list card) simple-payload:http]
     =/  req-line  (parse-request-line:server url.request.req)
     ?+  site.req-line  `not-found:gen:server
-        [%redeem ~]
+        [%merchant %remaining ~]
+      `(json-response:gen:server (enjs-stock stock))
+    ::
+        [%merchant %redeem ~]
       :: XX replace these  not-founds with a page that directs back to main page
       ?~  b64tok=(get-header:http 'token' args.req-line)
         `not-found:gen:server
       ?~  token=(~(de base64:mimes:html | &) u.b64tok)
         `not-found:gen:server
-      ?~  ticket=(~(get by tickets) q.u.token)
+      ?~  ticket=(~(get by sold) q.u.token)
         `not-found:gen:server
       ?:  used.u.ticket
         `not-found:gen:server
       =/  success=manx
         ;div: ticket valid!
       =.  used.u.ticket  %.y
-      =.  tickets  (~(put by tickets) q.u.token u.ticket)
+      =.  sold  (~(put by sold) q.u.token u.ticket)
       `(manx-response:gen:server success)
     ==
   --
@@ -116,13 +131,13 @@
     ?-  type.q.upd
         %payment
       ?:  %.y  ::=(amount.q.upd (~(got by price) %1))
-        =/  =ticket  [token %.n %1]
-        =.  tickets  (~(put by tickets) token ticket)
+        =/  =ticket  [token %.n 'foobar']
+        =.  sold  (~(put by sold) token ticket)
         `this
       `this
     ::
-        %refund  `this(tickets (~(del by tickets) token))
-        %cancel  `this(tickets (~(del by tickets) token))
+        %refund  `this(sold (~(del by sold) token))
+        %cancel  `this(sold (~(del by sold) token))
     ==
   ::
       %kick
