@@ -17,7 +17,7 @@
       pending-stock=(map product-id=@t count=@ud)
   ==
 ::
-++  provider  ~bus  :: hardcode tirrel gateway moon
+++  provider  ~zod  :: hardcode tirrel gateway moon
 ::
 +$  action
   $%  [%set-stock type=@t count=@ud =amount:circle]
@@ -52,8 +52,7 @@
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
-::  `this(state !<(state-0 old-vase))
-  `this
+  `this(state !<(state-0 old-vase))
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -102,8 +101,8 @@
     |=  [eyre-id=@ta req=inbound-request:eyre]
     ^-  [(quip card _this) simple-payload:http]
     =/  req-line  (parse-request-line:server url.request.req)
-    ?+  site.req-line  [`this not-found:gen:server]
-        [%merchant %create-session ~]
+    ?+    site.req-line  [`this not-found:gen:server]
+        [%merchant %session ~]
       ?>  ?=(%'POST' method.request.req)
       =/  sess-id  (to-uuid:uuidv4 eny.bowl)
       ?~  body.request.req
@@ -190,7 +189,7 @@
       :: delete pending transaction
       =.  pending  (~(del by pending) p.upd)
       ::
-      ?:  ?=(?(%complete %paid) status.q.upd)
+      ?:  ?=(?(%confirmed %paid) status.q.upd)
         :: remove count in stocks
         =/  sto    (~(got by stock) id)
         =.  stock  (~(put by stock) id sto(count (sub count.sto count.pend)))
@@ -201,11 +200,12 @@
           ?:  =(c 0)
             sold
           =/  tic  (gen-ticket id c)
-          $(sold (~(put by sold) token.tic tic))
+          $(sold (~(put by sold) token.tic tic), c (dec c))
         `this
       ::
       ?:  ?=(%failed status.q.upd)
         `this
+      ~&  status.q.upd
       !!
     ::
         %card
