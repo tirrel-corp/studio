@@ -112,16 +112,38 @@
     ==
   ::
   ++  email-sequence
-    |=  sequence=(list [subject=cord content=cord])
+    |=  emails=(map @ud email-list-item)
     ^-  json
-    :-  %a
-    (turn sequence email-sequence-item)
+    %-  pairs:enjs:format
+    =/  map-1=(map @ud json)
+      (~(run by emails) email-sequence-item)
+    =/  list-1=(list [@ud json])  ~(tap by map-1)
+    %+  turn  list-1
+    |=  [key=@ud value=json]
+    [(crip <key>) value]
   ::
   ++  email-sequence-item
-    |=  [subject=cord content=cord]
+    |=  [prev=(unit @ud) next=(unit @ud) body=(unit [subject=cord content=cord])]
+    ^-  json
     %-  pairs:enjs:format
-    :~  subject+s+subject
-        content+s+content
+    :~  prev+(unit-number prev)
+        next+(unit-number next)
+        body+(unit-email-body body)
+    ==
+  ::
+  ++  unit-number
+    |=  item=(unit @ud)
+    ^-  json
+    ?~  item  ~
+    [%s (crip <u.item>)]
+  ::
+  ++  unit-email-body
+    |=  item=(unit [subject=cord content=cord])
+    ^-  json
+    ?~  item  ~
+    %-  pairs:enjs:format
+    :~  subject+s+subject.u.item
+        content+s+content.u.item
     ==
   ::
   ++  campaigns
@@ -135,7 +157,6 @@
     ^-  json
     %-  pairs:enjs:format
     :~  template-name+s+template-name.email-campaign
-        index+(numb:enjs:format index.email-campaign)
         next-time+(time:enjs:format next-time.email-campaign)
         interval-seconds+(date-relative-seconds interval.email-campaign)
         recipients+(recipients recipients.email-campaign)

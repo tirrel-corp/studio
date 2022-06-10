@@ -65,6 +65,7 @@
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
+  :: ?:  %.y  [~ *_this] :: reset state
   |^
   =+  !<(old=versioned-state old-vase)
   =|  cards=(list card)
@@ -328,7 +329,7 @@
         ~&  >>  'campaign template already exists!'  [~ state]
       ~&  >  'creating new campaign template'
       =|  template=campaign-template
-      =.  template  template(from from.act, email-sequence email-sequence.act)
+      =.  template  template(from from.act, email-sequence (build-email-list:do email-sequence.act))
       =.  campaign-templates  (~(put by campaign-templates) name.act template)
       :_  state
       [give-update:do]~
@@ -401,14 +402,20 @@
     =/  campaign  (~(get by campaigns) name)
     ?~  campaign  ~&  >>>  "campaign {<name>} does not exist!"  [~ this]
     =/  template  (~(got by campaign-templates) template-name.u.campaign)
-    ?:  (gte index.u.campaign (lent email-sequence.template))
-      ~&  "campaign {<name>}: finished!"  [~ this]
-    ~&  "campaign {<name>}: {<+(index.u.campaign)>} of {<(lent email-sequence.template)>}!"
+    =/  cur-email=(unit [id=@ud body=[cord cord]])
+      ?:  =(0 (lent email-history.u.campaign))
+        ~(get-first email-list-handler email-sequence.template)
+      =/  prev-email=sent-email  (rear email-history.u.campaign)
+      (~(get-next email-list-handler email-sequence.template) id.prev-email)
+    ?~  cur-email  ~&  "campaign {<name>}: finished!"  [~ this]
+    ~&  "campaign {<name>}: #{<(add 1 (lent email-history.u.campaign))>}!"
+    =/  cur-email-record=sent-email
+      [id.u.cur-email now.bowl body.u.cur-email]
+    =.  email-history.u.campaign  (flop [cur-email-record (flop email-history.u.campaign)])
+    =.  next-time.u.campaign  (add now.bowl interval.u.campaign)
+    =.  campaigns  (~(put by campaigns) name u.campaign)
     =^  cards  state
       (email-campaign:do u.campaign)
-    =.  next-time.u.campaign  (add now.bowl interval.u.campaign)
-    =.  index.u.campaign  +(index.u.campaign)
-    =.  campaigns  (~(put by campaigns) name u.campaign)
     :_  this
     :+  give-update:do
       [%pass wire %arvo %b %wait next-time.u.campaign]
@@ -581,8 +588,9 @@
   |=  =campaign
   ^-  (quip card _state)
   =/  template  (~(got by campaign-templates) template-name.campaign)
-  =/  email-sequence  email-sequence.template
-  =/  [subject=cord html=cord]  (snag index.campaign email-sequence)
+  =/  email-sequence=email-list  email-sequence.template
+  =/  email-record  (rear email-history.campaign)
+  =/  [subject=cord html=cord]  body.email-record
   =/  content-field  ['text/html' html]
   =/  personalizations=(list personalization-field)
     ?:  ?=(%.y -.recipients.campaign)
@@ -620,6 +628,25 @@
       :-  'personalizations'
       a+(turn personalizations.email personalization-to-json)
   ==
+::
+++  build-email-list
+  |=  emails=(list [subject=cord content=cord])
+  ^-  email-list
+  =|  output=email-list
+  |-
+  ^-  email-list
+  =/  id  ~(wyt by output)
+  ?:  =(id (lent emails))
+    output
+  =/  email=[subject=cord content=cord]  (snag id emails)
+  =/  prev
+    ?:  =(id 0)  ~
+    `(dec id)
+  =/  next
+    ?:  =(id (dec (lent emails)))  ~
+    `+(id)
+  =/  key-value  [id [prev next `email]]
+  $(output (~(gas by output) ~[key-value]))
 ::
 ++  from-to-json
   |=  from=from-field
