@@ -21,6 +21,7 @@
 ::
 +$  action
   $%  [%set-stock type=@t count=@ud =amount:circle]
+      [%del-stock type=@t]
       [%add-verifier email=@t]
   ==
 --
@@ -52,7 +53,8 @@
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
-  `this(state !<(state-0 old-vase))
+  :-  ~
+  this(state !<(state-0 old-vase))
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -69,6 +71,13 @@
       %=  this
         stock  (~(put by stock) +.act)
         pending-stock  (~(put by pending-stock) type.act 0)
+      ==
+    ::
+        %del-stock
+      :-  ~
+      %=  this
+        stock  (~(del by stock) +.act)
+        pending-stock  (~(del by pending-stock) +.act)
       ==
     ::
       %add-verifier  !!
@@ -205,7 +214,6 @@
       ::
       ?:  ?=(%failed status.q.upd)
         `this
-      ~&  status.q.upd
       !!
     ::
         %card
