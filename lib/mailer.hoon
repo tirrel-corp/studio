@@ -112,38 +112,24 @@
     ==
   ::
   ++  email-sequence
-    |=  emails=(map @ud email-list-item)
+    |=  emails-map=(map @ud email-list-item)
     ^-  json
+    =/  emails-list=(list [id=@ud body=[subject=cord content=cord]])
+      (~(as-list email-list-handler emails-map))
+    :-  %a
+    %+  turn  emails-list
+    |=  [id=@ud body=[subject=cord content=cord]]
     %-  pairs:enjs:format
-    =/  map-1=(map @ud json)
-      (~(run by emails) email-sequence-item)
-    =/  list-1=(list [@ud json])  ~(tap by map-1)
-    %+  turn  list-1
-    |=  [key=@ud value=json]
-    [(crip <key>) value]
-  ::
-  ++  email-sequence-item
-    |=  [prev=(unit @ud) next=(unit @ud) body=(unit [subject=cord content=cord])]
-    ^-  json
-    %-  pairs:enjs:format
-    :~  prev+(unit-number prev)
-        next+(unit-number next)
-        body+(unit-email-body body)
+    :~  id+s+(crip <id>)
+        body+(email-body body)
     ==
   ::
-  ++  unit-number
-    |=  item=(unit @ud)
+  ++  email-body
+    |=  body=[subject=cord content=cord]
     ^-  json
-    ?~  item  ~
-    [%s (crip <u.item>)]
-  ::
-  ++  unit-email-body
-    |=  item=(unit [subject=cord content=cord])
-    ^-  json
-    ?~  item  ~
     %-  pairs:enjs:format
-    :~  subject+s+subject.u.item
-        content+s+content.u.item
+    :~  subject+s+subject.body
+        content+s+content.body
     ==
   ::
   ++  campaigns
@@ -160,6 +146,7 @@
         next-time+(time:enjs:format next-time.email-campaign)
         interval-seconds+(date-relative-seconds interval.email-campaign)
         recipients+(recipients recipients.email-campaign)
+        email-history+(sent-emails email-history.email-campaign)
     ==
   ::
   ++  date-relative-seconds
@@ -178,6 +165,18 @@
     %-  pairs:enjs:format
     :~  type+s+type
         value+s+value
+    ==
+  ::
+  ++  sent-emails
+    |=  emails=(list sent-email)
+    ^-  json
+    :-  %a
+    %+  turn  emails
+    |=  [id=@ud sent-time=@da body=[subject=cord content=cord]]
+    %-  pairs:enjs:format
+    :~  id+s+(crip <id>)
+        sent-at+(time:enjs:format sent-time)
+        body+(email-body body)
     ==
   --
 --

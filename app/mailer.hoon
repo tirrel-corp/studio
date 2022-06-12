@@ -404,7 +404,7 @@
     =/  template  (~(got by campaign-templates) template-name.u.campaign)
     =/  cur-email=(unit [id=@ud body=[cord cord]])
       ?:  =(0 (lent email-history.u.campaign))
-        ~(get-first email-list-handler email-sequence.template)
+        (~(get-first email-list-handler email-sequence.template))
       =/  prev-email=sent-email  (rear email-history.u.campaign)
       (~(get-next email-list-handler email-sequence.template) id.prev-email)
     ?~  cur-email  ~&  "campaign {<name>}: finished!"  [~ this]
