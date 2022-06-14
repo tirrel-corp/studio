@@ -113,15 +113,6 @@
     =^  cards  state
       (handle-http-request eyre-id inbound-request)
     [cards this]
-      %noun
-    ?:  ?=([%stop term] q.vase)
-      =/  campaign-name=term  +.q.vase
-      =/  =campaign  (~(got by campaigns) campaign-name)
-      :_  this(campaigns (~(del by campaigns) campaign-name))
-      [%pass /timer/[campaign-name] %arvo %b %rest next-time.campaign]^~
-    ?:  ?=(%stop q.vase)
-      ~|("must provide name of campaign" !!)
-    [~ this]
   ==
   ::
   ++  handle-http-request
