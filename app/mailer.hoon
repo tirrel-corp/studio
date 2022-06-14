@@ -177,6 +177,7 @@
           %+  give-simple-payload:app:server  eyre-id
           (manx-response:gen:server (subscribe-landing:do u.book))
       ==
+    ::
         [%mailer %confirm ~]
       =/  args=(map @t @t)  (~(gas by *(map @t @t)) args.req-line)
       =/  b64tok=(unit @t)  (~(get by args) 'token')
@@ -194,6 +195,7 @@
       :_  state(ml (~(put by ml) term.u.details new-ml))
       %+  give-simple-payload:app:server  eyre-id
       (manx-response:gen:server (confirm-landing:do term.u.details))
+    ::
         [%mailer %upload ~]
       ?.  ?=(%'POST' method.request)
         :_  state
@@ -361,6 +363,7 @@
       [give-update:do]~
     ==
   --
+::
 ++  on-arvo
   |=  [=wire =sign-arvo]
   ^-  (quip card:agent:gall _this)
@@ -411,6 +414,7 @@
       [~ state]
     ==
   --
+::
 ++  on-watch
   |=  =path
   ^-  (quip card _this)
@@ -434,6 +438,7 @@
     =*  li  i.t.t.path
     ``noun+!>((~(has by ml) li))
   ==
+::
 ++  on-agent
   |=  [=wire =sign:agent:gall]
   ^-  (quip card _this)
@@ -719,6 +724,7 @@
     ==
   =-  [%pass /send-email/(scot %uv eny.bowl) %arvo %i %request -]
   [(send-email email) *outbound-config:iris]
+::
 ++  get-title
   |=  name=term
   ^-  @t

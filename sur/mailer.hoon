@@ -2,7 +2,7 @@
 +$  from-field     [email=cord name=cord]
 +$  content-field  [type=cord value=cord]
 +$  personalization-field
-  $:  to=(list cord) :: cc'd email addresses
+  $:  to=(list cord)
       headers=(map cord cord)
       substitutions=(list [cord cord])
   ==
@@ -10,7 +10,7 @@
   $:  from=from-field
       subject=cord
       content=(list content-field)
-      personalizations=(list personalization-field) :: multiple emails
+      personalizations=(list personalization-field)
   ==
 ::
 +$  action
