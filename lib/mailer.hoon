@@ -115,7 +115,7 @@
     |=  emails-map=(map @ud email-list-item)
     ^-  json
     =/  emails-list=(list [id=@ud body=[subject=cord content=cord]])
-      (~(as-list email-list-handler emails-map))
+      ~(as-list email-list-handler emails-map)
     :-  %a
     %+  turn  emails-list
     |=  [id=@ud body=[subject=cord content=cord]]

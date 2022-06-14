@@ -69,9 +69,8 @@
 ++  email-list-handler
   |_  emails=email-list
   ++  get-first
-    |=  ~
-    =|  id=@ud
     ^-  (unit [id=@ud body=[subject=cord content=cord]])
+    =|  id=@ud
     |-
     ?~  email=(~(get by emails) id)
       ~
@@ -131,13 +130,12 @@
     =.  emails  (~(put by emails) next u.next-email)
     emails
   ++  as-list
-    |=  ~
     ^-  (list [id=@ud body=[cord cord]])
-    =/  first=(unit [id=@ud body=[cord cord]])  (get-first)
+    =/  first=(unit [id=@ud body=[cord cord]])  get-first
     ?~  first  ~
     =/  output=(list [id=@ud body=[cord cord]])  ~[u.first]
     =/  prev=[id=@ud body=[cord cord]]  u.first
-    |-  
+    |-
     =/  cur=(unit [id=@ud body=[cord cord]])  (get-next id.prev)
     ?~  cur  output
     $(output (weld output ~[u.cur]), prev u.cur)
