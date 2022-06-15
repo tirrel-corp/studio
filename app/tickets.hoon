@@ -33,7 +33,7 @@
       token-to-session=(map @uv session-id=@t)
   ==
 ::
-++  provider  ~zod  :: hardcode tirrel gateway moon
+++  provider  ~bus  :: hardcode tirrel gateway moon
 ::
 +$  action
   $%  [%set-stock type=@t count=@ud =amount:circle]
@@ -61,8 +61,6 @@
   :_  this
   :~  [%pass /eyre %arvo %e %connect [~ /merchant] dap.bowl]
       [%pass gateway-wire %agent [provider %gateway] %watch gateway-wire]
-      [%pass / %agent [our.bowl %auth] %poke %auth-update !>(verifier-auth)]
-      [%pass / %agent [our.bowl %auth] %poke %auth-update !>(buyer-auth)]
   ==
 ::
 ++  on-save  !>(state)
@@ -126,7 +124,6 @@
     |=  [eyre-id=@ta req=inbound-request:eyre]
     ^-  [(quip card _this) simple-payload:http]
     =/  req-line  (parse-request-line:server url.request.req)
-    ~&  req-line
     ?+    site.req-line  [`this not-found:gen:server]
         [%merchant %ticket @ ~]
       ?>  ?=(%'GET' method.request.req)
@@ -375,8 +372,8 @@
       ?<  ?=(~ tics)
       =/  b64=@t
         (~(en base64:mimes:html | &) [(met 3 token.n.tics) token.n.tics])
-      (rap 3 host '/merchant/individual/' b64 ~)
-    (rap 3 host '/merchant/group/' session-id ~)
+      (rap 3 host '/tickets/single/' b64 ~)
+    (rap 3 host '/tickets/group/' session-id ~)
   ::
   ++  make-email
     |=  [session-id=@t =purchase]
@@ -393,21 +390,20 @@
       ==
       ;p: Kind Regards,
       ;p: The Urbit Foundation
-      ;hr;
+      ;hr(style "margin:20px 0", color "grey", size "1", width "40%");
       ;b: Receipt:
       ;p: Transaction: {(trip session-id)}
       ;p: {(trip (print-date:pipe-render purchase-date.purchase))}
-      ;br;
-      ;p: Delivery to {(trip email.metadata.purchase)}
-      ;table(width "100%", style "margin-top: 30px")
+      ;p: Delivery to: {(trip email.metadata.purchase)}
+      ;table(width "40%", style "margin-top: 30px")
         ;*  (ticket-rows tickets.purchase)
       ==
-      ;hr(style "margin:30px 0", color "black", size "1");
-      ;table(width "100%")
+      ;hr(style "margin:20px 0", color "grey", size "1", width "40%");
+      ;table(width "40%")
         ;tr
           ;td(style "width: 50%", align "left"): Subtotal
           ;td(style "width: 50%", align "right")
-          ; (amount-to-tape total.purchase)
+          ; {(amount-to-tape total.purchase)}
           ==
         ==
         ;tr
@@ -415,7 +411,7 @@
             ;b: Total Paid
           ==
           ;td(style "width: 50%", align "right")
-            ;b: (amount-to-tape total.purchase)
+            ;b: {(amount-to-tape total.purchase)}
           ==
         ==
       ==
@@ -431,13 +427,13 @@
       %-  as-octt:mimes:html
       %-  en-xml:html
       ^-  manx
-      ;div: Here is your ticket bitch
+      (make-email session-id purchase)
     =/  =action:mailer
       :*  %send-email
           ['isaac@tirrel.io' 'Urbit Foundation']
           'Urbit Assembly Miami Tickets'
           [content ~]
-          ~
+          [email.metadata.purchase^~ ~ ~]^~
       ==
     [%pass / %agent [our.bowl %mailer] %poke %mailer-action !>(action)]
   --

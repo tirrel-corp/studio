@@ -308,6 +308,8 @@
         [%send-email @ ~]
       ?~  full-file.res
         `state
+      ~&  :-  type.u.full-file.res
+          `@t`q.data.u.full-file.res
       [~ state]
     ==
   --
