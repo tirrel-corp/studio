@@ -128,6 +128,22 @@
     =/  req-line  (parse-request-line:server url.request.req)
     ~&  req-line
     ?+    site.req-line  [`this not-found:gen:server]
+        [%merchant %ticket @ ~]
+      ?>  ?=(%'GET' method.request.req)
+      =*  sess-id  i.t.t.site.req-line
+      :-  `this
+      ?~  pen=(~(get by pending) sess-id)
+        [[404 ~] ~]
+      ?~  sto=(~(get by stock) product-id.u.pen)
+        [[404 ~] ~]
+      :-  [200 ~]
+      =-  `(json-to-octs:server -)
+      %-  pairs:enjs:format
+      :~  product+s+product-id.u.pen
+          count+(numb:enjs:format count.u.pen)
+          amount+(amount:enjs:req:circle amount.u.sto)
+      ==
+    ::
         [%merchant %session ~]
       ?>  ?=(%'POST' method.request.req)
       =/  sess-id  (to-uuid:uuidv4 eny.bowl)
