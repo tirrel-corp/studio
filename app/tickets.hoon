@@ -179,7 +179,7 @@
       [`this (json-response:gen:server (enjs-stock stock))]
     ::
     ::  list of tickets by session-id
-        [%merchant %tickets @ ~]
+        [%merchant %group @ ~]
       =*  session-id  i.t.t.site.req-line
       =/  pur=(unit purchase)  (~(get by sold) session-id)
       ?~  pur
@@ -198,7 +198,7 @@
       [`this (json-response:gen:server [%o res])]
     ::
     ::  single ticket
-        [%merchant %ticket @ ~]
+        [%merchant %individual @ ~]
       =*  tok         i.t.t.site.req-line
       =/  token=(unit octs)  (~(de base64:mimes:html | &) tok)
       ?~  token
@@ -375,8 +375,8 @@
       ?<  ?=(~ tics)
       =/  b64=@t
         (~(en base64:mimes:html | &) [(met 3 token.n.tics) token.n.tics])
-      (rap 3 host '/merchant/ticket/' b64 ~)
-    (rap 3 host '/merchant/tickets/' session-id ~)
+      (rap 3 host '/merchant/individual/' b64 ~)
+    (rap 3 host '/merchant/group/' session-id ~)
   ::
   ++  make-email
     |=  [session-id=@t =purchase]
