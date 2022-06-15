@@ -1,5 +1,5 @@
 /-  circle, mailer, auth
-/+  default-agent, dbug, verb, server, circle, uuidv4
+/+  default-agent, dbug, verb, server, circle, uuidv4, pipe-render
 |%
 +$  card  $+(card card:agent:gall)
 ::
@@ -7,14 +7,30 @@
   $:  token=@uv
       used=?
       product-id=@t
+      price=amount:circle
+  ==
+::
++$  purchase
+  $:  tickets=(set ticket)
+      total=amount:circle
+      =metadata:circle
+      purchase-date=@da
+  ==
+::
++$  pending-data
+  $:  product-id=@t
+      count=@ud
+      started=?
+      metadata=(unit metadata:circle)
   ==
 ::
 +$  state-0
   $+  state-0
-  $:  sold=(map @uv ticket)
+  $:  sold=(map session-id=@t purchase)
       stock=(map product-id=@t [count=@ud =amount:circle])
-      pending=(map session-id=@t [product-id=@t count=@ud started=?])
+      pending=(map session-id=@t pending-data)
       pending-stock=(map product-id=@t count=@ud)
+      token-to-session=(map @uv session-id=@t)
   ==
 ::
 ++  provider  ~zod  :: hardcode tirrel gateway moon
@@ -53,8 +69,8 @@
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
-  :-  ~
-  this(state !<(state-0 old-vase))
+::  `this
+  `this(state !<(state-0 old-vase))
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -110,6 +126,7 @@
     |=  [eyre-id=@ta req=inbound-request:eyre]
     ^-  [(quip card _this) simple-payload:http]
     =/  req-line  (parse-request-line:server url.request.req)
+    ~&  req-line
     ?+    site.req-line  [`this not-found:gen:server]
         [%merchant %session ~]
       ?>  ?=(%'POST' method.request.req)
@@ -138,34 +155,61 @@
         [%add-session our.bowl sess-id total]
       :_  [[200 ~] `(json-to-octs:server s+sess-id)]
       =.  pending
-        (~(put by pending) sess-id [product-id.params quantity.params %.n])
+        (~(put by pending) sess-id [product-id.params quantity.params %.n ~])
       :_  this
       [%pass / %agent [provider %gateway] %poke %noun !>(act)]^~
     ::
         [%merchant %remaining ~]
       [`this (json-response:gen:server (enjs-stock stock))]
     ::
-        [%merchant %redeem ~]
-      :: XX replace these  not-founds with a page that directs back to main page
-      ?~  b64tok=(get-header:http 'token' args.req-line)
+    ::  list of tickets by session-id
+        [%merchant %tickets @ ~]
+      =*  session-id  i.t.t.site.req-line
+      =/  pur=(unit purchase)  (~(get by sold) session-id)
+      ?~  pur
         [`this not-found:gen:server]
-      ?~  token=(~(de base64:mimes:html | &) u.b64tok)
-        [`this not-found:gen:server]
-      ?~  ticket=(~(get by sold) q.u.token)
-        [`this not-found:gen:server]
-      ?:  used.u.ticket
-        [`this not-found:gen:server]
-      =/  success=manx
-        ;div: ticket valid!
-      =.  used.u.ticket  %.y
-      =.  sold  (~(put by sold) q.u.token u.ticket)
-      [`this (manx-response:gen:server success)]
+      =/  res=(map @t json)
+        %-  ~(rep in tickets.u.pur)
+        |=  [tic=ticket out=(map @t json)]
+        =/  b64=@t
+          (~(en base64:mimes:html | &) [(met 3 token.tic) token.tic])
+        %+  ~(put by out)  b64
+        %-  pairs:enjs:format
+        :~  token+s+b64
+            used+b+used.tic
+            %'productId'^s+product-id.tic
+        ==
+      [`this (json-response:gen:server [%o res])]
     ::
-        [%merchant %delivery ~]
-      !!
+    ::  single ticket
+        [%merchant %ticket @ ~]
+      =*  tok         i.t.t.site.req-line
+      =/  token=(unit octs)  (~(de base64:mimes:html | &) tok)
+      ?~  token
+        [`this not-found:gen:server]
+      ::
+      ?~  session-id=(~(get by token-to-session) q.u.token)
+        [`this not-found:gen:server]
+      ::
+      =/  pur=(unit purchase)  (~(get by sold) u.session-id)
+      ?~  pur
+        [`this not-found:gen:server]
+      =/  tic=(unit ticket)
+        %-  ~(rep in tickets.u.pur)
+        |=  [=ticket out=(unit ticket)]
+        ?.  =(q.u.token token.ticket)
+          out
+        `ticket
+      ?~  tic
+        [`this not-found:gen:server]
+      =/  res=json
+        %-  pairs:enjs:format
+        :~  token+s+tok
+            used+b+used.u.tic
+            %'productId'^s+product-id.u.tic
+        ==
+      [`this (json-response:gen:server res)]
     ::
-        [%merchant %verify ~]
-      !!
     ==
   --
 ::
@@ -188,29 +232,31 @@
     =+  !<(upd=update:circle q.cage.sign)
     ?+  -.upd  `this
         %payment
-      =/  pend  (~(got by pending) p.upd)
-      =*  id  product-id.pend
+      ?~  pend=(~(get by pending) p.upd)
+        `this
+      =*  id  product-id.u.pend
       :: remove count in pending-stock
       =/  pend-sto  (~(got by pending-stock) id)
       =.  pending-stock
         %+  ~(put by pending-stock)  id
-        (sub count.pend-sto count.pend)
+        (sub count.pend-sto count.u.pend)
       :: delete pending transaction
       =.  pending  (~(del by pending) p.upd)
       ::
       ?:  ?=(?(%confirmed %paid) status.q.upd)
         :: remove count in stocks
         =/  sto    (~(got by stock) id)
-        =.  stock  (~(put by stock) id sto(count (sub count.sto count.pend)))
+        =.  stock  (~(put by stock) id sto(count (sub count.sto count.u.pend)))
         :: put in sold
-        =/  c  count.pend
-        =.  sold
-          |-
-          ?:  =(c 0)
-            sold
-          =/  tic  (gen-ticket id c)
-          $(sold (~(put by sold) token.tic tic), c (dec c))
-        `this
+        =^  cards  state
+          %:  finalize-sale
+            p.upd
+            id
+            (need metadata.u.pend)
+            count.u.pend
+            amount.q.upd
+          ==
+        [cards this]
       ::
       ?:  ?=(%failed status.q.upd)
         `this
@@ -218,13 +264,14 @@
     ::
         %card
       ?:  ?=(%complete status.q.upd)
-        =/  pend-trans  (~(got by pending) p.upd)
-        =/  pend-stock  (~(got by pending-stock) product-id.pend-trans)
+        ?~  pend=(~(get by pending) p.upd)
+          `this
+        =/  pend-stock  (~(got by pending-stock) product-id.u.pend)
         =:  pending
-          (~(put by pending) p.upd pend-trans(started %.y))
+          (~(put by pending) p.upd u.pend(started %.y, metadata r.upd))
             pending-stock
-          %+  ~(put by pending-stock)  product-id.pend-trans
-          (add count.pend-stock count.pend-trans)
+          %+  ~(put by pending-stock)  product-id.u.pend
+          (add count.pend-stock count.u.pend)
         ==
         `this
       ?:  ?=(%failed status.q.upd)
@@ -240,27 +287,143 @@
   ==
   ::
   ++  gen-ticket
-    |=  [product-id=@t salt=@]
+    |=  [session-id=@t product-id=@t =metadata:circle salt=@]
     ^-  ticket
     :*  (shas salt eny.bowl)
         %.n
         product-id
+        amount:(~(got by stock) product-id)
     ==
   ::
-::  ++  finalize-sale
-::    |=  =ticket
-::    ^-  (quip card _state)
-::    =.  sold  (~(put by sold) token.ticket ticket)
-::    =/  ticket-stock  (~(got by stock) type.ticket)
-::    =.  count.ticket-stock  (dec count.ticket-stock)
-::    =.  stock  (~(put by stock) type.ticket ticket-stock)
-::    ::
-::::    =/  =action:mailer
-::::      :-  %send-email
-::    :_  state
-::    ~
-::    :~  [%pass / %agent [our.bowl %mailer] %poke %mailer-action !>(action)]
-::    ==
+  ++  finalize-sale
+    |=  [session-id=@t product-id=@t =metadata:circle num=@ud =amount:circle]
+    ^-  (quip card _state)
+    =|  sold-tickets=(set ticket)
+    |-
+    ?:  =(num 0)
+      =/  =purchase
+        :*  sold-tickets
+            amount
+            metadata
+            now.bowl
+        ==
+      =.  sold  (~(put by sold) session-id purchase)
+      :_  state
+      (send-email session-id purchase)^~
+    =/  =ticket  (gen-ticket session-id product-id metadata num)
+    %=  $
+      num               (dec num)
+      token-to-session  (~(put by token-to-session) token.ticket session-id)
+      sold-tickets      (~(put in sold-tickets) ticket)
+    ==
+  ::
+  ++  amount-to-tape
+    |=  =amount:circle
+    ^-  tape
+    =/  decimal=@t
+      =/  a  (rsh [3 2] (scot %ui decimal.amount))
+      ?:  (lth decimal.amount 10)
+        (cat 3 '0' a)
+      a
+    %-  trip
+    %+  rap  3
+    :~  '$'
+        (rsh [3 2] (scot %ui integer.amount))
+        '.'
+        decimal
+    ==
+  ::
+  ++  ticket-rows
+    |=  tickets=(set ticket)
+    ^-  marl
+    =/  sorted-tickets=(list ticket)
+      %+  sort  ~(tap by tickets)
+      |=  [a=ticket b=ticket]
+      (gte integer.price.a integer.price.b)
+    %+  turn  sorted-tickets
+    |=  tic=ticket
+    ^-  manx
+    ;tr
+      ;td(style "width: 50%", align "left")
+        ;b: {(trip product-id.tic)}
+      ==
+      ;td(style "width: 50%", align "right"): {(amount-to-tape price.tic)}
+    ==
+  ::
+  ++  gen-link
+    |=  [session-id=@t tics=(set ticket)]
+    ^-  tape
+    =/  host=@t  'http://ixv.cool:3000'
+    %-  trip
+    ?:  =(~(wyt by tics) 1)
+      ?<  ?=(~ tics)
+      =/  b64=@t
+        (~(en base64:mimes:html | &) [(met 3 token.n.tics) token.n.tics])
+      (rap 3 host '/merchant/ticket/' b64 ~)
+    (rap 3 host '/merchant/tickets/' session-id ~)
+  ::
+  ++  make-email
+    |=  [session-id=@t =purchase]
+    ^-  manx
+    =/  link  (gen-link session-id tickets.purchase)
+    ;div
+      ;p: Hello!
+      ;p: Thank you for your purchase. Your tickets can be accessed here:
+      ;a(href link): {link}
+      ;p
+      ; We look forward to meeting you in Miami Beach! In the meantime you can join
+        ;b: ~rondev/assembly-miami 
+      ; to chat with other attendees. See you on the network!
+      ==
+      ;p: Kind Regards,
+      ;p: The Urbit Foundation
+      ;hr;
+      ;b: Receipt:
+      ;p: Transaction: {(trip session-id)}
+      ;p: {(trip (print-date:pipe-render purchase-date.purchase))}
+      ;br;
+      ;p: Delivery to {(trip email.metadata.purchase)}
+      ;table(width "100%", style "margin-top: 30px")
+        ;*  (ticket-rows tickets.purchase)
+      ==
+      ;hr(style "margin:30px 0", color "black", size "1");
+      ;table(width "100%")
+        ;tr
+          ;td(style "width: 50%", align "left"): Subtotal
+          ;td(style "width: 50%", align "right")
+          ; (amount-to-tape total.purchase)
+          ==
+        ==
+        ;tr
+          ;td(style "width: 50%", align "left")
+            ;b: Total Paid
+          ==
+          ;td(style "width: 50%", align "right")
+            ;b: (amount-to-tape total.purchase)
+          ==
+        ==
+      ==
+      ;p: Processed by Tirrel Corporation
+    ==
+  ::
+  ++  send-email
+    |=  [session-id=@t =purchase]
+    ^-  card
+    =/  content=content-field:mailer
+      :-  'text/html'
+      =<  q
+      %-  as-octt:mimes:html
+      %-  en-xml:html
+      ^-  manx
+      ;div: Here is your ticket bitch
+    =/  =action:mailer
+      :*  %send-email
+          ['isaac@tirrel.io' 'Urbit Foundation']
+          'Urbit Assembly Miami Tickets'
+          [content ~]
+          ~
+      ==
+    [%pass / %agent [our.bowl %mailer] %poke %mailer-action !>(action)]
   --
 ::
 ++  on-arvo
