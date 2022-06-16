@@ -344,15 +344,6 @@
       ?.  (~(has by campaign-templates) name.act)
         ~&  >>  'template does not exist!'  [~ state]
       =.  campaign-templates  (~(del by campaign-templates) name.act)
-      =.  campaigns
-        %-  ~(gas by *(map term campaign))
-        %+  murn  ~(tap by campaigns)
-        |=  [name=term camp=campaign]
-        ^-  (unit [term campaign])
-        ~&  [name.act template-name.camp]
-        ?:  =(name.act template-name.camp)
-          ~
-        `[name camp]
       :_  state
       [give-update:do]~
     ::
@@ -419,7 +410,7 @@
         ~(get-first email-list-handler email-sequence.template)
       =/  prev-email=sent-email  (rear email-history.u.campaign)
       (~(get-next email-list-handler email-sequence.template) id.prev-email)
-    ?~  cur-email  
+    ?~  cur-email
       ~|("campaign {<name>}: no next email found" !!)
     =/  is-last=@f
       (~(is-last email-list-handler email-sequence.template) id.u.cur-email)
