@@ -25,6 +25,9 @@
       [%start-campaign name=term template-name=term recipients=(each @t term) interval=@dr]
       [%del-campaign-template name=term]
       [%del-campaign name=term]
+      [%edit-template-add-email template-name=term prev-id=@ud email=[subject=cord content=cord]]
+      [%edit-template-edit-email template-name=term email-id=@ud email=[subject=cord content=cord]]
+      [%edit-template-del-email template-name=term email-id=@ud]
   ==
 ::
 +$  update
@@ -49,6 +52,7 @@
       template-name=term
       interval=@dr
       email-history=(list sent-email)
+      complete=?
   ==
 ::
 +$  sent-email
@@ -95,6 +99,10 @@
         ~
       $(id u.next.u.email)
     `[id u.body.u.email]
+  ++  is-last
+    |=  id=@ud
+    ^-  @f
+    =(~ (get-next id))
   ++  edit
     |=  [id=@ud subject=cord content=cord]
     ^-  email-list
@@ -114,6 +122,7 @@
     ^-  email-list
     =/  id  ~(wyt by emails)
     ?~  prev-email=(~(get by emails) prev)
+      ?.  =(0 id)  !!
       (~(put by emails) id [~ ~ `[subject content]])
     ?~  next.u.prev-email
       =/  new-prev-email  u.prev-email(next `id)

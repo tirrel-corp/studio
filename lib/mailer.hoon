@@ -17,6 +17,9 @@
         [%start-campaign (ot name+so template-name+so recipients+recipients interval+date-relative ~)]
         [%del-campaign-template (ot name+so ~)]
         [%del-campaign (ot name+so ~)]
+        [%edit-template-add-email (ot template-name+so prev-id+ni email+(ot subject+so content+so ~) ~)]
+        [%edit-template-edit-email (ot template-name+so email-id+ni email+(ot subject+so content+so ~) ~)]
+        [%edit-template-del-email (ot template-name+so email-id+ni ~)]
     ==
   ++  recipients
     |=  jon=json
@@ -147,6 +150,7 @@
         interval-seconds+(date-relative-seconds interval.email-campaign)
         recipients+(recipients recipients.email-campaign)
         email-history+(sent-emails email-history.email-campaign)
+        complete+b+complete.email-campaign
     ==
   ::
   ++  date-relative-seconds

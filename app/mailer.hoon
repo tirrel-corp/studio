@@ -332,6 +332,7 @@
         recipients  recipients.act
         template-name  template-name.act
         interval  interval.act
+        complete  %.n
       ==
       =.  campaigns  (~(put by campaigns) name.act campaign)
       :_  state
@@ -361,6 +362,36 @@
       =.  campaigns  (~(del by campaigns) name.act)
       :_  state
       [give-update:do]~
+    ::
+        %edit-template-add-email
+      =/  =campaign-template  (~(got by campaign-templates) template-name.act)
+      =/  emails=email-list  email-sequence.campaign-template
+      =.  email-sequence.campaign-template
+        (~(ins email-list-handler emails) prev-id.act email.act)
+      =.  campaign-templates
+        (~(put by campaign-templates) template-name.act campaign-template)
+      :_  state
+      [give-update:do]~
+    ::
+        %edit-template-edit-email
+      =/  =campaign-template  (~(got by campaign-templates) template-name.act)
+      =/  emails=email-list  email-sequence.campaign-template
+      =.  email-sequence.campaign-template
+        (~(edit email-list-handler emails) email-id.act email.act)
+      =.  campaign-templates
+        (~(put by campaign-templates) template-name.act campaign-template)
+      :_  state
+      [give-update:do]~
+    ::
+        %edit-template-del-email
+      =/  =campaign-template  (~(got by campaign-templates) template-name.act)
+      =/  emails=email-list  email-sequence.campaign-template
+      =.  email-sequence.campaign-template
+        (~(del email-list-handler emails) email-id.act)
+      =.  campaign-templates
+        (~(put by campaign-templates) template-name.act campaign-template)
+      :_  state
+      [give-update:do]~
     ==
   --
 ::
@@ -388,16 +419,23 @@
         ~(get-first email-list-handler email-sequence.template)
       =/  prev-email=sent-email  (rear email-history.u.campaign)
       (~(get-next email-list-handler email-sequence.template) id.prev-email)
-    ?~  cur-email  ~&  "campaign {<name>}: finished!"  [~ this]
+    ?~  cur-email  
+      ~|("campaign {<name>}: no next email found" !!)
+    =/  is-last=@f
+      (~(is-last email-list-handler email-sequence.template) id.u.cur-email)
     ~&  "campaign {<name>}: #{<(add 1 (lent email-history.u.campaign))>}!"
     =/  cur-email-record=sent-email
       [id.u.cur-email now.bowl body.u.cur-email]
     =.  email-history.u.campaign  (flop [cur-email-record (flop email-history.u.campaign)])
     =.  next-time.u.campaign  (add now.bowl interval.u.campaign)
+    =.  complete.u.campaign  is-last
     =.  campaigns  (~(put by campaigns) name u.campaign)
     =^  cards  state
       (email-campaign:do u.campaign)
     :_  this
+    ?:  is-last
+      ~&  "campaign {<name>}: finished!"
+      [give-update:do cards]
     :+  give-update:do
       [%pass wire %arvo %b %wait next-time.u.campaign]
     cards
