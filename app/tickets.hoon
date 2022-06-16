@@ -181,18 +181,18 @@
       =/  pur=(unit purchase)  (~(get by sold) session-id)
       ?~  pur
         [`this not-found:gen:server]
-      =/  res=(map @t json)
+      =/  res=(list json)
         %-  ~(rep in tickets.u.pur)
-        |=  [tic=ticket out=(map @t json)]
+        |=  [tic=ticket out=(list json)]
         =/  b64=@t
           (~(en base64:mimes:html | &) [(met 3 token.tic) token.tic])
-        %+  ~(put by out)  b64
+        :_  out
         %-  pairs:enjs:format
         :~  token+s+b64
             used+b+used.tic
             %'productId'^s+product-id.tic
         ==
-      [`this (json-response:gen:server [%o res])]
+      [`this (json-response:gen:server [%a res])]
     ::
     ::  single ticket
         [%merchant %individual @ ~]
