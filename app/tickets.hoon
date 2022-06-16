@@ -364,32 +364,28 @@
     ==
   ::
   ++  gen-link
-    |=  [session-id=@t tics=(set ticket)]
+    |=  session-id=@t
     ^-  tape
     =/  host=@t  'http://ixv.cool:3000'
     %-  trip
-    ?:  =(~(wyt by tics) 1)
-      ?<  ?=(~ tics)
-      =/  b64=@t
-        (~(en base64:mimes:html | &) [(met 3 token.n.tics) token.n.tics])
-      (rap 3 host '/tickets/single/' b64 ~)
-    (rap 3 host '/tickets/group/' session-id ~)
+    (rap 3 host '/confirmation/' session-id ~)
   ::
   ++  make-email
     |=  [session-id=@t =purchase]
     ^-  manx
-    =/  link  (gen-link session-id tickets.purchase)
+    =/  link  (gen-link session-id)
     ;div
+      ;img(src "https://tirrel.io/assets/miami-header-big.png", width "800px");
       ;p: Hello!
       ;p: Thank you for your purchase. Your tickets can be accessed here:
       ;a(href link): {link}
       ;p
       ; We look forward to meeting you in Miami Beach! In the meantime you can join
         ;b: ~rondev/assembly-miami 
-      ; to chat with other attendees. See you on the network!
+      ; to chat with other attendees.
       ==
-      ;p: Kind Regards,
-      ;p: The Urbit Foundation
+      ;p: See you on the network!
+      ;p: - The Urbit Foundation
       ;hr(style "margin:20px 0", color "grey", size "1", width "40%");
       ;b: Receipt:
       ;p: Transaction: {(trip session-id)}
