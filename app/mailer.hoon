@@ -24,13 +24,25 @@
       ==
       ml=(map term mailing-list)
   ==
++$  state-2
+  $:  %2
+      $=  creds
+      $:  api-key=(unit @t)
+          email=(unit @t)
+          ship-url=(unit @t)
+      ==
+      ml=(map term mailing-list)
+      campaign-templates=(map term campaign-template)
+      campaigns=(map term campaign)
+  ==
 +$  versioned-state
   $%  state-0
       state-1
+      state-2
   ==
 --
 ::
-=|  state-1
+=|  state-2
 =*  state  -
 ::
 %-  agent:dbug
@@ -55,7 +67,8 @@
   =|  cards=(list card)
   |-
   ?-  -.old
-    %1  [cards this(state old)]
+    %2  [cards this(state old)]
+    %1  $(old (state-1-to-2 old))
     %0  $(old (state-0-to-1 old))
   ==
   ::
@@ -73,6 +86,16 @@
     %-  ~(run by m)
     |=  t=@uv
     [t %.y]
+  ::
+  ++  state-1-to-2
+    |=  s=state-1
+    ^-  state-2
+    :*  %2
+      creds.s
+      ml.s
+      ~
+      ~
+    ==
   --
 ::
 ++  on-poke
@@ -85,7 +108,6 @@
     =^  cards  state
       (mailer-action !<(action vase))
     [cards this]
-  ::
       %handle-http-request
     =+  !<([eyre-id=@ta =inbound-request:eyre] vase)
     =^  cards  state
@@ -202,7 +224,6 @@
       =.  ml  (~(put by ml) body.u.name new)
       :_  state
       (give-simple-payload:app:server eyre-id not-found:gen:server)
-      ::[give-update:do]~
     ==
     ::
     ++  fip
@@ -283,6 +304,85 @@
       =.  ml  (~(put by ml) name.act new)
       :_  state
       [give-update:do]~
+    ::
+        %create-campaign-template
+      ?:  (~(has by campaign-templates) name.act)
+        ~&  >>  'campaign template already exists!'  [~ state]
+      ~&  >  'creating new campaign template'
+      =|  template=campaign-template
+      =.  template  template(from from.act, email-sequence (build-email-list:do email-sequence.act))
+      =.  campaign-templates  (~(put by campaign-templates) name.act template)
+      :_  state
+      [give-update:do]~
+    ::
+        %start-campaign
+      ?:  (~(has by campaigns) name.act)
+        ~&  >>  'campaign already started!'  [~ state]
+      =/  template=(unit campaign-template)  (~(get by campaign-templates) template-name.act)
+      ?~  template
+        ~&  >>>  'campaign-template does not exist'  [~ state]
+      ?:  ?&  ?=(%.n -.recipients.act)
+              !(~(has by ml) p.recipients.act)
+          ==
+        ~&  >>>  'mailing list does not exist!'  [~ state]
+      =|  =campaign
+      =.  campaign
+      %=  campaign
+        next-time  now.bowl
+        recipients  recipients.act
+        template-name  template-name.act
+        interval  interval.act
+        complete  %.n
+      ==
+      =.  campaigns  (~(put by campaigns) name.act campaign)
+      :_  state
+      :~  [give-update:do]
+          [%pass /timer/[name.act] %arvo %b %wait now.bowl]
+      ==
+    ::
+        %del-campaign-template
+      ?.  (~(has by campaign-templates) name.act)
+        ~&  >>  'template does not exist!'  [~ state]
+      =.  campaign-templates  (~(del by campaign-templates) name.act)
+      :_  state
+      [give-update:do]~
+    ::
+        %del-campaign
+      ?.  (~(has by campaigns) name.act)
+        ~&  >>  'campaign does not exist!'  [~ state]
+      =.  campaigns  (~(del by campaigns) name.act)
+      :_  state
+      [give-update:do]~
+    ::
+        %edit-template-add-email
+      =/  =campaign-template  (~(got by campaign-templates) template-name.act)
+      =/  emails=email-list  email-sequence.campaign-template
+      =.  email-sequence.campaign-template
+        (~(ins email-list-handler emails) prev-id.act email.act)
+      =.  campaign-templates
+        (~(put by campaign-templates) template-name.act campaign-template)
+      :_  state
+      [give-update:do]~
+    ::
+        %edit-template-edit-email
+      =/  =campaign-template  (~(got by campaign-templates) template-name.act)
+      =/  emails=email-list  email-sequence.campaign-template
+      =.  email-sequence.campaign-template
+        (~(edit email-list-handler emails) email-id.act email.act)
+      =.  campaign-templates
+        (~(put by campaign-templates) template-name.act campaign-template)
+      :_  state
+      [give-update:do]~
+    ::
+        %edit-template-del-email
+      =/  =campaign-template  (~(got by campaign-templates) template-name.act)
+      =/  emails=email-list  email-sequence.campaign-template
+      =.  email-sequence.campaign-template
+        (~(del email-list-handler emails) email-id.act)
+      =.  campaign-templates
+        (~(put by campaign-templates) template-name.act campaign-template)
+      :_  state
+      [give-update:do]~
     ==
   --
 ::
@@ -294,11 +394,43 @@
     ~?  !accepted.sign-arvo
       [dap.bowl "bind rejected!" binding.sign-arvo]
     [~ this]
-  ?.  ?=(%http-response +<.sign-arvo)
-    (on-arvo:def wire sign-arvo)
-  =^  cards  state
-    (http-response wire client-response.sign-arvo)
-  [cards this]
+  ?:  ?=(%http-response +<.sign-arvo)
+    =^  cards  state
+      (http-response wire client-response.sign-arvo)
+    [cards this]
+  ?:  ?=([%behn %wake *] sign-arvo)
+    ~&  "timer fired!"
+    ?>  ?=([%timer @ ~] wire)
+    =*  name  i.t.wire
+    =/  campaign  (~(get by campaigns) name)
+    ?~  campaign  ~&  >>>  "campaign {<name>} does not exist!"  [~ this]
+    =/  template  (~(got by campaign-templates) template-name.u.campaign)
+    =/  cur-email=(unit [id=@ud body=[cord cord]])
+      ?:  =(0 (lent email-history.u.campaign))
+        ~(get-first email-list-handler email-sequence.template)
+      =/  prev-email=sent-email  (rear email-history.u.campaign)
+      (~(get-next email-list-handler email-sequence.template) id.prev-email)
+    ?~  cur-email
+      ~|("campaign {<name>}: no next email found" !!)
+    =/  is-last=@f
+      (~(is-last email-list-handler email-sequence.template) id.u.cur-email)
+    ~&  "campaign {<name>}: #{<(add 1 (lent email-history.u.campaign))>}!"
+    =/  cur-email-record=sent-email
+      [id.u.cur-email now.bowl body.u.cur-email]
+    =.  email-history.u.campaign  (flop [cur-email-record (flop email-history.u.campaign)])
+    =.  next-time.u.campaign  (add now.bowl interval.u.campaign)
+    =.  complete.u.campaign  is-last
+    =.  campaigns  (~(put by campaigns) name u.campaign)
+    =^  cards  state
+      (email-campaign:do u.campaign)
+    :_  this
+    ?:  is-last
+      ~&  "campaign {<name>}: finished!"
+      [give-update:do cards]
+    :+  give-update:do
+      [%pass wire %arvo %b %wait next-time.u.campaign]
+    cards
+  (on-arvo:def wire sign-arvo)
   ::
   ++  http-response
     |=  [=^wire res=client-response:iris]
@@ -319,7 +451,7 @@
   ?:  ?=([%http-response *] path)
     `this
   ?:  ?=([%updates ~] path)
-    =/  =update  [%initial creds ml]
+    =/  =update  [%initial creds ml campaign-templates campaigns]
     :_  this
     [%give %fact ~ %mailer-update !>(update)]~
   (on-watch:def path)
@@ -452,8 +584,33 @@
 ::
 ++  give-update
   ^-  card
-  =/  =update  [%initial creds ml]
+  =/  =update  [%initial creds ml campaign-templates campaigns]
   [%give %fact [/updates]~ %mailer-update !>(update)]
+::
+++  email-campaign
+  |=  =campaign
+  ^-  (quip card _state)
+  =/  template  (~(got by campaign-templates) template-name.campaign)
+  =/  email-sequence=email-list  email-sequence.template
+  =/  email-record  (rear email-history.campaign)
+  =/  [subject=cord html=cord]  body.email-record
+  =/  content-field  ['text/html' html]
+  =/  personalizations=(list personalization-field)
+    ?:  ?=(%.y -.recipients.campaign)
+      [[p.recipients.campaign ~] ~ ~]^~
+    =/  mailing-list  (~(got by ml) p.recipients.campaign)
+    %+  turn  ~(tap by mailing-list)
+    |=  [address=@t *]
+    [[address ~] ~ ~]
+  =/  =email
+    :*  from.template
+        subject
+        content-field^~
+        personalizations
+    ==
+  :_  state
+  =+  [(send-email email) *outbound-config:iris]
+  [%pass /send-email/(scot %uv eny.bowl) %arvo %i %request -]^~
 ::
 ++  send-email
   |=  =email
@@ -474,6 +631,25 @@
       :-  'personalizations'
       a+(turn personalizations.email personalization-to-json)
   ==
+::
+++  build-email-list
+  |=  emails=(list [subject=cord content=cord])
+  ^-  email-list
+  =|  output=email-list
+  |-
+  ^-  email-list
+  =/  id  ~(wyt by output)
+  ?:  =(id (lent emails))
+    output
+  =/  email=[subject=cord content=cord]  (snag id emails)
+  =/  prev
+    ?:  =(id 0)  ~
+    `(dec id)
+  =/  next
+    ?:  =(id (dec (lent emails)))  ~
+    `+(id)
+  =/  key-value  [id [prev next `email]]
+  $(output (~(gas by output) ~[key-value]))
 ::
 ++  from-to-json
   |=  from=from-field
