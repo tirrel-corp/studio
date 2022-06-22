@@ -2,7 +2,8 @@
 ::
 ::
 /-  *pipe, meta=metadata-store
-/+  default-agent,
+/+  mip, :: everything blows up if I expose this
+    default-agent,
     dbug,
     verb,
     graph,
@@ -755,8 +756,31 @@
         |=  [=term *]
         [%s term]
     ==
+      ::
+      [%x %newtemplates ~]
+    :: there is probably a more elegant way of doing this...
+    :^  ~  ~  %json  !>
+    %-  pairs:enjs:format
+    :~  :+  %blog  %a
+        %+  turn  (weld ~(tap by blog-templates) ~(tap by custom-site))
+        |=  [=term *]
+        [%s term]
+    ::
+        :+  %collection  %a
+        %+  turn  ~(tap by collection-templates)
+        |=  [=term *]
+        [%s term]
+    ::
+        :+  %email  %a
+        %+  turn  (weld ~(tap by email-templates) ~(tap by custom-email))
+        |=  [=term *]
+        [%s term]
+    ==
   ::
       [%x %preview ?(%site %email) @ ~]
+       :: should it be more like
+       :: { site: { collection: [...], blog: [...] }, email: [...] } or like
+       :: { collection: [...], blog: [...], email: [...] }
     ?+  i.t.t.path  !!
         %site
       =/  temp  (~(get by site-templates) i.t.t.t.path)
@@ -809,6 +833,20 @@
   =/  res  (~(get by custom-site) name)
   ?^  res  res
   (~(get by site-templates) name)
+::
+++  get-blog-template
+  |=  name=term
+  ^-  (unit site-template)
+  =/  res  (~(get by custom-site) name)
+  ?^  res  res
+  (~(get by blog-templates) name)
+::
+++  get-collection-template
+  |=  name=term
+  ^-  (unit site-template)
+  :: =/  res  (~(get by custom-site) name)
+  :: ?^  res  res
+  (~(get by collection-templates) name)
 ::
 ++  give-site
   |=  [name=term =website]
