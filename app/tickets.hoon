@@ -366,7 +366,7 @@
   ++  gen-link
     |=  session-id=@t
     ^-  tape
-    =/  host=@t  'http://ixv.cool:3000'
+    =/  host=@t  'http://demo.urbit.studio:3000'
     %-  trip
     (rap 3 host '/confirmation/' session-id ~)
   ::
