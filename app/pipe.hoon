@@ -723,7 +723,11 @@
         metadata+(metadatum:enjs:meta-lib metadatum:association)
     ==
   ::
-      [%x %notebooks ~]
+      [%x ?(%notebooks %collections) ~]
+    =/  link-or-publish
+      ?:  =(+<.path %notebooks)
+        [%graph %publish]
+      [%graph %link]
     =/  assoc=associations:meta
       %^  scry:pc  %metadata-store
         associations:meta
@@ -734,7 +738,7 @@
     |=  [[=md-resource:meta =association:meta] out=(list json)]
     ?.  ?&  =(our.bowl entity.resource.md-resource)
             =(our.bowl creator.metadatum.association)
-            =([%graph %publish] config.metadatum.association)
+            =(link-or-publish config.metadatum.association)
         ==
       out
     :_  out
@@ -934,6 +938,31 @@
       ==
   (gth t.a t.b)
 ::
+++  get-links
+  |=  [res=resource comments=?]
+  ^-  %-  list
+      $:  initial-date=@da
+          latest-post=post:store:graph
+          comments=(list post:store:graph)
+      ==
+  =/  =update:store:graph
+    %+  scry-for:gra  update:store:graph
+    /graph/(scot %p entity.res)/[name.res]/node/children/kith/'~'/'~'
+  ?>  ?=(%add-nodes -.q.update)
+  %+  sort
+    %+  murn  ~(tap by nodes.q.update)
+    |=  [=index =node:store:graph]
+    ?:  ?=(%| -.post.node)  :: if it was deleted dont' show. -.post.node is the maybe-post
+      ~
+    :-  ~
+    :+  time-sent.p.post.node
+      p.post.node
+    ~  ::  eventually return comments but rn doesn't matter. 
+  |=  $:  a=[t=@da *]
+          b=[t=@da *]
+      ==
+  (gth t.a t.b)
+::
 ++  get-metadata
   |=  res=resource
   ^-  association:meta
@@ -949,7 +978,7 @@
   :*  name
       binding.s
       (get-posts resource.flow comments.s)
-      (get-metadata resource.flow)
+      (get-metadata resource.flow):: move this up above the :* so that we can distringuish what kind of metadata to get
       comments.s
       ?=(^ email.flow)
       width.s
