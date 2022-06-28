@@ -11,6 +11,7 @@
   %-  ~(gas by *(map term site-template))
   :~  [%basic pipe-templates-site-basic]
       [%urbit pipe-templates-site-urbit]
+      [%gallery pipe-templates-site-gallery] :: TODO: REMOVE; temporary for testing only
   ==
 ++  blog-templates
   ^-  (map term site-template)
@@ -26,8 +27,7 @@
   ==
 ++  site-templates-2
   ^-  (mip:mip ?(%blog %collection) term site-template)
-  =|  a=(mip:mip ?(%blog %collection) term site-template)
-  %-  ~(gas by a)
+  %-  ~(gas by *(mip:mip ?(%blog %collection) term site-template))
   :~  [%blog blog-templates]
       [%collection collection-templates]
   ==

@@ -21,8 +21,8 @@
             lit.sinp
         ==
       :-  (snoc previews pre)
-      (~(put by pages) path [-.page +.page ~])
-    =/  m  (index-page sinp previews)
+      (~(put by pages) path [-.page +.page ~]) :: create post pages
+    =/  m  (index-page sinp previews) :: create index page
     (~(put by pages) '/' [m ~ ~])
 ::
 +$  gallery-inputs
@@ -54,9 +54,7 @@
     ==
     ;+  %^  frame  lit.si  width.si
         :*  (header binding.si title.metadatum.association.si lit.si)
-            %+  snoc
-              previews
-            (subscribe-box name.si title.metadatum.association.si email.si lit.si)
+            previews
   ==    ==
 ::
 ++  frame
@@ -73,10 +71,12 @@
       %3  " mw7"
     ==
   ;body(class (weld "w-100 h-100 flex flex-column items-center" colors))
-     ;div
-       =class  (weld "pa1 pv3-ns w-100" wid)
-       ;*  m
-     ==
+    ;div
+      =class  (weld "pa1 pv3-ns w-100" wid)
+      ;div(class "flex flex-wrap")
+        ;*  m
+      ==
+    ==
   ==
 ::
 ++  header
@@ -87,43 +87,9 @@
       " near-black"
     " white"
   =/  home-url  (spud path.binding)
-  ;div(class "mb5")
+  ;div(class "w-100")
     ;a(href "{home-url}", class (weld "link" colors))
       ;h3: {(trip title)}
-    ==
-  ==
-::
-++  subscribe-box
-  |=  [book=@tas title=@t email=? lit=?]
-  ^-  manx
-  ?.  email  ;br;
-  =/  borders
-    ?:  lit
-      " b--near-black"
-    " b--white"
-  =/  btn-color
-    ?:  lit
-      " bg-near-black white"
-    " bg-white near-black"
-  ;form
-    =id  "subscribe"
-    =method  "post"
-    =action  "/mailer/subscribe"
-    =class   (weld "db w-100 flex flex-column items-center br3 bw2 ba pa2 mb4" borders)
-    ;p(style "margin-block-end: 0;"): Subscribe to {(trip title)}
-    ;input(name "book", type "hidden", value "{(trip book)}");
-    ;input
-      =name   "who"
-      =class  (weld "db pa2 input-reset ba mv3 br3" borders)
-      =type   "email"
-      =placeholder  "your@email.com"
-    ;
-    ==
-    ;button
-      =id     "subscribe"
-      =type   "submit"
-      =class  (weld "mb3 db fw4 ph3 pv2 pointer bt3 bn" btn-color)
-    ; Subscribe
     ==
   ==
 ::
@@ -146,12 +112,12 @@
   =/  title=content  (snag 0 contents.post.gi)
   ?>  ?=(%text -.title)
   :*  (cat 3 '/' (strip-title text.title))
-      (article-preview gi text.title)
-      (article-page gi con text.title)
+      (image-preview gi text.title)
+      (single-image-page gi con text.title)
       err
   ==
 ::
-++  article-preview
+++  image-preview
   |=  [gi=gallery-inputs title=@t]
   ^-  manx
   =/  snippet=(unit @t)  (snip contents.post.gi)
@@ -164,14 +130,13 @@
     ?:  lit.gi
       " near-black"
     " white"
-  ;a(class (weld "db link mb5" colors), href url)
-    ;h3(class colors): {(trip title)}
+  ;a(class (weld "db link w-30 mr1" colors), href url)
     ;+  ?~  snippet  *manx
-        ;p(class (weld "fw4" colors)): {(trip u.snippet)}
-    ;+  (details initial.gi author.post.gi lit.gi)
+        :: replace with link content later
+        ;img@"https://dachus-tiprel.nyc3.digitaloceanspaces.com/dachus-tiprel/2022.6.27..05.10.30-8E158540-7488-4B8E-A734-1EBF3AEECE67.jpeg";
   ==
 ::
-++  article-page
+++  single-image-page
   |=  [gi=gallery-inputs con=marl title=@t]
   ^-  mime
   =/  home-url  (spud path.binding.gi)
@@ -193,36 +158,10 @@
         ;h1: {(trip title)}
         (details initial.gi author.post.gi lit.gi)
         ;article(class "w-100")
-          ;*  con
+          :: replace with image content
+          ;img@"https://dachus-tiprel.nyc3.digitaloceanspaces.com/dachus-tiprel/2022.6.27..05.10.30-8E158540-7488-4B8E-A734-1EBF3AEECE67.jpeg";
         ==
-        ;*  ?~  comments.gi  ;br;
-        ;div(class "pt3 pl3 bt b--gray")
-          ;h4(class "ma0"): Comments
-          ;*  (turn comments.gi |=(p=post (single-comment p lit.gi)))
-        ==
-        (subscribe-box name.gi title.metadatum.association.gi email.gi lit.gi)
     ==
-  ==
-::
-++  single-comment
-  |=  [p=post lit=?]
-  ^-  manx
-  =/  color
-    ?:  lit
-      " near-black"
-    " whit"
-  =/  deets=tape
-    %-  trip
-    %:  rap  3
-      (print-date time-sent.p)  ' • '
-      (scot %p author.p)
-      ~
-    ==
-  =/  body  (snag 0 contents.p)
-  ?>  ?=(%text -.body)
-  ;div(class "flex flex-column w-100 ml3")
-    ;p(class "gray f7 ma0 mt3", style "margin-block-end: 0;"): {deets}
-    ;p(class (weld "f6 ma0 mt1" color)): {(trip text.body)}
   ==
 ::
 ++  custom-style
