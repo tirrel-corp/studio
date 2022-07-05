@@ -1,7 +1,7 @@
 /+  *jog
 |%
 +$  address  @ux
-+$  price  (each [amount=@ud currency=@ta] (set @t))
++$  price  [amount=@ud currency=@ta]
 ::
 +$  selector  (each (set ship) @ud)
 ::
@@ -17,7 +17,7 @@
       [%set-price =price]
     ::
       [%spawn-ships who=ship sel=selector]
-      [%sell-ships who=ship sel=selector time=@da email=@t password=(unit @t)]
+      [%sell-ships who=ship sel=selector time=@da email=@t]
   ==
 ::
 +$  sold-ship-to-date  (map ship time)

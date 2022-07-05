@@ -1,15 +1,24 @@
 :: shop [tirrel]
 ::
-/-  dice, mailer, nmi
-/+  *shop, ntx=naive-transactions, eth=ethereum, default-agent, dbug, verb
+/-  dice, mailer, nmi, circle
+/+  *shop,
+    uuidv4,
+    ntx=naive-transactions,
+    eth=ethereum,
+    default-agent,
+    dbug,
+    server,
+    verb
 |%
-+$  card  card:agent:gall
++$  card  $+(card card:agent:gall)
 +$  state-0
+  $+  state-0
   $:  price=(unit price)
     ::
       =star-configs
       =pending-txs
       =for-sale
+      pending-sales=(map @t [star=@p metadata=(unit metadata:circle)])
       =sold-ships
       =sold-ship-to-date
   ==
@@ -17,6 +26,8 @@
 +$  versioned-state
   $%  [%0 state-0]
   ==
+::
+++  provider  ~bus
 --
 ::
 =|  [%0 state-0]
@@ -29,7 +40,14 @@
 +*  this  .
     def   ~(. (default-agent this %|) bowl)
 ::
-++  on-init   `this
+++  on-init
+  ^-  (quip card _this)
+  =/  gateway-wire=wire  /master/(scot %p our.bowl)
+  :_  this
+  :~  [%pass gateway-wire %agent [provider %gateway] %watch gateway-wire]
+      [%pass /eyre %arvo %e %connect [~ /shop] dap.bowl]
+  ==
+::
 ++  on-save   !>(state)
 ++  on-load
   |=  old-vase=vase
@@ -49,7 +67,48 @@
     =^  cards  state
       (shop-update !<(update vase))
     [cards this]
+  ::
+      %handle-http-request
+    =+  !<([eyre-id=@ta =inbound-request:eyre] vase)
+    =|  sim=simple-payload:http
+    =^  res=(pair (list card) _this)  sim
+      (handle-http-request eyre-id inbound-request)
+    :_  q.res
+    %+  weld  p.res
+    (give-simple-payload:app:server eyre-id sim)
   ==
+  ::
+  ++  handle-http-request
+    |=  [eyre-id=@ta req=inbound-request:eyre]
+    ^-  [(quip card _this) simple-payload:http]
+    =/  req-line  (parse-request-line:server url.request.req)
+    ?+  site.req-line  [`this not-found:gen:server]
+    ::
+        [%shop %session @ ~]
+      ?>  ?=(%'POST' method.request.req)
+      =/  star=@p  (slav %p i.t.t.site.req-line)
+      ?~  body.request.req
+        [`this [[400 ~] ~]]
+      =/  jon  (de-json:html `@t`q.u.body.request.req)
+      ?~  jon
+        [`this [[400 ~] ~]]
+      ?~  price
+        [`this [[400 ~] ~]]
+      ?~  fs=(~(get by for-sale) star)
+        [`this [[400 ~] ~]]
+      ?:  (lth ~(wyt by pending-sales) ~(wyt by u.fs))
+        [`this [[400 ~] ~]]
+      =/  total=amount:circle
+        [amount.u.price 0 currency.u.price]
+      =/  sess-id  (to-uuid:uuidv4 eny.bowl)
+      =/  act
+        [%add-session our.bowl sess-id total]
+      :_  [[200 ~] `(json-to-octs:server s+sess-id)]
+      =.  pending-sales  (~(put by pending-sales) sess-id [star ~])
+      :_  this
+      [%pass / %agent [provider %gateway] %poke %noun !>(act)]^~
+    ==
+  ::
   ::
   ++  shop-update
     |=  =update
@@ -201,12 +260,7 @@
       =*  who    who.update
       =*  email  email.update
       =*  time   time.update
-      =*  password  password.update
       ?>  ?=(^ price)
-      ?>  ?|  ?=(%& -.u.price)
-              ?&  ?=(^ password.update)
-                  (~(has in p.u.price) u.password.update)
-          ==  ==
       |^
       =/  c=config  (~(got by star-configs) who)
       =/  sold=(map ship @q)
@@ -222,8 +276,6 @@
       =.  sold-ship-to-date
         %-  ~(uni by sold-ship-to-date)
         (ship-to-date sold)
-      =?  price  ?&(?=(%| -.u.price) ?=(^ password.update))
-        price(p.u (~(del in p.u.price) u.password.update))
       [(send-email sold)^~ state]
       ::
       ++  ship-to-date
@@ -340,7 +392,48 @@
   |=  [=wire =sign:agent:gall]
   ^-  (quip card _this)
   |^
-  ?+    wire  (on-agent:def wire sign)
+  ?+  wire  (on-agent:def wire sign)
+      [%master @ ~]
+    ?+    -.sign  (on-agent:def wire sign)
+        %fact
+      =+  !<(upd=update:circle q.cage.sign)
+      ?+  -.upd  `this
+          %payment
+        ?~  pend=(~(get by pending-sales) p.upd)
+          `this
+        =.  pending-sales  (~(del by pending-sales) p.upd)
+        ::
+        ?:  ?=(?(%confirmed %paid) status.q.upd)
+          ?~  metadata.u.pend
+            `this
+          =/  =update
+            [%sell-ships star.u.pend [%.n 1] now.bowl email.u.metadata.u.pend]
+          (on-poke %shop-update !>(update))
+        ::
+        ?:  ?=(%failed status.q.upd)
+          `this
+        !!
+      ::
+          %card
+        ?:  ?=(%complete status.q.upd)
+          ?~  pend=(~(get by pending-sales) p.upd)
+            `this
+          =.  pending-sales
+            %+  ~(put by pending-sales)  p.upd
+            u.pend(metadata r.upd)
+          `this
+        ?:  ?=(%failed status.q.upd)
+          =.  pending-sales  (~(del by pending-sales) p.upd)
+          `this
+        `this
+      ==
+    ::
+        %kick
+      :_  this
+      =-  [%pass - %agent [provider %gateway] %watch -]^~
+      /master/(scot %p our.bowl)
+    ==
+  ::
       [%star @ @ ~]
     =/  who=ship  (slav %p i.t.t.wire)
     =/  con=config  (~(got by star-configs) who)
@@ -401,6 +494,11 @@
       (snoc `^path`path %noun)
     ==
   --
-++  on-arvo   on-arvo:def
+++  on-arvo
+  |=  [=wire =sign-arvo]
+  ^-  (quip card _this)
+  ?:  ?=([%eyre %bound *] sign-arvo)
+    `this
+  (on-arvo:def wire sign-arvo)
 ++  on-fail   on-fail:def
 --

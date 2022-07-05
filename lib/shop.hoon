@@ -205,7 +205,7 @@
         del-star-config+ship
         set-price+price
         spawn-ships+(ot ship+ship sel+selector ~)
-        sell-ships+(ot ship+ship sel+selector time+di email+so password+(mu so) ~)
+        sell-ships+(ot ship+ship sel+selector time+di email+so ~)
     ==
   ::
   ++  config
@@ -218,7 +218,7 @@
   ++  price
     |=  jon=json
     ^-  ^price
-    %&^((ot amount+ni currency+so ~) jon)
+    ((ot amount+ni currency+so ~) jon)
   ::
   ++  selector
     |=  jon=json
@@ -278,11 +278,9 @@
   ++  price
     |=  pri=^price
     ^-  json
-    ?:  ?=(%| -.pri)
-      a+(turn ~(tap in p.pri) |=(t=@t s+t))
     %-  pairs
-    :~  amount+(numb amount.p.pri)
-        currency+s+currency.p.pri
+    :~  amount+(numb amount.pri)
+        currency+s+currency.pri
     ==
   ::
   ++  selector

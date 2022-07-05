@@ -163,7 +163,6 @@
       :: put sold product in pending field, so that it can't be sold
       =/  total=amount:circle
         [(mul quantity.params integer.amount.u.prod) 0 %'USD']
-      =/  sess-id  (to-uuid:uuidv4 eny.bowl)
       =/  act
         [%add-session our.bowl sess-id total]
       :_  [[200 ~] `(json-to-octs:server s+sess-id)]

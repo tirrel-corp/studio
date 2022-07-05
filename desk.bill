@@ -2,4 +2,5 @@
     %pipe
     %auth
     %tickets
+    %shop
 ==
