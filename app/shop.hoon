@@ -13,6 +13,17 @@
 +$  card  $+(card card:agent:gall)
 +$  state-0
   $+  state-0
+  $:  price=(unit price-0)
+    ::
+      =star-configs
+      =pending-txs
+      =for-sale
+      sold-ships=sold-ships-0
+      =sold-ship-to-date
+  ==
+::
++$  state-1
+  $+  state-1
   $:  price=(unit price)
     ::
       =star-configs
@@ -25,12 +36,13 @@
 ::
 +$  versioned-state
   $%  [%0 state-0]
+      [%1 state-1]
   ==
 ::
 ++  provider  ~bus
 --
 ::
-=|  [%0 state-0]
+=|  [%1 state-1]
 =*  state  -
 ::
 %-  agent:dbug
@@ -52,10 +64,51 @@
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
+  |^
   =/  old  !<(versioned-state old-vase)
   ?-  -.old
-    %0  `this(state old)
+      %1  `this(state old)
+      %0
+    :-  ~
+    %=  this
+        state
+      :*  %1
+          (update-price price.old)
+          star-configs.old
+          pending-txs.old
+          for-sale.old
+          ~
+          (update-sold-ships sold-ships.old)
+          sold-ship-to-date.old
+      ==
+    ==
   ==
+  ::
+  ++  update-price
+    |=  p=(unit price-0)
+    ^-  (unit ^price)
+    ?~  p  ~
+    ?:  ?=(%| -.u.p)  ~
+    `p.u.p
+  ::
+  ++  update-sold-ships
+    |=  s=sold-ships-0
+    ^-  ^sold-ships
+    %+  gas:his  ~
+    %+  turn  (tap:hit:his-0 s)
+    |=  [t=time r=(set record-0)]
+    ^-  [time (set record)]
+    :-  t
+    %-  ~(gas in *(set record))
+    %+  turn  ~(tap in r)
+    |=  rec=record-0
+    %-  record
+    :*  ship.rec
+        (need (update-price `price.rec))
+        email.rec
+        ticket.rec
+    ==
+  --
 ::
 ++  on-poke
   |=  [=mark =vase]

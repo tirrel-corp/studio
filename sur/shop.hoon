@@ -25,5 +25,10 @@
 +$  pending-txs        (map ship (map ship [@q (list @ux)]))
 +$  sold-ships         ((jog time record) gth)
 ++  his                ((jo time record) gth)
+::
+++  his-0              ((jo time record-0) gth)
++$  price-0       (each [amount=@ud currency=@ta] (set @t))
++$  record-0      [=ship price=price-0 email=@t ticket=@q]
++$  sold-ships-0  ((jog time record-0) gth)
 --
 
