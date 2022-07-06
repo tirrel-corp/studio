@@ -6,13 +6,6 @@
     pipe-templates-site-linktree,
     pipe-templates-email-light
 |%
-++  site-templates
-  ^-  (map term site-template)
-  %-  ~(gas by *(map term site-template))
-  :~  [%basic pipe-templates-site-basic]
-      [%urbit pipe-templates-site-urbit]
-      [%gallery pipe-templates-site-gallery] :: TODO: REMOVE; temporary for testing only
-  ==
 ++  blog-templates
   ^-  (map term site-template)
   %-  ~(gas by *(map term site-template))

@@ -686,8 +686,10 @@
   ::
       [%updates ~]
     =/  templates=update
-      :+  %templates
-        (~(uni in ~(key by site-templates)) ~(key by custom-site))
+      ::  TODO add back in the custom sites here
+      :^    %templates
+          ~(key by blog-templates)
+        ~(key by collection-templates)
       (~(uni in ~(key by email-templates)) ~(key by custom-email))
     =/  flow=update    [%flows flows]
     =/  errors=update  [%errors get-all-errors:pc]
@@ -750,8 +752,13 @@
       [%x %templates ~]
     :^  ~  ~  %json  !>
     %-  pairs:enjs:format
-    :~  :+  %site  %a
-        %+  turn  (weld ~(tap by site-templates) ~(tap by custom-site))
+    :~  :+  %blog  %a
+        %+  turn  ~(tap by blog-templates)  :: TODO get custom sites back
+        |=  [=term *]
+        [%s term]
+    ::
+        :+  %collection  %a
+        %+  turn  ~(tap by collection-templates)
         |=  [=term *]
         [%s term]
     ::
@@ -787,7 +794,7 @@
        :: { collection: [...], blog: [...], email: [...] }
     ?+  i.t.t.path  !!
         %site
-      =/  temp  (~(get by site-templates) i.t.t.t.path)
+      =/  temp  (~(get by blog-templates) i.t.t.t.path)  ::  TODO: add more previews
       ?~  temp
         [~ ~]
       =/  site  (u.temp lorem-ipsum:pipe-render)
@@ -832,24 +839,13 @@
   (~(get by email-templates) name)
 ::
 ++  get-site-template
+  ::  a little hacky but whatever
   |=  name=term
   ^-  (unit site-template)
   =/  res  (~(get by custom-site) name)
   ?^  res  res
-  (~(get by site-templates) name)
-::
-++  get-blog-template
-  |=  name=term
-  ^-  (unit site-template)
-  =/  res  (~(get by custom-site) name)
-  ?^  res  res
-  (~(get by blog-templates) name)
-::
-++  get-collection-template
-  |=  name=term
-  ^-  (unit site-template)
-  :: =/  res  (~(get by custom-site) name)
-  :: ?^  res  res
+  =/  blog  (~(get by blog-templates) name)
+  ?^  blog  blog
   (~(get by collection-templates) name)
 ::
 ++  give-site
@@ -877,8 +873,11 @@
 ++  give-templates
   ^-  card
   =/  =update
-    :+  %templates
-      (~(uni in ~(key by site-templates)) ~(key by custom-site))
+    :^    %templates
+        :: TODO using site-templates-2 is kind of annoying here
+        :: TODO also get custom sites back here
+        ~(key by blog-templates)
+      ~(key by collection-templates)
     (~(uni in ~(key by email-templates)) ~(key by custom-email))
   [%give %fact [/updates]~ %pipe-update !>(update)]
 ::
@@ -949,6 +948,7 @@
     %+  scry-for:gra  update:store:graph
     /graph/(scot %p entity.res)/[name.res]/node/children/kith/'~'/'~'
   ?>  ?=(%add-nodes -.q.update)
+  ~&  >>  update
   %+  sort
     %+  murn  ~(tap by nodes.q.update)
     |=  [=index =node:store:graph]
@@ -975,10 +975,14 @@
   |=  [name=term =flow]
   ^-  site-inputs
   =/  s  (need site.flow)
+  =/  metd  (get-metadata resource.flow)
   :*  name
       binding.s
-      (get-posts resource.flow comments.s)
-      (get-metadata resource.flow):: move this up above the :* so that we can distringuish what kind of metadata to get
+      ?+  +.config.metadatum.metd  !!
+        %publish  (get-posts resource.flow comments.s)
+        %link     (get-links resource.flow comments.s)
+      ==
+      metd
       comments.s
       ?=(^ email.flow)
       width.s

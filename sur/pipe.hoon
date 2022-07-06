@@ -95,7 +95,7 @@
   $%  [%site name=term =website]
       [%email name=term =email]
       [%flows flows=(map term flow)]
-      [%templates site=(set term) email=(set term)]
+      [%templates blog=(set term) collection=(set term) email=(set term)]
       [%errors err=(map term (map @t tang))]
   ==
 ::
