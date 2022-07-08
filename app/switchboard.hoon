@@ -25,9 +25,9 @@
 ++  on-save   !>(state)
 ++  on-load
   |=  old-vase=vase
-  `this(state *_state)
-::  =/  old-state  !<([%0 state-0] old-vase)
-::  `this(state old-state)
+::  `this(state *_state)
+  =/  old-state  !<([%0 state-0] old-vase)
+  `this(state old-state)
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -61,7 +61,7 @@
       =/  =update  [%full sites]
       :_  state
       :~  [%pass /eyre %arvo %e %connect binding dap.bowl]
-          [%give %fact ~ %switchboard-update !>(update)]
+          [%give %fact [/update]~ %switchboard-update !>(update)]
       ==
     ::
         %del-site
@@ -72,7 +72,7 @@
       =/  =update  [%full sites]
       :_  state
       :~  [%pass /eyre %arvo %e %disconnect binding]
-          [%give %fact ~ %switchboard-update !>(update)]
+          [%give %fact [/update]~ %switchboard-update !>(update)]
       ==
     ::
         %add-plugin
@@ -94,13 +94,13 @@
           %pipe
         =/  =wire  (weld /pipe/[name.plugin.act]/[name.act] path.act)
         :~  [%pass wire %agent [our.bowl %pipe] %watch /switch/[name.plugin.act]]
-            [%give %fact ~ %switchboard-update !>(update)]
+            [%give %fact [/update]~ %switchboard-update !>(update)]
         ==
       ::
           %mailer
         =/  =wire  (weld /mailer/[name.plugin.act]/[name.act] path.act)
         :~  [%pass wire %agent [our.bowl %mailer] %watch /switch/[name.plugin.act]]
-            [%give %fact ~ %switchboard-update !>(update)]
+            [%give %fact [/update]~ %switchboard-update !>(update)]
         ==
       ==
     ::
@@ -118,13 +118,13 @@
           %pipe
         =/  =wire  (weld /pipe/[name.u.plugin]/[name.act] path.act)
         :~  [%pass wire %agent [our.bowl %pipe] %leave ~]
-            [%give %fact ~ %switchboard-update !>(update)]
+            [%give %fact [/update]~ %switchboard-update !>(update)]
         ==
       ::
           %mailer
         =/  =wire  (weld /mailer/[name.u.plugin]/[name.act] path.act)
         :~  [%pass wire %agent [our.bowl %mailer] %leave ~]
-            [%give %fact ~ %switchboard-update !>(update)]
+            [%give %fact [/update]~ %switchboard-update !>(update)]
         ==
       ==
     ==
