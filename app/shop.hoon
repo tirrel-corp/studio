@@ -29,7 +29,7 @@
       =star-configs
       =pending-txs
       =for-sale
-      pending-sales=(map @t [star=@p metadata=(unit metadata:circle)])
+      pending-sales=(map @t [star=@p metadata=(unit metadata:circle) =time])
       =sold-ships
       =sold-ship-to-date
       session-to-time=(map @t time)
@@ -39,6 +39,8 @@
   $%  [%0 state-0]
       [%1 state-1]
   ==
+::
+++  delay  ~m15
 ::
 ++  provider  ~bidlup-sicryx-dozzod-ricbel
 --
@@ -59,6 +61,7 @@
   :_  this
   :~  [%pass gateway-wire %agent [provider %gateway] %watch gateway-wire]
       [%pass /eyre %arvo %e %connect [~ /shop] dap.bowl]
+      [%pass /clear %arvo %b %wait (add now.bowl delay)]
   ==
 ::
 ++  on-save   !>(state)
@@ -168,7 +171,7 @@
       =/  act
         [%add-session our.bowl sess-id total]
       :_  [[200 ~] `(json-to-octs:server s+sess-id)]
-      =.  pending-sales  (~(put by pending-sales) sess-id [star ~])
+      =.  pending-sales  (~(put by pending-sales) sess-id [star ~ now.bowl])
       :_  this
       [%pass / %agent [provider %gateway] %poke %noun !>(act)]^~
     ::
@@ -505,7 +508,7 @@
             `this
           =.  pending-sales
             %+  ~(put by pending-sales)  p.upd
-            u.pend(metadata r.upd)
+            u.pend(metadata r.upd, time now.bowl)
           `this
         ?:  ?=(%failed status.q.upd)
           =.  pending-sales  (~(del by pending-sales) p.upd)
@@ -584,6 +587,16 @@
   ^-  (quip card _this)
   ?:  ?=([%eyre %bound *] sign-arvo)
     `this
+  ?:  ?=([%behn %wake *] sign-arvo)
+    =.  pending-sales
+      %-  ~(gas by *(map @t [@p (unit metadata:circle) time]))
+      %+  murn  ~(tap by pending-sales)
+      |=  [sess=@t star=@p metadata=(unit metadata:circle) =time]
+      ?:  (lth (add time delay) now.bowl)
+        ~
+      `[sess star metadata time]
+    :_  this
+    [%pass /clear %arvo %b %wait (add now.bowl delay)]~
   (on-arvo:def wire sign-arvo)
 ++  on-fail   on-fail:def
 --
