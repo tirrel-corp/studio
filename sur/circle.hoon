@@ -41,10 +41,8 @@
 +$  update
   $%  [%public-key p=public-key:res]
       [%payment p=session-id q=payment:res]
-      [%payment-list p=(list payment:res)]
       [%card p=session-id q=pay-card:res r=(unit metadata)]
-      [%card-list p=(list pay-card:res)]
-      [%error p=error:res]
+      [%error p=session-id q=error:res]
   ==
 ::
 +$  billing-details

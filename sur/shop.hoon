@@ -17,7 +17,7 @@
       [%set-price =price]
     ::
       [%spawn-ships who=ship sel=selector]
-      [%sell-ships who=ship sel=selector time=@da email=@t]
+      [%sell-ships who=ship sel=selector time=@da email=@t session=@t]
   ==
 ::
 +$  sold-ship-to-date  (map ship time)

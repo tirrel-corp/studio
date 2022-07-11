@@ -46,16 +46,16 @@
   `@ux`(swp 3 (cat 3 res bits))
 ::
 ++  make-email
-  |=  [address=@t sold=(map ship @q) now=@da cc-num=@t tid=@ud]
+  |=  [address=@t sold=(map ship @q) now=@da]
   ^-  email:mailer
   :*  ['delivery@tirrel.io' '~tirrel']
       'You got a planet!'
-      (email-body address sold now cc-num tid)^~
+      (email-body address sold now)^~
       [[address]~ ~ ~]~
   ==
   ::
 ++  email-body
-  |=  [address=@t sold=(map ship @q) now=@da cc-num=@t tid=@ud]
+  |=  [address=@t sold=(map ship @q) now=@da]
   ^-  content-field:mailer
   =/  num  ~(wyt by sold)
   =/  orange  "color: #ff6300"
@@ -82,13 +82,8 @@
           ;a(href bu, style orange): Activate your planet in Bridge
         ==
         ;li
-          ;a(href "https://urbit.org/getting-started#port", style orange): Download Port
+          ;a(href "https://urbit.org/getting-started/desktop", style orange): Download Port
           ; , Urbit's desktop client
-        ==
-        ;li
-          ; Follow the
-          ;a(href "https://urbit.org/getting-started/planet#step-3-boot", style orange): Installation Guide
-          ;  for detailed instructions
         ==
         ;li
           ; If you need assistance with installation, book a
@@ -117,7 +112,6 @@
       ==
       ;hr(style "margin: 30px 0", color "black", size "1");
       ;b: Planet Market Receipt
-      ;p: Receipt #{(trip (rsh [3 2] (scot %ui tid)))}
       ;p: {(trip (print-date-full now))}
       ;p
         ; Delivery to:
@@ -146,7 +140,6 @@
           ==
         ==
         ;tr
-          ;td(style "width: 50%", align "left"): {(trip cc-num)}
           ;td(style "width: 50%", align "right"): {(trip (print-date-num now))}
         ==
       ==
@@ -205,7 +198,7 @@
         del-star-config+ship
         set-price+price
         spawn-ships+(ot ship+ship sel+selector ~)
-        sell-ships+(ot ship+ship sel+selector time+di email+so ~)
+        sell-ships+(ot ship+ship sel+selector time+di email+so session+so ~)
     ==
   ::
   ++  config

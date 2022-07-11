@@ -32,6 +32,7 @@
       pending-sales=(map @t [star=@p metadata=(unit metadata:circle)])
       =sold-ships
       =sold-ship-to-date
+      session-to-time=(map @t time)
   ==
 ::
 +$  versioned-state
@@ -39,7 +40,7 @@
       [%1 state-1]
   ==
 ::
-++  provider  ~bus
+++  provider  ~bidlup-sicryx-dozzod-ricbel
 --
 ::
 =|  [%1 state-1]
@@ -67,7 +68,14 @@
   |^
   =/  old  !<(versioned-state old-vase)
   ?-  -.old
-      %1  `this(state old)
+  ::
+      %1
+    =/  gateway-wire=wire  /master/(scot %p our.bowl)
+    :_  this(state old)
+    ~
+::    :~  [%pass gateway-wire %agent [provider %gateway] %watch gateway-wire]
+::    ==
+  ::
       %0
     :-  ~
     %=  this
@@ -80,6 +88,7 @@
           ~
           (update-sold-ships sold-ships.old)
           sold-ship-to-date.old
+          ~
       ==
     ==
   ==
@@ -116,6 +125,11 @@
   ?>  (team:title our.bowl src.bowl)
   |^
   ?+    mark  (on-poke:def mark vase)
+      %noun
+    ?+  q.vase  `this
+      %clear-pending  `this(pending-sales ~)
+    ==
+  ::
       %shop-update
     =^  cards  state
       (shop-update !<(update vase))
@@ -137,19 +151,16 @@
     =/  req-line  (parse-request-line:server url.request.req)
     ?+  site.req-line  [`this not-found:gen:server]
     ::
-        [%shop %session @ ~]
+        [%shop %session @ *]
       ?>  ?=(%'POST' method.request.req)
       =/  star=@p  (slav %p i.t.t.site.req-line)
-      ?~  body.request.req
-        [`this [[400 ~] ~]]
-      =/  jon  (de-json:html `@t`q.u.body.request.req)
-      ?~  jon
-        [`this [[400 ~] ~]]
+      =?  pending-sales  ?=([@ ~] t.t.t.site.req-line)
+        (~(del by pending-sales) i.t.t.t.site.req-line)
       ?~  price
         [`this [[400 ~] ~]]
       ?~  fs=(~(get by for-sale) star)
         [`this [[400 ~] ~]]
-      ?:  (lth ~(wyt by pending-sales) ~(wyt by u.fs))
+      ?:  (gte ~(wyt by pending-sales) ~(wyt by u.fs))
         [`this [[400 ~] ~]]
       =/  total=amount:circle
         [amount.u.price 0 currency.u.price]
@@ -160,6 +171,22 @@
       =.  pending-sales  (~(put by pending-sales) sess-id [star ~])
       :_  this
       [%pass / %agent [provider %gateway] %poke %noun !>(act)]^~
+    ::
+        [%shop %delivery @ ~]
+      ?>  ?=(%'GET' method.request.req)
+      =*  session  i.t.t.site.req-line
+      ?~  time=(~(get by session-to-time) session)
+        [`this [[400 ~] ~]]
+      ?~  sold=(get:his sold-ships u.time)
+        [`this [[400 ~] ~]]
+      =/  =record  n.sold
+      =/  jon=json
+        %-  pairs:enjs:format
+        :~  ship+s+(scot %p ship.record)
+            ticket+s+(scot %q ticket.record)
+        ==
+      :-  `this
+      [[200 ~] `(json-to-octs:server jon)]
     ==
   ::
   ::
@@ -313,6 +340,7 @@
       =*  who    who.update
       =*  email  email.update
       =*  time   time.update
+      =*  sess   session.update
       ?>  ?=(^ price)
       |^
       =/  c=config  (~(got by star-configs) who)
@@ -329,6 +357,8 @@
       =.  sold-ship-to-date
         %-  ~(uni by sold-ship-to-date)
         (ship-to-date sold)
+      =.  session-to-time
+        (~(put by session-to-time) sess time)
       [(send-email sold)^~ state]
       ::
       ++  ship-to-date
@@ -363,15 +393,9 @@
       ++  send-email
         |=  sold=(map ship @q)
         ^-  card
-        =/  tx=(unit transaction:nmi)
-          %^  scry-for  %nmi  (unit transaction:nmi)
-          /transaction/(scot %da time)
-        ?>  ?=(^ tx)
-        ?>  ?=(%success -.u.tx)
-        =*  fin  finis.u.tx
         =/  send-email=action:mailer
           :-  %send-email
-          (make-email email sold now.bowl cc-num.fin transaction-id.fin)
+          (make-email email sold now.bowl)
         =/  =cage  [%mailer-action !>(send-email)]
         [%pass /fulfillment-email %agent [our.bowl %mailer] %poke cage]
       --
@@ -397,10 +421,12 @@
   |=  =path
   |^
   ^-  (quip card _this)
-  ?>  (team:title our.bowl src.bowl)
+  ?:  ?=([%http-response *] path)  `this
   ?:  ?=([%updates ~] path)
+    ?>  (team:title our.bowl src.bowl)
     `this
   ?:  ?=([%configuration ~] path)
+    ?>  (team:title our.bowl src.bowl)
     :_  this
     %+  turn  state-to-json
     |=  =json
@@ -460,7 +486,13 @@
           ?~  metadata.u.pend
             `this
           =/  =update
-            [%sell-ships star.u.pend [%.n 1] now.bowl email.u.metadata.u.pend]
+            :*  %sell-ships
+                star.u.pend
+                [%.n 1]
+                now.bowl
+                email.u.metadata.u.pend
+                p.upd
+            ==
           (on-poke %shop-update !>(update))
         ::
         ?:  ?=(%failed status.q.upd)

@@ -456,7 +456,7 @@
           ==
       =-  [%pass /sell-ship/[token] %agent [our.bowl %shop] %poke -]~
       :-  %shop-update
-      !>(`update:nam`[%sell-ships who.info.tx sel.info.tx time email ~])
+      !>(`update:nam`[%sell-ships who.info.tx sel.info.tx time email])
     ::
     ++  normalize-data
       |=  [request-id=cord full-file=(unit mime-data:iris)]

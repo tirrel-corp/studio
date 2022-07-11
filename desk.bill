@@ -1,6 +1,5 @@
 :~  %mailer
     %pipe
     %auth
-    %tickets
     %shop
 ==
