@@ -40,6 +40,12 @@
       [%1 state-1]
   ==
 ::
++$  local-action
+  $%  [%clear-pending ~]
+      [%del-ship star=@p planet=@p]
+      [%add-ship star=@p planet=@p ticket=@q]
+  ==
+::
 ++  delay  ~m15
 ::
 ++  provider  ~bidlup-sicryx-dozzod-ricbel
@@ -129,8 +135,21 @@
   |^
   ?+    mark  (on-poke:def mark vase)
       %noun
-    ?+  q.vase  `this
-      %clear-pending  `this(pending-sales ~)
+    =+  !<(act=local-action vase)
+    ?-  -.act
+        %clear-pending  `this(pending-sales ~)
+    ::
+        %add-ship
+      =/  by-star   (~(got by for-sale) star.act)
+      =.  by-star   (~(put by by-star) planet.act ticket.act)
+      =.  for-sale  (~(put by for-sale) star.act by-star)
+      `this
+    ::
+        %del-ship
+      =/  by-star   (~(got by for-sale) star.act)
+      =.  by-star   (~(del by by-star) planet.act)
+      =.  for-sale  (~(put by for-sale) star.act by-star)
+      `this
     ==
   ::
       %shop-update
