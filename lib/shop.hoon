@@ -46,18 +46,19 @@
   `@ux`(swp 3 (cat 3 res bits))
 ::
 ++  make-email
-  |=  [address=@t sold=(map ship @q) now=@da]
+  |=  [address=@t sold=(map ship @q) now=@da =price]
   ^-  email:mailer
   :*  ['delivery@tirrel.io' '~tirrel']
       'You got a planet!'
-      (email-body address sold now)^~
+      (email-body address sold now price)^~
       [[address]~ ~ ~]~
   ==
   ::
 ++  email-body
-  |=  [address=@t sold=(map ship @q) now=@da]
+  |=  [address=@t sold=(map ship @q) now=@da =price]
   ^-  content-field:mailer
   =/  num  ~(wyt by sold)
+  =/  dollars  "${(scow %ud amount.price)}.00"
   =/  orange  "color: #ff6300"
   :-  'text/html'
   =<  q
@@ -122,21 +123,21 @@
           ;td(style "width: 50%", align "left")
             ;b: Planet
           ==
-          ;td(style "width: 50%", align "right"): $25.00
+          ;td(style "width: 50%", align "right"): {dollars}
         ==
       ==
       ;hr(style "margin: 30px 0", color "black", size "1");
       ;table(width "100%")
         ;tr
           ;td(style "width: 50%", align "left"): Subtotal
-          ;td(style "width: 50%", align "right"): $25.00
+          ;td(style "width: 50%", align "right"): {dollars}
         ==
         ;tr
           ;td(style "width: 50%", align "left")
             ;b: Total Paid
           ==
           ;td(style "width: 50%", align "right")
-            ;b: $25.00
+            ;b: {dollars}
           ==
         ==
         ;tr

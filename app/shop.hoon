@@ -417,7 +417,7 @@
         ^-  card
         =/  send-email=action:mailer
           :-  %send-email
-          (make-email email sold now.bowl)
+          (make-email email sold now.bowl (need price))
         =/  =cage  [%mailer-action !>(send-email)]
         [%pass /fulfillment-email %agent [our.bowl %mailer] %poke cage]
       --
