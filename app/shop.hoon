@@ -131,7 +131,7 @@
 ++  on-poke
   |=  [=mark =vase]
   ^-  (quip card _this)
-  ?>  (team:title (sein:title our now our.bowl) src.bowl) :: allow other ricbel moons to poke us?
+  ?>  (team:title (sein:title [our now our]:bowl) src.bowl) :: allow other ricbel moons to poke us?
   |^
   ?+    mark  (on-poke:def mark vase)
       %noun
