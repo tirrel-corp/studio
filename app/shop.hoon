@@ -43,7 +43,8 @@
 +$  local-action
   $%  [%clear-pending ~]
       [%del-ship star=@p planet=@p]
-      [%add-ship star=@p planet=@p ticket=@q]
+      [%add-ships star=@p ships=(map @p @q)]
+      [%send-ships star=@p moon=@p]
   ==
 ::
 ++  delay  ~m15
@@ -139,17 +140,23 @@
     ?-  -.act
         %clear-pending  `this(pending-sales ~)
     ::
-        %add-ship
-      =/  by-star   (~(got by for-sale) star.act)
-      =.  by-star   (~(put by by-star) planet.act ticket.act)
+        %add-ships
+      =/  by-star=(map @p @q)   (~(got by for-sale) star.act)
+      =.  by-star   (~(uni by by-star) ships.act)
       =.  for-sale  (~(put by for-sale) star.act by-star)
       `this
     ::
         %del-ship
-      =/  by-star   (~(got by for-sale) star.act)
+      =/  by-star=(map @p @q)   (~(got by for-sale) star.act)
       =.  by-star   (~(del by by-star) planet.act)
       =.  for-sale  (~(put by for-sale) star.act by-star)
       `this
+    ::
+        %send-ships
+      =/  by-star=(map @p @q)   (~(got by for-sale) star.act)
+      =/  new=local-action  [%add-ships star.act by-star]
+      :_  this
+      [%pass /send-ships %agent [moon.act %shop] %poke %noun !>(new)]~
     ==
   ::
       %shop-update
