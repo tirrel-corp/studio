@@ -136,7 +136,7 @@
             ;b: Total Paid
           ==
           ;td(style "width: 50%", align "right")
-            ;b: $20.00
+            ;b: $25.00
           ==
         ==
         ;tr

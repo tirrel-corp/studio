@@ -369,9 +369,9 @@
       =/  sold=(map ship @q)
         (~(gas by *(map ship @q)) select-ships)
       =/  for-sale-who  (~(got by for-sale) who)
-::      =.  for-sale
-::        %+  ~(put by for-sale)  who
-::        (~(dif by for-sale-who) sold)
+      =.  for-sale
+        %+  ~(put by for-sale)  who
+        (~(dif by for-sale-who) sold)
       =.  sold-ships
         %^  uni:his  sold-ships
           time
