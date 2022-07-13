@@ -122,14 +122,14 @@
           ;td(style "width: 50%", align "left")
             ;b: Planet
           ==
-          ;td(style "width: 50%", align "right"): $20.00
+          ;td(style "width: 50%", align "right"): $25.00
         ==
       ==
       ;hr(style "margin: 30px 0", color "black", size "1");
       ;table(width "100%")
         ;tr
           ;td(style "width: 50%", align "left"): Subtotal
-          ;td(style "width: 50%", align "right"): $20.00
+          ;td(style "width: 50%", align "right"): $25.00
         ==
         ;tr
           ;td(style "width: 50%", align "left")
