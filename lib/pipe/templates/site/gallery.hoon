@@ -120,21 +120,37 @@
 ++  image-preview
   |=  [gi=gallery-inputs title=@t]
   ^-  manx
-  =/  snippet=(unit @t)  (snip contents.post.gi)
+  ?>  ?=([[%text @] $%([%url @] [%reference *]) ~] contents.post.gi)
+  =*  link  i.t.contents.post.gi
+  =/  colors
+    ?:  lit.gi
+      " near-black"
+    " white"
+  ?.  ?=([%url @] link)  
+    =/  ref=reference  +.i.t.contents.post.gi
+    ;div
+      :: TODO: render all as squares
+      ;+  ?-    -.ref
+              %graph
+            =/  fdsa  (trip (rap 3 'web+urbitgraph://' (scot %p entity.group.ref) '/' name.group.ref ~))
+            ;p(class "db link w-30 mr1"): {fdsa}
+              %group
+            =/  fdsa  (trip (rap 3 'web+urbitgraph://' (scot %p entity.group.ref) '/' name.group.ref ~))
+            ;p(class "db link w-30 mr1"): {fdsa}
+              %app
+            =/  asdf  (trip (rap 3 'web+urbitgraph://' (scot %p ship.ref) '/' desk.ref (join '/' path.ref)))
+            ;p(class "db link w-30 mr1"): {asdf}
+          ==
+    ==
   =/  url=tape
     %-  trip
     ?~  path.binding.gi
       (cat 3 '/' (strip-title title))
     (rap 3 (spat path.binding.gi) '/' (strip-title title) ~)
-  =/  colors
-    ?:  lit.gi
-      " near-black"
-    " white"
   ;a(class (weld "db link w-30 mr1" colors), href url)
-    ;+  ?~  snippet  *manx
-        :: replace with link content later
-        ;img@"https://dachus-tiprel.nyc3.digitaloceanspaces.com/dachus-tiprel/2022.6.27..05.10.30-8E158540-7488-4B8E-A734-1EBF3AEECE67.jpeg";
+    ;img(src (trip +.link));
   ==
+
 ::
 ++  single-image-page
   |=  [gi=gallery-inputs con=marl title=@t]

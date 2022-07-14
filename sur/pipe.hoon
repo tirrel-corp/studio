@@ -7,14 +7,15 @@
       [%3 state-2]
       [%4 state-3]
       [%5 state-4]
+      [%6 state-5]
   ==
-::
-+$  state-4
++$  state-5
   $:  flows=(map name=term flow)
       sites=(map name=term website)
       uid-to-name=(jug uid name=term)
       template-desk=(unit desk)
-      custom-site=(map term site-template)
+      custom-blog=(map term site-template)
+      custom-collection=(map term site-template)
       custom-email=(map term email-template)
   ==
 ::
@@ -101,6 +102,14 @@
 ::
 ::  old versions
 ::
++$  state-4
+  $:  flows=(map name=term flow)
+      sites=(map name=term website)
+      uid-to-name=(jug uid name=term)
+      template-desk=(unit desk)
+      custom-site=(map term site-template)
+      custom-email=(map term email-template)
+  ==
 +$  state-3
   $:  flows=(map name=term flow-2)
       sites=(map name=term website-1)

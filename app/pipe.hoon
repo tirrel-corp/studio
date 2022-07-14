@@ -18,7 +18,7 @@
 +$  card  card:agent:gall
 --
 ::
-=|  [%5 state-4]
+=|  [%6 state-5]
 =*  state  -
 ::
 %-  agent:dbug
@@ -32,7 +32,7 @@
 ::
 ++  on-init
   ^-  (quip card _this)
-  :_  this(state [%5 *state-4])
+  :_  this(state [%6 *state-5])
   [%pass /graph %agent [our.bowl %graph-store] %watch /updates]~
 ::
 ++  on-save  !>(state)
@@ -44,8 +44,9 @@
   =|  cards=(list card)
   |-
   ?-    -.old
-      %5
-    [cards this(state old)]
+    %6  [cards this(state old)]
+  ::
+    %5  $(old (state-5-to-6 old))
   ::
       %4
     =/  cards-4
@@ -59,6 +60,19 @@
     %1  $(old (state-1-to-2 old))
     %0  $(old (state-0-to-1 old))
   ==
+  ::
+  ++  state-5-to-6
+    |=  [%5 s=state-4]
+    ^-  [%6 state-5]
+    :*  %6
+        flows.s
+        sites.s
+        uid-to-name.s
+        template-desk.s
+        custom-site.s
+        ~
+        custom-email.s
+    ==
   ::
   ++  state-4-to-5
     |=  [%4 s=state-3]
@@ -334,7 +348,7 @@
         :~  (template-warp:pc /t/site desk.action %t /site %sing)
             (template-warp:pc /t/email desk.action %t /email %sing)
         ==
-      :_  state(template-desk `desk.action, custom-site ~, custom-email ~)
+      :_  state(template-desk `desk.action, custom-blog ~, custom-collection ~, custom-email ~)
       ?~  template-desk
         cards
       ~&  "replacing old template desk {<u.template-desk>}"
@@ -357,7 +371,7 @@
         |=  =path
         =/  wire  [%a (scag (dec (lent path)) path)]
         (template-warp:pc wire u.template-desk %a path ~)
-      :_  state(template-desk ~, custom-site ~, custom-email ~)
+      :_  state(template-desk ~, custom-blog ~, custom-collection ~, custom-email ~)
       :*  (template-warp:pc /t/site u.template-desk %t /site ~)
           (template-warp:pc /t/email u.template-desk %t /email ~)
           cards
@@ -572,15 +586,15 @@
     [%pass /update-site/[term] %arvo %b %wait now.bowl]
   ?+  wire  (on-arvo:def wire sign-arvo)
   ::
-      [%t ?(%site %email) ~]
+      [%t ?(%site %email) ~] :: should probably be ?(%blog %collection %email)
     ?~  p.sign-arvo  !!
     =/  files  !<((list path) q.r.u.p.sign-arvo)
     =*  which  i.t.wire
     =*  desk   r.p.u.p.sign-arvo
     =/  diff   (diff-files files which)
-    =?  custom-site  =(which %site)
+    =?  custom-blog  =(which %site) :: TODO add custom-collection
       %-  ~(rep in del.diff)
-      |=  [=term out=_custom-site]
+      |=  [=term out=_custom-blog]
       (~(del by out) term)
     =?  custom-email  =(which %email)
       %-  ~(rep in del.diff)
@@ -594,26 +608,26 @@
       (process-add add.diff which desk)
     (process-del del.diff which desk)
   ::
-      [%a ?(%site %email) @ ~]
+      [%a ?(%site %email) @ ~]  :: same here, should probably be ?(%blog %collection or %email)
     =*  which  i.t.wire
     =*  name   i.t.t.wire
     =/  =path  /[which]/[name]/hoon
-    =?  custom-site  =(which %site)
+    =?  custom-blog  =(which %site)
       ?~  template-desk
-        (~(del by custom-site) name)
+        (~(del by custom-blog) name)
       ?~  p.sign-arvo
-        (~(del by custom-site) name)
+        (~(del by custom-blog) name)
       =+  !<(=vase q.r.u.p.sign-arvo)
       =/  mid=(each site-template tang)
         (mule |.(!<(site-template vase)))
       ?-  -.mid
           %.y
         %-  (slog leaf+"built template: {<path>}" ~)
-        (~(put by custom-site) name p.mid)
+        (~(put by custom-blog) name p.mid)
       ::
           %.n
         %-  (slog leaf+"template build failure: {<path>}" ~)
-        (~(del by custom-site) name)
+        (~(del by custom-blog) name)
       ==
     =?  custom-email  =(which %email)
       ?~  template-desk
@@ -646,7 +660,7 @@
     ^-  [add=(set term) del=(set term)]
     =/  old=(set term)
       ?-  which
-        %site   ~(key by custom-site)
+        %site   ~(key by custom-blog) :: TODO need to add custom-collections somehow
         %email  ~(key by custom-email)
       ==
     =/  new=(set term)
@@ -686,10 +700,9 @@
   ::
       [%updates ~]
     =/  templates=update
-      ::  TODO add back in the custom sites here
       :^    %templates
-          ~(key by blog-templates)
-        ~(key by collection-templates)
+          (~(uni in ~(key by blog-templates)) ~(key by custom-blog))
+        (~(uni in ~(key by collection-templates)) ~(key by custom-collection))
       (~(uni in ~(key by email-templates)) ~(key by custom-email))
     =/  flow=update    [%flows flows]
     =/  errors=update  [%errors get-all-errors:pc]
@@ -753,12 +766,12 @@
     :^  ~  ~  %json  !>
     %-  pairs:enjs:format
     :~  :+  %blog  %a
-        %+  turn  ~(tap by blog-templates)  :: TODO get custom sites back
+        %+  turn  (weld ~(tap by blog-templates) ~(tap by custom-blog))
         |=  [=term *]
         [%s term]
     ::
         :+  %collection  %a
-        %+  turn  ~(tap by collection-templates)
+        %+  turn  (weld ~(tap by collection-templates) ~(tap by custom-collection))
         |=  [=term *]
         [%s term]
     ::
@@ -773,12 +786,12 @@
     :^  ~  ~  %json  !>
     %-  pairs:enjs:format
     :~  :+  %blog  %a
-        %+  turn  (weld ~(tap by blog-templates) ~(tap by custom-site))
+        %+  turn  (weld ~(tap by blog-templates) ~(tap by custom-blog))
         |=  [=term *]
         [%s term]
     ::
         :+  %collection  %a
-        %+  turn  ~(tap by collection-templates)
+        %+  turn  (weld ~(tap by collection-templates) ~(tap by custom-collection))
         |=  [=term *]
         [%s term]
     ::
@@ -789,9 +802,6 @@
     ==
   ::
       [%x %preview ?(%site %email) @ ~]
-       :: should it be more like
-       :: { site: { collection: [...], blog: [...] }, email: [...] } or like
-       :: { collection: [...], blog: [...], email: [...] }
     ?+  i.t.t.path  !!
         %site
       =/  temp  (~(get by blog-templates) i.t.t.t.path)  ::  TODO: add more previews
@@ -839,13 +849,15 @@
   (~(get by email-templates) name)
 ::
 ++  get-site-template
-  ::  a little hacky but whatever
+  ::  TODO a little hacky but whatever
   |=  name=term
   ^-  (unit site-template)
-  =/  res  (~(get by custom-site) name)
-  ?^  res  res
+  =/  blog-cust  (~(get by custom-blog) name)
+  ?^  blog-cust  blog-cust
   =/  blog  (~(get by blog-templates) name)
   ?^  blog  blog
+  =/  coll-cust  (~(get by custom-collection) name)
+  ?^  coll-cust  coll-cust
   (~(get by collection-templates) name)
 ::
 ++  give-site
@@ -874,10 +886,8 @@
   ^-  card
   =/  =update
     :^    %templates
-        :: TODO using site-templates-2 is kind of annoying here
-        :: TODO also get custom sites back here
-        ~(key by blog-templates)
-      ~(key by collection-templates)
+        (~(uni in ~(key by blog-templates)) ~(key by custom-blog))
+      (~(uni in ~(key by collection-templates)) ~(key by custom-collection))
     (~(uni in ~(key by email-templates)) ~(key by custom-email))
   [%give %fact [/updates]~ %pipe-update !>(update)]
 ::
