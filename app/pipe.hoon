@@ -2,8 +2,7 @@
 ::
 ::
 /-  *pipe, meta=metadata-store
-/+  mip, :: everything blows up if I expose this
-    default-agent,
+/+  default-agent,
     dbug,
     verb,
     graph,
