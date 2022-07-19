@@ -37,7 +37,6 @@
     ^-  $-(json ^site)
     %-  ot
     :~  template+so
-        binding+binding
         comments+bo
         width+width
         lit+bo
@@ -160,7 +159,6 @@
     ?~  s  ~
     %-  pairs
     :~  template+s+template.u.s
-        binding+(binding binding.u.s)
         comments+b+comments.u.s
         width+s+(scot %ud width.u.s)
         lit+b+lit.u.s

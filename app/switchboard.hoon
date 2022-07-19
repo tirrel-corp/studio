@@ -7,7 +7,7 @@
     verb,
     grate
 |%
-+$  card  card:agent:gall
++$  card  $+(card card:agent:gall)
 --
 ::
 =|  [%0 state-0]
@@ -56,8 +56,9 @@
         %add-site
       ?:  (~(has by sites) name.act)
         ~|("name taken" !!)
-      =/  =binding:eyre  [`name.act ~]
-      =.  sites  (~(put by sites) name.act ~)
+      =/  =binding:eyre  [`host.act path.act]
+      =.  sites    (~(put by sites) name.act [binding ~])
+      =.  by-binding  (~(put by by-binding) binding name.act)
       =/  =update  [%full sites]
       :_  state
       :~  [%pass /eyre %arvo %e %connect binding dap.bowl]
@@ -67,11 +68,27 @@
         %del-site
       ?~  site=(~(get by sites) name.act)
         ~|("no such site" !!)
-      =/  =binding:eyre  [`name.act ~]
-      =.  sites  (~(del by sites) name.act)
+      =.  sites       (~(del by sites) name.act)
+      =.  by-binding  (~(del by by-binding) binding.u.site)
+      =^  cards  by-plugin
+        %-  ~(rep by plugins.u.site)
+        |=  [[=path =plugin-state] cad=(list card) out=_by-plugin]
+        ?-  -.plugin-state
+            %pipe
+          =/  =plugin  [%pipe name.plugin-state]
+          =/  =wire  (weld /pipe/[name.plugin-state]/[name.act] path)
+          :_  (~(del by out) plugin)
+          [[%pass wire %agent [our.bowl %pipe] %leave ~] cad]
+        ::
+            %mailer
+          =/  =plugin  [%mailer name.plugin-state]
+          =/  =wire  (weld /mailer/[name.plugin-state]/[name.act] path)
+          :_  (~(del by out) plugin)
+          [[%pass wire %agent [our.bowl %mailer] %leave ~] cad]
+        ==
       =/  =update  [%full sites]
       :_  state
-      :~  [%pass /eyre %arvo %e %disconnect binding]
+      :~  [%pass /eyre %arvo %e %disconnect binding.u.site]
           [%give %fact [/update]~ %switchboard-update !>(update)]
       ==
     ::
@@ -92,8 +109,10 @@
       :_  state
       ?-   -.plugin.act
           %pipe
+        =/  pipe-act=action:pipe  [%build name.plugin.act]
         =/  =wire  (weld /pipe/[name.plugin.act]/[name.act] path.act)
         :~  [%pass wire %agent [our.bowl %pipe] %watch /switch/[name.plugin.act]]
+            [%pass wire %agent [our.bowl %pipe] %poke %pipe-action !>(pipe-act)]
             [%give %fact [/update]~ %switchboard-update !>(update)]
         ==
       ::
@@ -129,6 +148,20 @@
       ==
     ==
   ::
+  ++  get-site
+    |=  [host=@t =path]
+    ^-  (unit [name=term =site =^path])
+    %-  ~(rep by by-binding)
+    |=  [[=binding:eyre name=term] out=(unit [term site ^path])]
+    ?^  out  out
+    ?.  =(`host site.binding)
+      out
+    ?~  suffix=(get-suffix path.binding path)
+      out
+    ?~  site=(~(get by sites) name)
+      out
+    `[name u.site u.suffix]
+  ::
   ++  handle-http-request
     |=  req=inbound-request:eyre
     ^-  (quip card simple-payload:http)
@@ -138,26 +171,25 @@
       (get-header:http 'host' header-list.request.req)
     ?~  host
       `not-found:gen:server
-    ?~  site=(~(get by sites) u.host)
+    ?~  details=(get-site u.host site.req-line)
       `not-found:gen:server
-    ?~  plugins.u.site
+    =/  [name=term =site =path]  u.details
+    ?~  plugins.site
       =/  =manx  ;div: site has not been configured yet
       `(manx-response:gen:server manx)
-    =/  sufi=(unit [=path =plugin-state])
-      (get-plugin plugins.u.site site.req-line)
-    ?~  sufi
+    ?~  plugin=(get-plugin plugins.site path)
       `not-found:gen:server
-    ?-  -.plugin-state.u.sufi
+    ?-  -.plugin-state.u.plugin
         %pipe
       =/  webpage=(unit webpage:pipe)
-        (~(get by website.plugin-state.u.sufi) (spat path.u.sufi))
+        (~(get by website.plugin-state.u.plugin) (spat sub-path.u.plugin))
       ?~  webpage
         `not-found:gen:server
-      ~(open grate u.webpage path.u.sufi request.req [our now]:bowl)
+      ~(open grate u.webpage sub-path.u.plugin request.req [our now]:bowl)
     ::
         %mailer
       %:  handle-mailer
-          path.u.sufi
+          sub-path.u.plugin
           args.req-line
           request.req
       ==
@@ -221,7 +253,7 @@
   ::
   ++  get-plugin
     |=  [plugins=(map path plugin-state) req-path=path]
-    ^-  (unit [path plugin-state])
+    ^-  (unit [=sub=path =plugin-state])
     =/  plug-list  ~(tap by plugins)
     |-
     =*  loop  $
@@ -279,6 +311,7 @@
     =*  path         t.t.t.wire
     ?~  site=(~(get by sites) host-name)
       !!
+    %-  (slog u.p.sign)
     =.  plugins.u.site  (~(del by plugins.u.site) path)
     =.  sites           (~(put by sites) host-name u.site)
     `this

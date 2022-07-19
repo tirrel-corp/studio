@@ -11,7 +11,6 @@
 ::
 +$  state-4
   $:  flows=(map name=term flow)
-      sites=(map name=term website)
       uid-to-name=(jug uid name=term)
       template-desk=(unit desk)
       custom-site=(map term site-template)
@@ -35,7 +34,6 @@
 ::
 +$  site
   $:  template=term
-      =binding:eyre
       comments=?
       width=?(%1 %2 %3)
       lit=?
@@ -64,6 +62,7 @@
       [%edit name=term edits=(list edit)]
       [%watch-templates =desk]
       [%wipe-templates ~]
+      [%build name=term]
   ==
 ::
 +$  site-inputs

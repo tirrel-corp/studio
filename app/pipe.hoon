@@ -38,140 +38,141 @@
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
-  |^
+::  |^
+::  ?:  %.y  `this
   =+  !<(old=versioned-state old-vase)
   =|  cards=(list card)
   |-
-  ?-    -.old
+  ?+    -.old  `this
       %5
     [cards this(state old)]
   ::
-      %4
-    =/  cards-4
-      %+  turn  ~(tap in ~(key by flows.old))
-      |=  =term
-      [%pass /update-site/[term] %arvo %b %wait now.bowl]
-    $(old (state-4-to-5 old), cards cards-4)
-  ::
-    %3  $(old (state-3-to-4 old))
-    %2  $(old (state-2-to-3 old))
-    %1  $(old (state-1-to-2 old))
-    %0  $(old (state-0-to-1 old))
+::      %4
+::    =/  cards-4
+::      %+  turn  ~(tap in ~(key by flows.old))
+::      |=  =term
+::      [%pass /update-site/[term] %arvo %b %wait now.bowl]
+::    $(old (state-4-to-5 old), cards cards-4)
+::  ::
+::    %3  $(old (state-3-to-4 old))
+::    %2  $(old (state-2-to-3 old))
+::    %1  $(old (state-1-to-2 old))
+::    %0  $(old (state-0-to-1 old))
   ==
-  ::
-  ++  state-4-to-5
-    |=  [%4 s=state-3]
-    ^-  [%5 state-4]
-    :-  %5
-    %=    s
-        custom-site  ~
-    ::
-        sites
-      %-  ~(run by sites.s)
-      |=  w=website-1
-      ^-  website
-      %-  ~(run by w)
-      |=  p=webpage-1
-      ^-  webpage
-      [-.p +.p ~]
-    ::
-        flows
-      %-  ~(run by flows.s)
-      |=  f=flow-2
-      ^-  flow
-      :*  resource.f
-          index.f
-          site.f
-          email.f
-          ~
-      ==
-    ==
-  ::
-  ++  state-3-to-4
-    |=  [%3 s=state-2]
-    ^-  [%4 state-3]
-    [%4 s(sites ~, custom-site ~, custom-email ~)]
-  ::
-  ++  state-2-to-3
-    |=  [%2 s=state-1]
-    ^-  [%3 state-2]
-    :*  %3
-        %-  ~(run by flows.s)
-        |=  f=flow-1
-        ^-  flow-2
-        %=    f
-            site
-          ?~  site.f
-            ~
-          :-  ~
-          :*  ?+  template.u.site.f  !!
-                %dark-urbit   %urbit
-                %light-urbit  %urbit
-                %dark-basic   %basic
-                %light-basic  %basic
-              ==
-            ::
-              binding.u.site.f
-              comments.u.site.f
-              %2
-            ::
-              ?+  template.u.site.f  !!
-                %dark-urbit   %.n
-                %light-urbit  %.y
-                %dark-basic   %.n
-                %light-basic  %.y
-              ==
-            ::
-              0x0
-          ==
-        ==
-        sites.s
-        uid-to-name.s
-        ~
-        ~
-        ~
-    ==
-  ::
-  ++  state-1-to-2
-    |=  [%1 s=state-1]
-    ^-  [%2 state-1]
-    :-  %2
-    %=  s
-        flows
-      %-  ~(rut by flows.s)
-      |=  [name=term f=flow-1]
-      ^-  flow-1
-      %=  f
-        email
-        ?~  email.f  ~
-        ::?.  (scry:pc %mailer ? /has-list/[name]/noun)
-          ~
-        ::Email.f
-      ==
-    ==
-  ::
-  ++  state-0-to-1
-    |=  [%0 s=state-0]
-    ^-  [%1 state-1]
-    :-  %1
-    %=  s
-        flows
-      %-  ~(run by flows.s)
-      |=  f=flow-0
-      ^-  flow-1
-      :*  resource.f
-          index.f
-          (site-0-to-1 site.f)
-          email.f
-      ==
-    ==
-  ::
-  ++  site-0-to-1
-    |=  old=(unit [t=term b=binding:eyre])
-    ^-  (unit [term binding:eyre ?])
-    ?~  old  ~
-    `[t.u.old b.u.old %.n]
-  --
+::  ::
+::  ++  state-4-to-5
+::    |=  [%4 s=state-3]
+::    ^-  [%5 state-4]
+::    :-  %5
+::    %=    s
+::        custom-site  ~
+::    ::
+::        sites
+::      %-  ~(run by sites.s)
+::      |=  w=website-1
+::      ^-  website
+::      %-  ~(run by w)
+::      |=  p=webpage-1
+::      ^-  webpage
+::      [-.p +.p ~]
+::    ::
+::        flows
+::      %-  ~(run by flows.s)
+::      |=  f=flow-2
+::      ^-  flow
+::      :*  resource.f
+::          index.f
+::          site.f
+::          email.f
+::          ~
+::      ==
+::    ==
+::  ::
+::  ++  state-3-to-4
+::    |=  [%3 s=state-2]
+::    ^-  [%4 state-3]
+::    [%4 s(sites ~, custom-site ~, custom-email ~)]
+::  ::
+::  ++  state-2-to-3
+::    |=  [%2 s=state-1]
+::    ^-  [%3 state-2]
+::    :*  %3
+::        %-  ~(run by flows.s)
+::        |=  f=flow-1
+::        ^-  flow-2
+::        %=    f
+::            site
+::          ?~  site.f
+::            ~
+::          :-  ~
+::          :*  ?+  template.u.site.f  !!
+::                %dark-urbit   %urbit
+::                %light-urbit  %urbit
+::                %dark-basic   %basic
+::                %light-basic  %basic
+::              ==
+::            ::
+::              binding.u.site.f
+::              comments.u.site.f
+::              %2
+::            ::
+::              ?+  template.u.site.f  !!
+::                %dark-urbit   %.n
+::                %light-urbit  %.y
+::                %dark-basic   %.n
+::                %light-basic  %.y
+::              ==
+::            ::
+::              0x0
+::          ==
+::        ==
+::        sites.s
+::        uid-to-name.s
+::        ~
+::        ~
+::        ~
+::    ==
+::  ::
+::  ++  state-1-to-2
+::    |=  [%1 s=state-1]
+::    ^-  [%2 state-1]
+::    :-  %2
+::    %=  s
+::        flows
+::      %-  ~(rut by flows.s)
+::      |=  [name=term f=flow-1]
+::      ^-  flow-1
+::      %=  f
+::        email
+::        ?~  email.f  ~
+::        ::?.  (scry:pc %mailer ? /has-list/[name]/noun)
+::          ~
+::        ::Email.f
+::      ==
+::    ==
+::  ::
+::  ++  state-0-to-1
+::    |=  [%0 s=state-0]
+::    ^-  [%1 state-1]
+::    :-  %1
+::    %=  s
+::        flows
+::      %-  ~(run by flows.s)
+::      |=  f=flow-0
+::      ^-  flow-1
+::      :*  resource.f
+::          index.f
+::          (site-0-to-1 site.f)
+::          email.f
+::      ==
+::    ==
+::  ::
+::  ++  site-0-to-1
+::    |=  old=(unit [t=term b=binding:eyre])
+::    ^-  (unit [term binding:eyre ?])
+::    ?~  old  ~
+::    `[t.u.old b.u.old %.n]
+::  --
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -189,6 +190,20 @@
     |=  =action
     ^-  (quip card _state)
     ?-    -.action
+        %build
+      ~|  [name.action flows]
+      =/  =flow  (~(got by flows) name.action)
+      ?~  site.flow  !!
+      =/  =site-template
+        ~|  "no such template: {<template.u.site.flow>}"
+        (need (get-site-template:pc template.u.site.flow))
+      =/  =website  (site-template (get-site-inputs:pc name.action flow))
+      =.  website   (apply-auth-to-site:pc website auth-rule.flow)
+      :_  state
+      :~  (give-site:pc name.action website)
+          (give-switch:pc name.action website)
+      ==
+    ::
         %add
       ?<  (~(has by flows) name.action)
       ?~  site.flow.action  !!
@@ -197,22 +212,13 @@
         %+  ~(put ju uid-to-name)
           [resource.flow.action index.flow.action]
         name.action
-      =/  =site-template
-        ~|  "no such template: {<template.u.site.flow.action>}"
-        (need (get-site-template:pc template.u.site.flow.action))
-      =/  =website  (site-template (get-site-inputs:pc name.action flow.action))
-      =.  website  (apply-auth-to-site:pc website auth-rule.flow.action)
-      =.  sites     (~(put by sites) name.action website)
       :_  state
-      :~  (give-site:pc name.action website)
-          (give-switch:pc name.action website)
-          give-flows:pc
+      :~  give-flows:pc
       ==
     ::
         %remove
       =/  =flow  (~(got by flows) name.action)
       =.  flows  (~(del by flows) name.action)
-      =.  sites  (~(del by sites) name.action)
       =.  uid-to-name
         %+  ~(del ju uid-to-name)
           [resource.flow index.flow]
@@ -236,7 +242,7 @@
         ==
       =.  flows  (~(put by flows) name.action new)
       ?~  site.new
-        [cards state(sites (~(del by sites) name.action))]
+        [cards state]
       ?.  rebuild
         :_  state
         :*  give-flows:pc
@@ -247,7 +253,6 @@
         (need (get-site-template:pc template.u.site.new))
       =/  =website  (site-template (get-site-inputs:pc name.action new))
       =.  website  (apply-auth-to-site:pc website auth-rule.new)
-      =.  sites     (~(put by sites) name.action website)
       :_  state
       :*  give-flows:pc
           (give-site:pc name.action website)
@@ -354,7 +359,6 @@
       :-  ~
       %=  this
         flows         (~(del by flows) u.name)
-        sites         (~(del by sites) u.name)
         uid-to-name   (~(del by uid-to-name) [resource.q.update ~])
       ==
     ::
@@ -593,24 +597,16 @@
         (~(uni in ~(key by site-templates)) ~(key by custom-site))
       (~(uni in ~(key by email-templates)) ~(key by custom-email))
     =/  flow=update    [%flows flows]
-    =/  errors=update  [%errors get-all-errors:pc]
     :_  this
     :~  [%give %fact ~ %pipe-update !>(flow)]
         [%give %fact ~ %pipe-update !>(templates)]
-        [%give %fact ~ %pipe-update !>(errors)]
     ==
   ::
       [%site @ ~]
-    =*  name  i.t.path
-    =/  =update  [%site name (~(got by sites) name)]
-    :_  this
-    [%give %fact ~ %pipe-update !>(update)]~
+    `this
   ::
       [%switch @ ~]
-    =*  name  i.t.path
-    =/  =update  [%site name (~(got by sites) name)]
-    :_  this
-    [%give %fact ~ %pipe-update !>(update)]~
+    `this
   ::
   ==
 ::
@@ -864,14 +860,11 @@
   ?~  site.flow
     `state
   =/  =site-template  (need (get-site-template template.u.site.flow))
-  =/  =website   (site-template (get-site-inputs name flow))
-  =.  website  (apply-auth-to-site website auth-rule.flow)
-  =.  sites      (~(put by sites) name website)
-  =/  errors=update  [%errors get-all-errors]
+  =/  =website  (site-template (get-site-inputs name flow))
+  =.  website   (apply-auth-to-site website auth-rule.flow)
   :_  state
   :~  (give-site name website)
       (give-switch name website)
-      [%give %fact [/updates]~ %pipe-update !>(errors)]
   ==
 ::
 ++  apply-auth-to-site
@@ -894,10 +887,6 @@
     ?~  val  q(auth ~)
     q(auth u.val)
   ==
-::
-++  get-all-errors
-  ^-  (map term (map @t tang))
-  (~(run by sites) get-site-errors)
 ::
 ++  get-site-errors
   |=  =website
