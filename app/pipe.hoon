@@ -963,7 +963,6 @@
     %+  scry-for:gra  update:store:graph
     /graph/(scot %p entity.res)/[name.res]/node/children/kith/'~'/'~'
   ?>  ?=(%add-nodes -.q.update)
-  ~&  >>  update
   %+  sort
     %+  murn  ~(tap by nodes.q.update)
     |=  [=index =node:store:graph]

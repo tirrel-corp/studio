@@ -74,7 +74,7 @@
   ;body(class (weld "w-100 h-100 flex flex-column items-center" colors))
     ;div
       =class  (weld "pa1 pv3-ns w-100" wid)
-      ;div(class "dt dt--fixed")
+      ;div(class "grid")
         ;*  m
       ==
     ==
@@ -88,7 +88,7 @@
       " near-black"
     " white"
   =/  home-url  (spud path.binding)
-  ;div(class "dt-row")
+  ;div(class "w-100")
     ;a(href "{home-url}", class (weld "link" colors))
       ;h3: {(trip title)}
     ==
@@ -134,13 +134,13 @@
       ;+  ?-    -.ref
               %graph
             =/  fdsa  (trip (rap 3 'web+urbitgraph://' (scot %p entity.group.ref) '/' name.group.ref ~))
-            ;p(class "dtc tc"): {fdsa}
+            ;p(class "item"): {fdsa}
               %group
             =/  fdsa  (trip (rap 3 'web+urbitgraph://' (scot %p entity.group.ref) '/' name.group.ref ~))
-            ;p(class "dtc tc"): {fdsa}
+            ;p(class "item"): {fdsa}
               %app
             =/  asdf  (trip (rap 3 'web+urbitgraph://' (scot %p ship.ref) '/' desk.ref (join '/' path.ref)))
-            ;p(class "dtc tc"): {asdf}
+            ;p(class "item"): {asdf}
           ==
     ==
   =/  url=tape
@@ -148,7 +148,7 @@
     ?~  path.binding.gi
       (cat 3 '/' (strip-title title))
     (rap 3 (spat path.binding.gi) '/' (strip-title title) ~)
-  ;a(class (weld "dtc tc" colors), href url)
+  ;a(class (weld "item" colors), href url)
     ;img(src (trip +.link));
   ==
 ::
@@ -171,7 +171,7 @@
     ==
     ;+  %^  frame  lit.gi  width.gi
     :~  (header binding.gi title.metadatum.association.gi lit.gi)
-        ;h1: {(trip title)}
+        ;h1(class "w-100"): {(trip title)}
         (details initial.gi author.post.gi lit.gi)
         ;article(class "w-100")
           :: replace with image content
@@ -209,6 +209,15 @@
          article > div > p {
            margin-block-start: 2rem;
            margin-block-end: 2rem;
+         }
+         .grid {
+           display: flex;
+           flex-wrap: wrap;
+           column-gap: 0.25rem;
+         }
+         .item {
+           flex: 1 1 30%;
+           max-width: 33%;
          }
          '''
 --
