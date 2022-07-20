@@ -4,8 +4,7 @@
 |=  sinp=site-inputs
 ^-  website
 |^  =/  [previews=marl pages=website]
-      %+  roll  posts.sinp :: I think you want to use swag instead of roll
-      ::  TODO: just use flex wrap: flex-gap
+      %+  roll  posts.sinp
       |=  $:  [initial=@da =post comments=(list post)]
               [previews=marl pages=website]
           ==
@@ -128,19 +127,19 @@
       " near-black"
     " white"
   ?.  ?=([%url @] link)  
-    =/  ref=reference  +.i.t.contents.post.gi
+    =/  ref=reference  +.link
     ;div
-      :: TODO: render all as squares
       ;+  ?-    -.ref
               %graph
-            =/  fdsa  (trip (rap 3 'web+urbitgraph://' (scot %p entity.group.ref) '/' name.group.ref ~))
-            ;p(class "item"): {fdsa}
+            :: TODO: it's actually formatted like this web+urbitgraph://group/~nut/fine-art/graph/~nut/chat-2869/170141184505743352372667112783265923072
+            =/  text  (trip (rap 3 'web+urbitgraph://' (scot %p entity.group.ref) '/' name.group.ref ~))
+            ;p(class "item"): {text}
               %group
-            =/  fdsa  (trip (rap 3 'web+urbitgraph://' (scot %p entity.group.ref) '/' name.group.ref ~))
-            ;p(class "item"): {fdsa}
+            =/  text  (trip (rap 3 'web+urbitgraph://' (scot %p entity.group.ref) '/' name.group.ref ~))
+            ;p(class "item"): {text}
               %app
-            =/  asdf  (trip (rap 3 'web+urbitgraph://' (scot %p ship.ref) '/' desk.ref (join '/' path.ref)))
-            ;p(class "item"): {asdf}
+            =/  text  (trip (rap 3 'web+urbitgraph://' (scot %p ship.ref) '/' desk.ref (join '/' path.ref)))
+            ;p(class "item"): {text}
           ==
     ==
   =/  url=tape
@@ -156,7 +155,9 @@
   |=  [gi=gallery-inputs con=marl title=@t]
   ^-  mime
   =/  home-url  (spud path.binding.gi)
-  ::
+  ?>  ?=([[%text @] $%([%url @] [%reference *]) ~] contents.post.gi)
+  =*  link  i.t.contents.post.gi
+  
   :-  [%text %html ~]
   %-  as-octt:mimes:html
   %+  welp  "<!doctype html>"
@@ -174,8 +175,9 @@
         ;h1(class "w-100"): {(trip title)}
         (details initial.gi author.post.gi lit.gi)
         ;article(class "w-100")
-          :: replace with image content
-          ;img@"https://dachus-tiprel.nyc3.digitaloceanspaces.com/dachus-tiprel/2022.6.27..05.10.30-8E158540-7488-4B8E-A734-1EBF3AEECE67.jpeg";
+          ;+  ?.  ?=([%url @] link)  
+                ;p: +.link;
+              ;img(src (trip +.link));
         ==
     ==
   ==
