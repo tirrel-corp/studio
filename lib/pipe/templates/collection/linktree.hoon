@@ -91,6 +91,7 @@
     ;a(href "{home-url}", class (weld "link" colors))
       ;h3: {(trip title)}
     ==
+    ;hr;
   ==
 ::
 ++  details
@@ -128,26 +129,21 @@
     " white"
   ?.  ?=([%url @] link)  
     =/  ref=reference  +.i.t.contents.post.gi
-    ;div
-      ;+  ?-    -.ref
-              %graph
-            =/  fdsa  (trip (rap 3 'web+urbitgraph://' (scot %p entity.group.ref) '/' name.group.ref ~))
-            ;p(class "item"): {fdsa}
-              %group
-            =/  fdsa  (trip (rap 3 'web+urbitgraph://' (scot %p entity.group.ref) '/' name.group.ref ~))
-            ;p(class "item"): {fdsa}
-              %app
-            =/  asdf  (trip (rap 3 'web+urbitgraph://' (scot %p ship.ref) '/' desk.ref (join '/' path.ref)))
-            ;p(class "item"): {asdf}
-          ==
+    =/  hrf
+      ?-    -.ref
+          %graph
+        (trip (rap 3 'web+urbitgraph://' (scot %p entity.group.ref) '/' name.group.ref ~))
+          %group
+        (trip (rap 3 'web+urbitgraph://' (scot %p entity.group.ref) '/' name.group.ref ~))
+          %app
+        (trip (rap 3 'web+urbitgraph://' (scot %p ship.ref) '/' desk.ref (join '/' path.ref)))
+      ==
+    ;a(class (weld "item" colors), target "_blank", href hrf)
+        ;p(class "item"): {(trip title)}
     ==
-  =/  url=tape
-    %-  trip
-    ?~  path.binding.gi
-      (cat 3 '/' (strip-title title))
-    (rap 3 (spat path.binding.gi) '/' (strip-title title) ~)
-  ;a(class (weld "item" colors), href url)
-    ;img(src (trip +.link));
+
+  ;a(class (weld "item" colors), target "_blank", href (trip +.link))
+    ;p: {(trip title)}
   ==
 ::
 ++  single-image-page
@@ -210,8 +206,10 @@
          }
          .grid {
            display: flex;
-           flex-wrap: wrap;
+           flex-direction: column;
            column-gap: 0.25rem;
+           align-items: center;
+           text-align: center;
          }
          .item {
            flex: 1 1 30%;
