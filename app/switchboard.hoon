@@ -369,8 +369,15 @@
         %pipe    [%pipe name]
         %mailer  [%mailer name]
       ==
-    =/  site=(unit [@t ^path])  (~(get by by-plugin) plugin)
-    ``noun+!>(site)
+    =/  plugin-site=(unit [term ^path])  (~(get by by-plugin) plugin)
+    ?~  plugin-site
+      ``noun+!>(~)
+    ?~  site=(~(get by sites) -.u.plugin-site)
+      ``noun+!>(~)
+    =/  =binding:eyre
+      :-  site.binding.u.site
+      (weld path.binding.u.site +.u.plugin-site)
+    ``noun+!>(`binding)
   ==
 ++  on-leave  on-leave:def
 ++  on-fail   on-fail:def

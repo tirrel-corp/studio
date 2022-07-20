@@ -807,11 +807,11 @@
   |=  [name=term =flow]
   ^-  site-inputs
   =/  s  (need site.flow)
-  =/  [host=@t =path]
+  =/  =binding:eyre
     %-  need
-    (scry %switchboard ,(unit [@t path]) /site-by-plugin/pipe/[name]/noun)
+    (scry %switchboard ,(unit binding:eyre) /site-by-plugin/pipe/[name]/noun)
   :*  name
-      [`host path]
+      binding
       (get-posts resource.flow comments.s)
       (get-metadata resource.flow)
       comments.s
