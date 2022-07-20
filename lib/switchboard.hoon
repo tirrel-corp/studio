@@ -66,7 +66,7 @@
     |=  s=site
     ^-  json
     %-  pairs
-    :~  binding+(en-binding binding.site)
+    :~  binding+(en-binding binding.s)
         :-  %plugins
       %-  pairs
       %+  turn  ~(tap by plugins.s)
