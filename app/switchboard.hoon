@@ -126,22 +126,27 @@
         %del-plugin
       ?~  site=(~(get by sites) name.act)
         ~|("no such site" !!)
-      ?~  plugin=(~(get by plugins.u.site) path.act)
+      ?~  plugin-state=(~(get by plugins.u.site) path.act)
         ~|("no such plugin" !!)
+      =/  =plugin
+        ?-  -.u.plugin-state
+          %pipe    [%pipe name.u.plugin-state]
+          %mailer  [%mailer name.u.plugin-state]
+        ==
       =.  plugins.u.site  (~(del by plugins.u.site) path.act)
       =.  sites           (~(put by sites) name.act u.site)
       =.  by-plugin       (~(del by by-plugin) plugin)
       =/  =update  [%full sites]
       :_  state
-      ?-   -.u.plugin
+      ?-   -.plugin
           %pipe
-        =/  =wire  (weld /pipe/[name.u.plugin]/[name.act] path.act)
+        =/  =wire  (weld /pipe/[name.plugin]/[name.act] path.act)
         :~  [%pass wire %agent [our.bowl %pipe] %leave ~]
             [%give %fact [/update]~ %switchboard-update !>(update)]
         ==
       ::
           %mailer
-        =/  =wire  (weld /mailer/[name.u.plugin]/[name.act] path.act)
+        =/  =wire  (weld /mailer/[name.plugin]/[name.act] path.act)
         :~  [%pass wire %agent [our.bowl %mailer] %leave ~]
             [%give %fact [/update]~ %switchboard-update !>(update)]
         ==
