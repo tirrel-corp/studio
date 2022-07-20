@@ -66,10 +66,22 @@
     |=  s=site
     ^-  json
     %-  pairs
-    %+  turn  ~(tap by plugins.s)
-    |=  [=^path =plugin-state]
-    ^-  [@t json]
-    [(spat path) (en-plugin plugin-state)]
+    :~  binding+(en-binding binding.site)
+        :-  %plugins
+      %-  pairs
+      %+  turn  ~(tap by plugins.s)
+      |=  [=^path =plugin-state]
+      ^-  [@t json]
+      [(spat path) (en-plugin plugin-state)]
+    ==
+  ::
+  ++  en-binding
+    |=  =binding:eyre
+    ^-  json
+    %-  pairs
+    :~  hostname+?~(site.binding ~ s+u.site.binding)
+        path+s+(spat path.binding)
+    ==
   ::
   ++  en-plugin
     |=  =plugin-state
