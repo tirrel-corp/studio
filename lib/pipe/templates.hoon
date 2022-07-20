@@ -1,21 +1,21 @@
 /-  *pipe
-/+  pipe-templates-site-basic,
-    pipe-templates-site-urbit,
-    pipe-templates-site-gallery,
-    pipe-templates-site-linktree,
+/+  pipe-templates-blog-basic,
+    pipe-templates-blog-urbit,
+    pipe-templates-collection-gallery,
+    pipe-templates-collection-linktree,
     pipe-templates-email-light
 |%
 ++  blog-templates
   ^-  (map term site-template)
   %-  ~(gas by *(map term site-template))
-  :~  [%basic pipe-templates-site-basic]
-      [%urbit pipe-templates-site-urbit]
+  :~  [%basic pipe-templates-blog-basic]
+      [%urbit pipe-templates-blog-urbit]
   ==
 ++  collection-templates
   ^-  (map term site-template)
   %-  ~(gas by *(map term site-template))
-  :~  [%gallery pipe-templates-site-gallery]
-      [%linktree pipe-templates-site-linktree]
+  :~  [%gallery pipe-templates-collection-gallery]
+      [%linktree pipe-templates-collection-linktree]
   ==
 ++  email-templates
   ^-  (map term email-template)

@@ -68,9 +68,9 @@
         sites.s
         uid-to-name.s
         template-desk.s
-        custom-site.s
+        custom-site.s :: TODO maybe this is sus, unclear
         ~
-        custom-email.s
+        custom-email.s :: same here
     ==
   ::
   ++  state-4-to-5
@@ -351,7 +351,8 @@
       ?~  template-desk
         cards
       ~&  "replacing old template desk {<u.template-desk>}"
-      :*  (template-warp:pc /t/site u.template-desk %t /site ~)
+      :*  (template-warp:pc /t/blog u.template-desk %t /blog ~)
+          (template-warp:pc /t/collection u.template-desk %t /collection ~)
           (template-warp:pc /t/email u.template-desk %t /email ~)
           cards
       ==
@@ -585,15 +586,19 @@
     [%pass /update-site/[term] %arvo %b %wait now.bowl]
   ?+  wire  (on-arvo:def wire sign-arvo)
   ::
-      [%t ?(%site %email) ~] :: should probably be ?(%blog %collection %email)
+      [%t ?(%blog %collection %email) ~] :: corresponds to lib/templates/* directories so move that around to match this 
     ?~  p.sign-arvo  !!
     =/  files  !<((list path) q.r.u.p.sign-arvo)
     =*  which  i.t.wire
     =*  desk   r.p.u.p.sign-arvo
     =/  diff   (diff-files files which)
-    =?  custom-blog  =(which %site) :: TODO add custom-collection
+    =?  custom-blog  =(which %blog) :: TODO add custom-collection
       %-  ~(rep in del.diff)
       |=  [=term out=_custom-blog]
+      (~(del by out) term)
+    =?  custom-collection  =(which %collection) :: TODO add custom-collection
+      %-  ~(rep in del.diff)
+      |=  [=term out=_custom-collection]
       (~(del by out) term)
     =?  custom-email  =(which %email)
       %-  ~(rep in del.diff)
@@ -655,12 +660,13 @@
   ==
   ::
   ++  diff-files
-    |=  [new-list=(list path) which=?(%site %email)]
+    |=  [new-list=(list path) which=?(%blog %collection %email)]
     ^-  [add=(set term) del=(set term)]
     =/  old=(set term)
       ?-  which
-        %site   ~(key by custom-blog) :: TODO need to add custom-collections somehow
-        %email  ~(key by custom-email)
+        %blog        ~(key by custom-blog)
+        %collection  ~(key by custom-collection)
+        %email       ~(key by custom-email)
       ==
     =/  new=(set term)
       %-  ~(gas in *(set term))
@@ -674,14 +680,14 @@
     [add del]
   ::
   ++  process-add
-    |=  [add=(set term) which=?(%site %email) =desk]
+    |=  [add=(set term) which=?(%blog %collection %email) =desk]
     ^-  (list card)
     %+  turn  ~(tap in add)
     |=  =term
     (template-warp:pc /a/[which]/[term] desk %a /[which]/[term]/hoon %sing)
   ::
   ++  process-del
-    |=  [del=(set term) which=?(%site %email) =desk]
+    |=  [del=(set term) which=?(%blog %collection %email) =desk]
     ^-  (list card)
     %+  turn  ~(tap in del)
     |=  =term

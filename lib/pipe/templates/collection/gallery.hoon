@@ -4,7 +4,8 @@
 |=  sinp=site-inputs
 ^-  website
 |^  =/  [previews=marl pages=website]
-      %+  roll  posts.sinp
+      %+  roll  posts.sinp :: I think you want to use swag instead of roll
+      ::  TODO: just use flex wrap: flex-gap
       |=  $:  [initial=@da =post comments=(list post)]
               [previews=marl pages=website]
           ==
@@ -73,7 +74,7 @@
   ;body(class (weld "w-100 h-100 flex flex-column items-center" colors))
     ;div
       =class  (weld "pa1 pv3-ns w-100" wid)
-      ;div(class "flex flex-wrap")
+      ;div(class "dt dt--fixed")
         ;*  m
       ==
     ==
@@ -87,7 +88,7 @@
       " near-black"
     " white"
   =/  home-url  (spud path.binding)
-  ;div(class "w-100")
+  ;div(class "dt-row")
     ;a(href "{home-url}", class (weld "link" colors))
       ;h3: {(trip title)}
     ==
@@ -133,13 +134,13 @@
       ;+  ?-    -.ref
               %graph
             =/  fdsa  (trip (rap 3 'web+urbitgraph://' (scot %p entity.group.ref) '/' name.group.ref ~))
-            ;p(class "db link w-30 mr1"): {fdsa}
+            ;p(class "dtc tc"): {fdsa}
               %group
             =/  fdsa  (trip (rap 3 'web+urbitgraph://' (scot %p entity.group.ref) '/' name.group.ref ~))
-            ;p(class "db link w-30 mr1"): {fdsa}
+            ;p(class "dtc tc"): {fdsa}
               %app
             =/  asdf  (trip (rap 3 'web+urbitgraph://' (scot %p ship.ref) '/' desk.ref (join '/' path.ref)))
-            ;p(class "db link w-30 mr1"): {asdf}
+            ;p(class "dtc tc"): {asdf}
           ==
     ==
   =/  url=tape
@@ -147,10 +148,9 @@
     ?~  path.binding.gi
       (cat 3 '/' (strip-title title))
     (rap 3 (spat path.binding.gi) '/' (strip-title title) ~)
-  ;a(class (weld "db link w-30 mr1" colors), href url)
+  ;a(class (weld "dtc tc" colors), href url)
     ;img(src (trip +.link));
   ==
-
 ::
 ++  single-image-page
   |=  [gi=gallery-inputs con=marl title=@t]
