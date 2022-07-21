@@ -118,8 +118,7 @@
       ::
           %mailer
         =/  =wire  (weld /mailer/[name.plugin.act]/[name.act] path.act)
-        :~  [%pass wire %agent [our.bowl %mailer] %watch /switch/[name.plugin.act]]
-            [%give %fact [/update]~ %switchboard-update !>(update)]
+        :~  [%give %fact [/update]~ %switchboard-update !>(update)]
         ==
       ==
     ::
@@ -213,7 +212,7 @@
         (scry %mailer ,(unit [term @t @uv ?]) /ship-token/[u.token]/noun)
       ?~  details  `not-found:gen:server
       =/  landing=manx
-        (scry %mailer manx /unsubscribe-landing/[name.u.details])
+        (scry %mailer manx /unsubscribe-landing/[name.u.details]/hymn)
       :-  (poke-mailer %del-recipients name.u.details (sy email.u.details ~))^~
       (manx-response:gen:server landing)
     ::
@@ -223,12 +222,14 @@
       =/  type=(unit @t)  (get-header:http 'content-type' header-list.request)
       ?:  ?|(?=(~ body.request) ?=(~ type))
         `not-found:gen:server
-      =/  who=(unit @t)   (get-header:http 'who' args)
-      =/  book=(unit @t)  (get-header:http 'book' args)
+      ?~  parsed-body=(rush q.u.body.request yquy:de-purl:html)
+        `not-found:gen:server
+      =/  who=(unit @t)   (get-header:http 'who' u.parsed-body)
+      =/  book=(unit @t)  (get-header:http 'book' u.parsed-body)
       ?:  ?|(?=(~ who) ?=(~ book))
         `not-found:gen:server
       =/  landing=manx
-        (scry %mailer manx /subscribe-landing/[u.book])
+        (scry %mailer manx /subscribe-landing/[u.book]/hymn)
       :-  (poke-mailer %add-recipients u.book (sy u.who ~) %.n)^~
       (manx-response:gen:server landing)
     ::
@@ -240,7 +241,7 @@
         (scry %mailer ,(unit [term @t @uv ?]) /ship-token/[u.token]/noun)
       ?~  det  `not-found:gen:server
       =/  landing=manx
-        (scry %mailer manx /confirm-landing/[name.u.det])
+        (scry %mailer manx /confirm-landing/[name.u.det]/hymn)
       :-  (poke-mailer %add-recipients name.u.det (sy email.u.det ~) %.y)^~
       (manx-response:gen:server landing)
     ==

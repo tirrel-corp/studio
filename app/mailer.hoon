@@ -1,7 +1,7 @@
 :: mailer [tirrel]
 ::
 ::
-/-  *mailer, pipe, meta=metadata-store
+/-  *mailer, pipe, meta=metadata-store, *resource
 /+  default-agent, dbug, verb, server, mailer, multipart
 |%
 +$  card  card:agent:gall
@@ -139,14 +139,20 @@
         %add-recipients
       =/  old=(unit mailing-list)  (~(get by ml) name.act)
       ?~  old  ~|("no such mailing list: {<name.act>}" !!)
-      =/  recipients=mailing-list
-        %-  ~(run in mailing-list.act)
-        |=  email=@t
-        [email (sham email eny.bowl) confirm.act]
+      =/  [cards=(list card) recipients=mailing-list]
+        %-  ~(rep in mailing-list.act)
+        |=  [email=@t cad=(list card) ml=mailing-list]
+        ^-  [(list card) mailing-list]
+        =/  token  (sham email eny.bowl)
+        ?:  confirm.act
+          :-  ~
+          (~(put in ml) email [token confirm.act])
+        :-  [(confirm-email:do email name.act token) cad]
+        (~(put in ml) email [token confirm.act])
       =/  new=mailing-list  (~(uni by u.old) recipients)
       =.  ml  (~(put by ml) name.act new)
       :_  state
-      [give-update:do]~
+      [give-update:do cards]
     ::
         %del-recipients
       =/  old=(unit mailing-list)  (~(get by ml) name.act)
@@ -244,8 +250,6 @@
       `this
     ?~  email.creds
       `this
-    ?~  ship-url.creds
-      `this
     =*  name  i.t.wire
     =+  !<(=update:pipe q.cage.sign)
     ?.  ?=(%email -.update)
@@ -258,10 +262,14 @@
       %+  murn  ~(tap by mailing-list)
       |=  [address=@t token=@uv confirmed=?]
       ?.  confirmed  ~
+      =/  mailer-binding=binding:eyre
+        %-  need
+        (scry:do %switchboard ,(unit binding:eyre) /site-by-plugin/mailer/[name]/noun)
       =/  callback=@t
         %:  rap  3
-            u.ship-url.creds
-            '/mailer/unsubscribe?token='
+            (need site.mailer-binding)
+            (spat path.mailer-binding)
+            '/unsubscribe?token='
             (encode-token token)
             ~
         ==
@@ -434,13 +442,13 @@
   ;div: Confirmed subscription to {(trip (get-title name))}
 ::
 ++  confirm-body
-  |=  [title=@t token=@uv]
+  |=  [title=@t token=@uv =binding:eyre]
   ^-  (list content-field)
-  ?~  ship-url.creds  !!
   =/  link=@t
     %:  rap  3
-        u.ship-url.creds
-        '/mailer/confirm?token='
+        (need site.binding)
+        (spat path.binding)
+        '/confirm?token='
         (encode-token token)
         ~
     ==
@@ -456,15 +464,18 @@
   ==
 ::
 ++  confirm-email
-  |=  [addr=@t name=term token=@uv]
+  |=  [email-address=@t name=term token=@uv]
   ^-  card
   =/  title  (get-title name)
   ?~  email.creds  !!
+  =/  =binding:eyre
+    %-  need
+    (scry %switchboard (unit binding:eyre) /site-by-plugin/mailer/[name]/noun)
   =/  =email
     :*  [u.email.creds (scot %p our.bowl)]
         (cat 3 'Confirm your subscription to ' title)
-        (confirm-body title token)
-        [[addr]~ ~ ~]~
+        (confirm-body title token binding)
+        [[email-address]~ ~ ~]~
     ==
   =-  [%pass /send-email/(scot %uv eny.bowl) %arvo %i %request -]
   [(send-email email) *outbound-config:iris]
@@ -472,11 +483,14 @@
 ++  get-title
   |=  name=term
   ^-  @t
+  =/  res=resource
+    %-  need
+    (scry %pipe (unit resource) /resource/[name]/noun)
   =/  assoc=association:meta
     %-  need
     %^  scry  %metadata-store
       (unit association:meta)
-    /metadata/graph/ship/(scot %p our.bowl)/[name]/noun
+    /metadata/graph/ship/(scot %p our.bowl)/[name.res]/noun
   title.metadatum.assoc
 ::
 ++  scry

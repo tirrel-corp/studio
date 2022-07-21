@@ -71,7 +71,7 @@
       posts=(list [@da post (list post)])
       =association:meta
       comments=?
-      email=?
+      email=(unit binding:eyre)
       width=?(%1 %2 %3)
       lit=?
       accent=@ux
@@ -80,6 +80,7 @@
 +$  email-inputs
   $:  name=term
       site-binding=(unit binding:eyre)
+      email-binding=(unit binding:eyre)
       =post
       =association:meta
   ==

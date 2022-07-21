@@ -617,6 +617,13 @@
       [%x %export ~]
     ``noun+!>(state)
   ::
+      [%x %resource @ ~]
+    =*  name  i.t.t.path
+    =/  res=(unit resource)
+      ?~  f=(~(get by flows) name)  ~
+      `resource.u.f
+    ``noun+!>(res)
+  ::
       [%x %flows ~]
     :^  ~  ~  %json  !>
     :-  %o
@@ -807,15 +814,18 @@
   |=  [name=term =flow]
   ^-  site-inputs
   =/  s  (need site.flow)
-  =/  =binding:eyre
+  =/  site-binding=binding:eyre
     %-  need
     (scry %switchboard ,(unit binding:eyre) /site-by-plugin/pipe/[name]/noun)
+  =/  mailer-binding=(unit binding:eyre)
+    ?~  email.flow  ~
+    (scry %switchboard ,(unit binding:eyre) /site-by-plugin/mailer/[name]/noun)
   :*  name
-      binding
+      site-binding
       (get-posts resource.flow comments.s)
       (get-metadata resource.flow)
       comments.s
-      ?=(^ email.flow)
+      mailer-binding
       width.s
       lit.s
       accent.s
@@ -824,11 +834,14 @@
 ++  get-email-inputs
   |=  [name=term =flow =post:store:graph]
   ^-  email-inputs
-  =/  [host=@t =path]
-    %-  need
-    (scry %switchboard ,(unit [@t path]) /site-by-plugin/pipe/[name]/noun)
+  =/  site-binding=(unit binding:eyre)
+    (scry %switchboard ,(unit binding:eyre) /site-by-plugin/pipe/[name]/noun)
+  =/  mailer-binding=(unit binding:eyre)
+    ?~  email.flow  ~
+    (scry %switchboard ,(unit binding:eyre) /site-by-plugin/mailer/[name]/noun)
   :*  name
-      `[`host path]
+      site-binding
+      mailer-binding
       post
       (get-metadata resource.flow)
   ==

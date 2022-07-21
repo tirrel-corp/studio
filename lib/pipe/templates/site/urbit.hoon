@@ -32,7 +32,7 @@
       =post
       comments=(list post)
       =association:metadata-store
-      email=?
+      email=(unit binding:eyre)
       width=?(%1 %2 %3)
       lit=?
   ==
@@ -100,9 +100,9 @@
 ::
 ::
 ++  subscribe-box
-  |=  [book=@tas title=@t email=? lit=?]
+  |=  [book=@tas title=@t email=(unit binding:eyre) lit=?]
   ^-  manx
-  ?.  email  ;br;
+  ?~  email  ;br;
   =/  borders
     ?:  lit
       " b--near-black"
@@ -114,7 +114,7 @@
   ;form
     =id  "subscribe"
     =method  "post"
-    =action  "/mailer/subscribe"
+    =action  (spud (weld path.u.email /subscribe))
     =class   (weld "db w-100 flex flex-column items-center br3 bw2 ba pa2 mb4" borders)
     ;p(style "margin-block-end: 0;"): Subscribe to {(trip title)}
     ;input(name "book", type "hidden", value "{(trip book)}");
