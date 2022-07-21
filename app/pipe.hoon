@@ -17,7 +17,7 @@
 +$  card  card:agent:gall
 --
 ::
-=|  [%5 state-4]
+=|  [%6 state-5]
 =*  state  -
 ::
 %-  agent:dbug
@@ -31,7 +31,7 @@
 ::
 ++  on-init
   ^-  (quip card _this)
-  :_  this(state [%5 *state-4])
+  :_  this(state [%6 *state-5])
   [%pass /graph %agent [our.bowl %graph-store] %watch /updates]~
 ::
 ++  on-save  !>(state)
@@ -43,8 +43,9 @@
   =|  cards=(list card)
   |-
   ?-    -.old
-      %5
-    [cards this(state old)]
+    %6  [cards this(state old)]
+  ::
+    %5  $(old (state-5-to-6 old))
   ::
       %4
     =/  cards-4
@@ -58,6 +59,19 @@
     %1  $(old (state-1-to-2 old))
     %0  $(old (state-0-to-1 old))
   ==
+  ::
+  ++  state-5-to-6
+    |=  [%5 s=state-4]
+    ^-  [%6 state-5]
+    :*  %6
+        flows.s
+        sites.s
+        uid-to-name.s
+        template-desk.s
+        custom-site.s :: TODO maybe this is sus, unclear
+        ~
+        custom-email.s :: same here
+    ==
   ::
   ++  state-4-to-5
     |=  [%4 s=state-3]
@@ -333,11 +347,12 @@
         :~  (template-warp:pc /t/site desk.action %t /site %sing)
             (template-warp:pc /t/email desk.action %t /email %sing)
         ==
-      :_  state(template-desk `desk.action, custom-site ~, custom-email ~)
+      :_  state(template-desk `desk.action, custom-blog ~, custom-collection ~, custom-email ~)
       ?~  template-desk
         cards
       ~&  "replacing old template desk {<u.template-desk>}"
-      :*  (template-warp:pc /t/site u.template-desk %t /site ~)
+      :*  (template-warp:pc /t/blog u.template-desk %t /blog ~)
+          (template-warp:pc /t/collection u.template-desk %t /collection ~)
           (template-warp:pc /t/email u.template-desk %t /email ~)
           cards
       ==
@@ -356,7 +371,7 @@
         |=  =path
         =/  wire  [%a (scag (dec (lent path)) path)]
         (template-warp:pc wire u.template-desk %a path ~)
-      :_  state(template-desk ~, custom-site ~, custom-email ~)
+      :_  state(template-desk ~, custom-blog ~, custom-collection ~, custom-email ~)
       :*  (template-warp:pc /t/site u.template-desk %t /site ~)
           (template-warp:pc /t/email u.template-desk %t /email ~)
           cards
@@ -571,15 +586,19 @@
     [%pass /update-site/[term] %arvo %b %wait now.bowl]
   ?+  wire  (on-arvo:def wire sign-arvo)
   ::
-      [%t ?(%site %email) ~]
+      [%t ?(%blog %collection %email) ~] :: corresponds to lib/templates/* directories so move that around to match this 
     ?~  p.sign-arvo  !!
     =/  files  !<((list path) q.r.u.p.sign-arvo)
     =*  which  i.t.wire
     =*  desk   r.p.u.p.sign-arvo
     =/  diff   (diff-files files which)
-    =?  custom-site  =(which %site)
+    =?  custom-blog  =(which %blog) :: TODO add custom-collection
       %-  ~(rep in del.diff)
-      |=  [=term out=_custom-site]
+      |=  [=term out=_custom-blog]
+      (~(del by out) term)
+    =?  custom-collection  =(which %collection) :: TODO add custom-collection
+      %-  ~(rep in del.diff)
+      |=  [=term out=_custom-collection]
       (~(del by out) term)
     =?  custom-email  =(which %email)
       %-  ~(rep in del.diff)
@@ -593,26 +612,26 @@
       (process-add add.diff which desk)
     (process-del del.diff which desk)
   ::
-      [%a ?(%site %email) @ ~]
+      [%a ?(%site %email) @ ~]  :: same here, should probably be ?(%blog %collection or %email)
     =*  which  i.t.wire
     =*  name   i.t.t.wire
     =/  =path  /[which]/[name]/hoon
-    =?  custom-site  =(which %site)
+    =?  custom-blog  =(which %site)
       ?~  template-desk
-        (~(del by custom-site) name)
+        (~(del by custom-blog) name)
       ?~  p.sign-arvo
-        (~(del by custom-site) name)
+        (~(del by custom-blog) name)
       =+  !<(=vase q.r.u.p.sign-arvo)
       =/  mid=(each site-template tang)
         (mule |.(!<(site-template vase)))
       ?-  -.mid
           %.y
         %-  (slog leaf+"built template: {<path>}" ~)
-        (~(put by custom-site) name p.mid)
+        (~(put by custom-blog) name p.mid)
       ::
           %.n
         %-  (slog leaf+"template build failure: {<path>}" ~)
-        (~(del by custom-site) name)
+        (~(del by custom-blog) name)
       ==
     =?  custom-email  =(which %email)
       ?~  template-desk
@@ -641,12 +660,13 @@
   ==
   ::
   ++  diff-files
-    |=  [new-list=(list path) which=?(%site %email)]
+    |=  [new-list=(list path) which=?(%blog %collection %email)]
     ^-  [add=(set term) del=(set term)]
     =/  old=(set term)
       ?-  which
-        %site   ~(key by custom-site)
-        %email  ~(key by custom-email)
+        %blog        ~(key by custom-blog)
+        %collection  ~(key by custom-collection)
+        %email       ~(key by custom-email)
       ==
     =/  new=(set term)
       %-  ~(gas in *(set term))
@@ -660,14 +680,14 @@
     [add del]
   ::
   ++  process-add
-    |=  [add=(set term) which=?(%site %email) =desk]
+    |=  [add=(set term) which=?(%blog %collection %email) =desk]
     ^-  (list card)
     %+  turn  ~(tap in add)
     |=  =term
     (template-warp:pc /a/[which]/[term] desk %a /[which]/[term]/hoon %sing)
   ::
   ++  process-del
-    |=  [del=(set term) which=?(%site %email) =desk]
+    |=  [del=(set term) which=?(%blog %collection %email) =desk]
     ^-  (list card)
     %+  turn  ~(tap in del)
     |=  =term
@@ -685,8 +705,9 @@
   ::
       [%updates ~]
     =/  templates=update
-      :+  %templates
-        (~(uni in ~(key by site-templates)) ~(key by custom-site))
+      :^    %templates
+          (~(uni in ~(key by blog-templates)) ~(key by custom-blog))
+        (~(uni in ~(key by collection-templates)) ~(key by custom-collection))
       (~(uni in ~(key by email-templates)) ~(key by custom-email))
     =/  flow=update    [%flows flows]
     =/  errors=update  [%errors get-all-errors:pc]
@@ -722,7 +743,11 @@
         metadata+(metadatum:enjs:meta-lib metadatum:association)
     ==
   ::
-      [%x %notebooks ~]
+      [%x ?(%notebooks %collections) ~]
+    =/  link-or-publish
+      ?:  =(+<.path %notebooks)
+        [%graph %publish]
+      [%graph %link]
     =/  assoc=associations:meta
       %^  scry:pc  %metadata-store
         associations:meta
@@ -733,7 +758,7 @@
     |=  [[=md-resource:meta =association:meta] out=(list json)]
     ?.  ?&  =(our.bowl entity.resource.md-resource)
             =(our.bowl creator.metadatum.association)
-            =([%graph %publish] config.metadatum.association)
+            =(link-or-publish config.metadatum.association)
         ==
       out
     :_  out
@@ -745,8 +770,33 @@
       [%x %templates ~]
     :^  ~  ~  %json  !>
     %-  pairs:enjs:format
-    :~  :+  %site  %a
-        %+  turn  (weld ~(tap by site-templates) ~(tap by custom-site))
+    :~  :+  %blog  %a
+        %+  turn  (weld ~(tap by blog-templates) ~(tap by custom-blog))
+        |=  [=term *]
+        [%s term]
+    ::
+        :+  %collection  %a
+        %+  turn  (weld ~(tap by collection-templates) ~(tap by custom-collection))
+        |=  [=term *]
+        [%s term]
+    ::
+        :+  %email  %a
+        %+  turn  (weld ~(tap by email-templates) ~(tap by custom-email))
+        |=  [=term *]
+        [%s term]
+    ==
+      ::
+      [%x %newtemplates ~]
+    :: there is probably a more elegant way of doing this...
+    :^  ~  ~  %json  !>
+    %-  pairs:enjs:format
+    :~  :+  %blog  %a
+        %+  turn  (weld ~(tap by blog-templates) ~(tap by custom-blog))
+        |=  [=term *]
+        [%s term]
+    ::
+        :+  %collection  %a
+        %+  turn  (weld ~(tap by collection-templates) ~(tap by custom-collection))
         |=  [=term *]
         [%s term]
     ::
@@ -759,7 +809,7 @@
       [%x %preview ?(%site %email) @ ~]
     ?+  i.t.t.path  !!
         %site
-      =/  temp  (~(get by site-templates) i.t.t.t.path)
+      =/  temp  (~(get by blog-templates) i.t.t.t.path)  ::  TODO: add more previews
       ?~  temp
         [~ ~]
       =/  site  (u.temp lorem-ipsum:pipe-render)
@@ -804,11 +854,16 @@
   (~(get by email-templates) name)
 ::
 ++  get-site-template
+  ::  TODO a little hacky but whatever
   |=  name=term
   ^-  (unit site-template)
-  =/  res  (~(get by custom-site) name)
-  ?^  res  res
-  (~(get by site-templates) name)
+  =/  blog-cust  (~(get by custom-blog) name)
+  ?^  blog-cust  blog-cust
+  =/  blog  (~(get by blog-templates) name)
+  ?^  blog  blog
+  =/  coll-cust  (~(get by custom-collection) name)
+  ?^  coll-cust  coll-cust
+  (~(get by collection-templates) name)
 ::
 ++  give-site
   |=  [name=term =website]
@@ -835,8 +890,9 @@
 ++  give-templates
   ^-  card
   =/  =update
-    :+  %templates
-      (~(uni in ~(key by site-templates)) ~(key by custom-site))
+    :^    %templates
+        (~(uni in ~(key by blog-templates)) ~(key by custom-blog))
+      (~(uni in ~(key by collection-templates)) ~(key by custom-collection))
     (~(uni in ~(key by email-templates)) ~(key by custom-email))
   [%give %fact [/updates]~ %pipe-update !>(update)]
 ::
@@ -896,6 +952,31 @@
       ==
   (gth t.a t.b)
 ::
+++  get-links
+  |=  [res=resource comments=?]
+  ^-  %-  list
+      $:  initial-date=@da
+          latest-post=post:store:graph
+          comments=(list post:store:graph)
+      ==
+  =/  =update:store:graph
+    %+  scry-for:gra  update:store:graph
+    /graph/(scot %p entity.res)/[name.res]/node/children/kith/'~'/'~'
+  ?>  ?=(%add-nodes -.q.update)
+  %+  sort
+    %+  murn  ~(tap by nodes.q.update)
+    |=  [=index =node:store:graph]
+    ?:  ?=(%| -.post.node)  :: if it was deleted dont' show. -.post.node is the maybe-post
+      ~
+    :-  ~
+    :+  time-sent.p.post.node
+      p.post.node
+    ~  ::  eventually return comments but rn doesn't matter. 
+  |=  $:  a=[t=@da *]
+          b=[t=@da *]
+      ==
+  (gth t.a t.b)
+::
 ++  get-metadata
   |=  res=resource
   ^-  association:meta
@@ -908,10 +989,14 @@
   |=  [name=term =flow]
   ^-  site-inputs
   =/  s  (need site.flow)
+  =/  metd  (get-metadata resource.flow)
   :*  name
       binding.s
-      (get-posts resource.flow comments.s)
-      (get-metadata resource.flow)
+      ?+  +.config.metadatum.metd  !!
+        %publish  (get-posts resource.flow comments.s)
+        %link     (get-links resource.flow comments.s)
+      ==
+      metd
       comments.s
       ?=(^ email.flow)
       width.s

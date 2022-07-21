@@ -103,7 +103,8 @@
     ::
         %templates
       %-  pairs
-      :~  site+(templates site.u)
+      :~  blog+(templates blog.u)
+          collection+(templates collection.u)
           email+(templates email.u)
       ==
     ::
