@@ -33,6 +33,7 @@
 +$  action
   $+  action
   $%  [%add-site name=term host=@t =path]
+      [%edit-site name=term host=@t =path]
       [%del-site name=term]
       [%add-plugin name=term =path =plugin]
       [%del-plugin name=term =path]

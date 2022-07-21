@@ -65,6 +65,22 @@
           [%give %fact [/update]~ %switchboard-update !>(update)]
       ==
     ::
+        %edit-site
+      ?~  site=(~(get by sites) name.act)
+        ~|("no such site" !!)
+      =/  old=binding:eyre  binding.u.site
+      =/  new=binding:eyre  [`host.act path.act]
+      =.  by-binding  (~(del by by-binding) old)
+      =.  by-binding  (~(put by by-binding) new name.act)
+      =.  binding.u.site  new
+      =.  sites    (~(put by sites) name.act u.site)
+      =/  =update  [%full sites]
+      :_  state
+      :~  [%pass /eyre %arvo %e %disconnect old]
+          [%pass /eyre %arvo %e %connect new dap.bowl]
+          [%give %fact [/update]~ %switchboard-update !>(update)]
+      ==
+    ::
         %del-site
       ?~  site=(~(get by sites) name.act)
         ~|("no such site" !!)
