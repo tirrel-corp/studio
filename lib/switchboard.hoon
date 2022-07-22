@@ -8,6 +8,7 @@
     ^-  $-(json ^action)
     %-  of
     :~  [%add-site (ot name+so host+so path+pa ~)]
+        [%edit-site (ot name+so host+so path+pa ~)]
         [%del-site (ot name+so ~)]
         [%add-plugin (ot name+so path+pa plugin+plugin ~)]
         [%del-plugin (ot name+so path+pa ~)]
@@ -30,6 +31,13 @@
     %+  frond  -.u
     ?-  -.u
         %add-site
+      %-  pairs
+      :~  name+s+name.u
+          host+s+host.u
+          path+s+(spat path.u)
+      ==
+    ::
+        %edit-site
       %-  pairs
       :~  name+s+name.u
           host+s+host.u

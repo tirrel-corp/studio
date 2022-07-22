@@ -378,6 +378,10 @@
   |=  =path
   ^-  (unit (unit cage))
   ?+  path  (on-peek:def path)
+      [%x %has-site @ ~]
+    =*  name  i.t.t.path
+    ``noun+!>((~(has by sites) name))
+  ::
       [%x %site-by-plugin ?(%pipe %mailer) @ ~]
     =*  plugin-type  i.t.t.path
     =*  name    i.t.t.t.path
