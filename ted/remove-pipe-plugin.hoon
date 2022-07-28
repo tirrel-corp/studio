@@ -4,7 +4,7 @@
 +$  parsed-inputs
   $:  site-name=term
       plugin-name=term
-      plugin-path=path
+      sub-path=path
   ==
 ++  dejs
   =,  dejs:format
@@ -12,7 +12,7 @@
   %-  ot
   :~  site-name+so
       plugin-name+so
-      plugin-path+pa
+      sub-path+pa
   ==
 --
 ^-  thread:spider
@@ -28,7 +28,7 @@
 =/  sa=action:switchboard
   :*  %del-plugin
       site-name.input
-      plugin-path.input
+      sub-path.input
   ==
 ::
 =/  pa=action:pipe
