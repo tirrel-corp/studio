@@ -1,4 +1,4 @@
-/-  spider, pipe, switchboard, graph-store
+/-  spider, pipe, switchboard, graph-store, mailer
 /+  strandio, resource
 |%
 +$  parsed-inputs
@@ -48,8 +48,8 @@
 ?~  jon
   (pure:m !>("invalid input"))
 =/  input=parsed-inputs  (dejs u.jon)
-=/  has-site=?
-  .^(? %gx /(scot %p our.bowl)/switchboard/(scot %da now.bowl)/has-site/[site-name.input]/noun)
+;<  has-site=?  bind:m
+  (scry:strandio ? /gx/switchboard/has-site/[site-name.input]/noun)
 ?.  has-site
   (pure:m !>("no such switchboard site exists: {<site-name.input>}"))
 ::
@@ -76,4 +76,13 @@
 ;<  ~  bind:m  (poke-our:strandio %pipe %pipe-action !>(del-pipe))
 ;<  ~  bind:m  (poke-our:strandio %pipe %pipe-action !>(add-pipe))
 ;<  ~  bind:m  (poke-our:strandio %switchboard %switchboard-action !>(add-switch))
+;<  ml=(unit mailing-list:mailer)  bind:m
+  %+  scry:strandio  (unit mailing-list:mailer)
+  /gx/mailer/list/[old-plugin-name.input]/noun
+?~  ml
+  (pure:m !>(~))
+=/  m-del  [%del-list old-plugin-name.input]
+=/  m-add  [%add-list new-plugin-name.input (~(run in u.ml) head)]
+;<  ~  bind:m  (poke-our:strandio %mailer %mailer-action !>(m-del))
+;<  ~  bind:m  (poke-our:strandio %mailer %mailer-action !>(m-add))
 (pure:m !>(~))

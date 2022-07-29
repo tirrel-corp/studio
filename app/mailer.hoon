@@ -216,6 +216,10 @@
     =*  li  i.t.t.path
     ``noun+!>((~(has by ml) li))
   ::
+      [%x %list @ ~]
+    =*  li  i.t.t.path
+    ``noun+!>((~(get by ml) li))
+  ::
       [%x %ship-token @ ~]
     =*  token  i.t.t.path
     ``noun+!>((get-user-by-token:do token))

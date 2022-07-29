@@ -1,4 +1,4 @@
-/-  spider, pipe, switchboard
+/-  spider, pipe, switchboard, mailer
 /+  strandio
 |%
 +$  parsed-inputs
@@ -36,6 +36,14 @@
       plugin-name.input
   ==
 ::
+;<  ml=(unit mailing-list:mailer)  bind:m
+  %+  scry:strandio  (unit mailing-list:mailer)
+  /gx/mailer/list/[plugin-name.input]/noun
+::
 ;<  ~  bind:m  (poke-our:strandio %switchboard %switchboard-action !>(sa))
 ;<  ~  bind:m  (poke-our:strandio %pipe %pipe-action !>(pa))
+?~   ml
+  (pure:m !>(~))
+=/  ma=action:mailer  [%del-list plugin-name.input]
+;<  ~  bind:m  (poke-our:strandio %mailer %mailer-action !>(ma))
 (pure:m !>(~))
