@@ -93,14 +93,20 @@
             %pipe
           =/  =plugin  [%pipe name.plugin-state]
           =/  =wire  (weld /pipe/[name.plugin-state]/[name.act] path)
+          =/  del=action:pipe  [%remove name.plugin-state]
           :_  (~(del by out) plugin)
-          [[%pass wire %agent [our.bowl %pipe] %leave ~] cad]
+          :+  [%pass wire %agent [our.bowl %pipe] %leave ~]
+            [%pass wire %agent [our.bowl %pipe] %poke %pipe-action !>(del)]
+          cad
         ::
             %mailer
           =/  =plugin  [%mailer name.plugin-state]
           =/  =wire  (weld /mailer/[name.plugin-state]/[name.act] path)
+          =/  del=action:mailer  [%del-list name.plugin-state]
           :_  (~(del by out) plugin)
-          [[%pass wire %agent [our.bowl %mailer] %leave ~] cad]
+          :+  [%pass wire %agent [our.bowl %mailer] %leave ~]
+            [%pass wire %agent [our.bowl %mailer] %poke %mailer-action !>(del)]
+          cad
         ==
       =/  =update  [%full sites]
       :_  state
