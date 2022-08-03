@@ -225,7 +225,7 @@
         name.action
       :_  state
       :~  give-flows:pc
-          [%give %kick [/switch/[name.action] ~] ~]
+::          [%give %kick [/switch/[name.action] ~] ~]
       ==
     ::
         %edit
