@@ -1,6 +1,7 @@
 /-  *pipe, *post, store=graph-store, metadata-store
 /+  *pipe-render, cram
-^-  email-template
+^-  versioned-email-template
+:-  %1
 |=  in=email-inputs
 ^-  [email (unit tang)]
 |^  =/  title=content  (snag 0 contents.post.in)

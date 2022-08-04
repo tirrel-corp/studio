@@ -7,14 +7,15 @@
       [%3 state-2]
       [%4 state-3]
       [%5 state-4]
+      [%6 state-5]
   ==
-::
-+$  state-4
++$  state-5
+  $+  state-5
   $:  flows=(map name=term flow)
       uid-to-name=(jug uid name=term)
       template-desk=(unit desk)
-      custom-site=(map term site-template)
-      custom-email=(map term email-template)
+      custom-site=(map term versioned-site-template)
+      custom-email=(map term versioned-email-template)
   ==
 ::
 +$  flow
@@ -65,7 +66,25 @@
       [%build name=term]
   ==
 ::
++$  versioned-site-template
+  $%  [%0 p=site-template-4]
+      [%1 p=site-template]
+  ==
+::
++$  versioned-email-template
+  $%  [%0 p=email-template-4]
+      [%1 p=email-template]
+  ==
+::
++$  site-template
+  $+  site-template
+  $-(site-inputs website)
++$  email-template
+  $+  email-template
+  $-(email-inputs [email (unit tang)])
+::
 +$  site-inputs
+  $+  site-inputs
   $:  name=term
       =binding:eyre
       posts=(list [@da post (list post)])
@@ -78,6 +97,7 @@
   ==
 ::
 +$  email-inputs
+  $+  email-inputs
   $:  name=term
       site-binding=(unit binding:eyre)
       email-binding=(unit binding:eyre)
@@ -85,8 +105,6 @@
       =association:meta
   ==
 ::
-+$  site-template   $-(site-inputs website)
-+$  email-template  $-(email-inputs [email (unit tang)])
 +$  website  (map @t webpage)
 +$  webpage  [dat=mime err=(unit tang) auth=(unit @tas)]
 +$  email    [subject=@t body=mime]
@@ -100,13 +118,67 @@
 ::
 ::  old versions
 ::
++$  state-4
+  $+  state-4
+  $:  flows=(map name=term flow-4)
+      sites=(map name=term website)
+      uid-to-name=(jug uid name=term)
+      template-desk=(unit desk)
+      custom-site=(map term site-template-4)
+      custom-email=(map term email-template-4)
+  ==
+::
++$  site-template-4
+  $+  site-template-4
+  $-(site-inputs-4 website)
++$  email-template-4
+  $+  email-template-4
+  $-(email-inputs-4 [email (unit tang)])
+::
++$  site-inputs-4
+  $:  name=term
+      =binding:eyre
+      posts=(list [@da post (list post)])
+      =association:meta
+      comments=?
+      email=?
+      width=?(%1 %2 %3)
+      lit=?
+      accent=@ux
+  ==
+::
++$  email-inputs-4
+  $:  name=term
+      site-binding=(unit binding:eyre)
+      =post
+      =association:meta
+  ==
+::
++$  flow-4
+  $:  =resource
+      =index
+      site=(unit site-2)
+      email=(unit term)
+      auth-rule=(unit auth-rule)
+  ==
+::
++$  site-2
+  $:  template=term
+      =binding:eyre
+      comments=?
+      width=?(%1 %2 %3)
+      lit=?
+      accent=@ux
+  ==
+::
 +$  state-3
+  $+  state-3
   $:  flows=(map name=term flow-2)
       sites=(map name=term website-1)
       uid-to-name=(jug uid name=term)
       template-desk=(unit desk)
       custom-site=(map term site-template-1)
-      custom-email=(map term email-template)
+      custom-email=(map term email-template-4)
   ==
 +$  website-1  (map @t webpage-1)
 +$  webpage-1  [dat=mime err=(unit tang)]
@@ -114,11 +186,12 @@
 +$  flow-2
   $:  =resource
       =index
-      site=(unit site)
+      site=(unit site-2)
       email=(unit term)
   ==
 ::
 +$  state-2
+  $+  state-2
   $:  flows=(map name=term flow-2)
       sites=(map name=term website-0)
       uid-to-name=(jug uid name=term)
@@ -139,6 +212,7 @@
   ==
 ::
 +$  state-1
+  $+  state-1
   $:  flows=(map name=term flow-1)
       sites=(map name=term website-0)
       uid-to-name=(jug uid name=term)
@@ -153,6 +227,7 @@
   ==
 ::
 +$  state-0
+  $+  state-0
   $:  flows=(map name=term flow-0)
       sites=(map name=term website-0)
       uid-to-name=(jug uid name=term)

@@ -4,14 +4,14 @@
     pipe-templates-email-light
 |%
 ++  site-templates
-  ^-  (map term site-template)
-  %-  ~(gas by *(map term site-template))
+  ^-  (map term versioned-site-template)
+  %-  ~(gas by *(map term versioned-site-template))
   :~  [%basic pipe-templates-site-basic]
       [%urbit pipe-templates-site-urbit]
   ==
 ++  email-templates
-  ^-  (map term email-template)
-  %-  ~(gas by *(map term email-template))
+  ^-  (map term versioned-email-template)
+  %-  ~(gas by *(map term versioned-email-template))
   :~  [%light pipe-templates-email-light]
   ==
 --

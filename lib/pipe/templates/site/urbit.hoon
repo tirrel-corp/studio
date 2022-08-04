@@ -1,6 +1,7 @@
 /-  *pipe, *post, store=graph-store, metadata-store
 /+  *pipe-render, cram
-^-  $-(site-inputs website)
+^-  versioned-site-template
+:-  %1
 |=  sinp=site-inputs
 ^-  website
 |^  =/  [previews=marl pages=website]
