@@ -110,8 +110,9 @@
         ==
       =/  =update  [%full sites]
       :_  state
-      :~  [%pass /eyre %arvo %e %disconnect binding.u.site]
+      :*  [%pass /eyre %arvo %e %disconnect binding.u.site]
           [%give %fact [/update]~ %switchboard-update !>(update)]
+          cards
       ==
     ::
         %add-plugin

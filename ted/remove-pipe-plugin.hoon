@@ -25,7 +25,7 @@
   (pure:m !>("invalid input"))
 =/  input=parsed-inputs  (dejs u.jon)
 ::
-=/  sa=action:switchboard
+=/  sp=action:switchboard
   :*  %del-plugin
       site-name.input
       sub-path.input
@@ -40,10 +40,17 @@
   %+  scry:strandio  (unit mailing-list:mailer)
   /gx/mailer/list/[plugin-name.input]/noun
 ::
-;<  ~  bind:m  (poke-our:strandio %switchboard %switchboard-action !>(sa))
+;<  ~  bind:m  (poke-our:strandio %switchboard %switchboard-action !>(sp))
 ;<  ~  bind:m  (poke-our:strandio %pipe %pipe-action !>(pa))
 ?~   ml
   (pure:m !>(~))
+::
+=/  sm=action:switchboard
+  :*  %del-plugin
+      site-name.input
+      /mail
+  ==
 =/  ma=action:mailer  [%del-list plugin-name.input]
 ;<  ~  bind:m  (poke-our:strandio %mailer %mailer-action !>(ma))
+;<  ~  bind:m  (poke-our:strandio %switchboard %switchboard-action !>(sm))
 (pure:m !>(~))

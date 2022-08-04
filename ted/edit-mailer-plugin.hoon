@@ -30,16 +30,13 @@
 --
 ^-  thread:spider
 |=  arg=vase
-~&  %edit-thread
 =/  m  (strand:spider ,vase)
 ^-  form:m
 ;<  =bowl:spider  bind:m  get-bowl:strandio
 =+  !<(jon=(unit json) arg)
 ?~  jon
-  ~&  %no-json
   (pure:m !>("invalid input"))
 =/  input=parsed-inputs  (dejs u.jon)
-~&  %succeeded-parsing
 ::
 =/  pa=action:pipe
   :*  %edit

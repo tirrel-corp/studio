@@ -53,7 +53,7 @@
 ?.  has-site
   (pure:m !>("no such switchboard site exists: {<site-name.input>}"))
 ::
-=/  del-switch=action:switchboard
+=/  del-sp=action:switchboard
   [%del-plugin site-name.input old-sub-path.input]
 =/  del-pipe=action:pipe
   [%remove old-plugin-name.input]
@@ -66,16 +66,24 @@
       ~
       ~
   ==
-=/  add-switch=action:switchboard
+=/  add-sp=action:switchboard
   :*  %add-plugin
       site-name.input
       new-sub-path.input
       [%pipe new-plugin-name.input]
   ==
-;<  ~  bind:m  (poke-our:strandio %switchboard %switchboard-action !>(del-switch))
+=/  del-sm=action:switchboard
+  [%del-plugin site-name.input /mail]
+=/  add-sm=action:switchboard
+  :*  %add-plugin
+      site-name.input
+      /mail
+      [%mailer new-plugin-name.input]
+  ==
+;<  ~  bind:m  (poke-our:strandio %switchboard %switchboard-action !>(del-sp))
 ;<  ~  bind:m  (poke-our:strandio %pipe %pipe-action !>(del-pipe))
 ;<  ~  bind:m  (poke-our:strandio %pipe %pipe-action !>(add-pipe))
-;<  ~  bind:m  (poke-our:strandio %switchboard %switchboard-action !>(add-switch))
+;<  ~  bind:m  (poke-our:strandio %switchboard %switchboard-action !>(add-sp))
 ;<  ml=(unit mailing-list:mailer)  bind:m
   %+  scry:strandio  (unit mailing-list:mailer)
   /gx/mailer/list/[old-plugin-name.input]/noun
@@ -83,6 +91,8 @@
   (pure:m !>(~))
 =/  m-del  [%del-list old-plugin-name.input]
 =/  m-add  [%add-list new-plugin-name.input (~(run in u.ml) head)]
+;<  ~  bind:m  (poke-our:strandio %switchboard %switchboard-action !>(del-sm))
 ;<  ~  bind:m  (poke-our:strandio %mailer %mailer-action !>(m-del))
 ;<  ~  bind:m  (poke-our:strandio %mailer %mailer-action !>(m-add))
+;<  ~  bind:m  (poke-our:strandio %switchboard %switchboard-action !>(add-sm))
 (pure:m !>(~))
