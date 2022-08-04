@@ -7,8 +7,7 @@
 +$  card  card:agent:gall
 +$  mailing-list-0  (map @t @uv)
 +$  state-0
-  $:  %0
-      $=  creds
+  $:  $=  creds
       $:  api-key=(unit @t)
           email=(unit @t)
           ship-url=(unit @t)
@@ -16,8 +15,7 @@
       ml=(map term mailing-list-0)
   ==
 +$  state-1
-  $:  %1
-      $=  creds
+  $:  $=  creds
       $:  api-key=(unit @t)
           email=(unit @t)
           ship-url=(unit @t)
@@ -25,12 +23,13 @@
       ml=(map term mailing-list)
   ==
 +$  versioned-state
-  $%  state-0
-      state-1
+  $%  [%0 state-0]
+      [%1 state-1]
+      [%2 state-1]
   ==
 --
 ::
-=|  state-1
+=|  [%2 state-1]
 =*  state  -
 ::
 %-  agent:dbug
@@ -51,19 +50,27 @@
   ^-  (quip card _this)
   |^
   =+  !<(old=versioned-state old-vase)
-  =/  cards=(list card)
-    [%pass /connect %arvo %e %disconnect [~ /'mailer']]^~
+  =|  cards=(list card)
   |-
   ?-  -.old
-    %1  [cards this(state old)]
-    %0  $(old (state-0-to-1 old))
+      %2  [cards this(state old)]
+      %1
+    =/  new-cards=(list card)
+      [%pass /eyre %arvo %e %disconnect [~ /'mailer']]^~
+    $(old (state-1-to-2 old), cards new-cards)
+  ::
+      %0  $(old (state-0-to-1 old))
   ==
+  ++  state-1-to-2
+    |=  [%1 s=state-1]
+    ^-  [%2 state-1]
+    [%2 s]
   ::
   ++  state-0-to-1
-    |=  s=state-0
-    ^-  state-1
+    |=  [%0 s=state-0]
+    ^-  [%1 state-1]
+    :-  %1
     %=  s
-      -   %1
       ml  (~(run by ml.s) list-0-to-1)
     ==
   ::

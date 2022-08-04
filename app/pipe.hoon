@@ -60,7 +60,12 @@
       =/  as=action:switchboard
         [%add-site name u.site.binding path.binding]
       =/  ap=action:switchboard
-        [%add-plugin name.resource.flow / %pipe name.resource.flow]
+        [%add-plugin name / %pipe name.resource.flow]
+      =?  cards  (scry:pc %mailer ? /has-list/[name]/noun)
+        :_  cards
+        =/  mp=action:switchboard
+          [%add-plugin name /mail %mailer name.resource.flow]
+        [%pass /sw %agent [our.bowl %switchboard] %poke %switchboard-action !>(mp)]
       :*  [%pass /eyre %arvo %e %disconnect binding]
           [%pass /sw %agent [our.bowl %switchboard] %poke %switchboard-action !>(as)]
           [%pass /sw %agent [our.bowl %switchboard] %poke %switchboard-action !>(ap)]
