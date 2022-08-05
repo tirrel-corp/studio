@@ -42,6 +42,9 @@
       :~  creds+(creds creds.u)
           mailing-lists+(mailing-lists ml.u)
       ==
+    ::
+        %creds  (creds api-key.u email.u url.u)
+        %lists  (mailing-lists ml.u)
     ==
   ::
   ++  creds

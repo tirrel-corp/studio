@@ -112,25 +112,26 @@
       =?  ship-url.creds  ?=(^ ship-url.act)
         ship-url.act
       :_  state
-      [give-update:do]~
+      (give-update:do %creds creds)^~
     ::
         %unset-creds
       =?  api-key.creds   api-key.act   ~
       =?  email.creds     email.act     ~
       =?  ship-url.creds  ship-url.act  ~
       :_  state
-      [give-update:do]~
+      (give-update:do %creds creds)^~
     ::
         %add-list
       ?:  (~(has by ml) name.act)
         ~|("mailing list already exists: {<name.act>}" !!)
       =/  recipients=mailing-list
-        %-  ~(run in mailing-list.act)
+        %-  ~(gas by *mailing-list)
+        %+  turn  ~(tap in mailing-list.act)
         |=  email=@t
         [email (sham email eny.bowl) %.y]
       =.  ml  (~(put by ml) name.act recipients)
       :_  state
-      :~  give-update:do
+      :~  (give-update:do %lists ml)
           [%pass /pipe/[name.act] %agent [our.bowl %pipe] %watch /email/[name.act]]
       ==
     ::
@@ -139,7 +140,7 @@
         ~|("no such mailing list: {<name.act>}" !!)
       =.  ml  (~(del by ml) name.act)
       :_  state
-      :~  give-update:do
+      :~  (give-update:do %lists ml)
           [%pass /pipe/[name.act] %agent [our.bowl %pipe] %leave ~]
       ==
     ::
@@ -159,7 +160,7 @@
       =/  new=mailing-list  (~(uni by u.old) recipients)
       =.  ml  (~(put by ml) name.act new)
       :_  state
-      [give-update:do cards]
+      [(give-update:do %lists ml) cards]
     ::
         %del-recipients
       =/  old=(unit mailing-list)  (~(get by ml) name.act)
@@ -170,7 +171,7 @@
         (~(del by out) email)
       =.  ml  (~(put by ml) name.act new)
       :_  state
-      [give-update:do]~
+      (give-update:do %lists ml)^~
     ==
   --
 ::
@@ -361,8 +362,8 @@
   --
 ::
 ++  give-update
+  |=  =update
   ^-  card
-  =/  =update  [%initial creds ml]
   [%give %fact [/updates]~ %mailer-update !>(update)]
 ::
 ++  send-email

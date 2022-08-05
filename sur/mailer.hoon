@@ -25,6 +25,8 @@
 ::
 +$  update
   $%  [%initial creds=[(unit @t) (unit @t) (unit @t)] ml=(map term mailing-list)]
+      [%creds api-key=(unit @t) email=(unit @t) url=(unit @t)]
+      [%lists ml=(map term mailing-list)]
   ==
 ::
 +$  mailing-list  (map @t [token=@uv confirmed=?])
