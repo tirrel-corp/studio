@@ -33,14 +33,14 @@
         %add-site
       %-  pairs
       :~  name+s+name.u
-          host+s+host.u
+          hostname+s+host.u
           path+s+(spat path.u)
       ==
     ::
         %edit-site
       %-  pairs
       :~  name+s+name.u
-          host+s+host.u
+          hostname+s+host.u
           path+s+(spat path.u)
       ==
     ::
@@ -53,7 +53,7 @@
       %-  pairs
       :~  name+s+name.u
           path+s+(spat path.u)
-          plugin+(frond -.plugin.u s+name.plugin.u)
+          plugin+(pairs type+s+-.plugin.u name+s+name.plugin.u)
       ==
     ::
         %del-plugin

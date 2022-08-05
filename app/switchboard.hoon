@@ -59,7 +59,7 @@
       =/  =binding:eyre  [`host.act path.act]
       =.  sites    (~(put by sites) name.act [binding ~])
       =.  by-binding  (~(put by by-binding) binding name.act)
-      =/  =update  [%full sites]
+      =/  =update  act
       :_  state
       :~  [%pass /eyre %arvo %e %connect binding dap.bowl]
           [%give %fact [/update]~ %switchboard-update !>(update)]
@@ -74,7 +74,7 @@
       =.  by-binding  (~(put by by-binding) new name.act)
       =.  binding.u.site  new
       =.  sites    (~(put by sites) name.act u.site)
-      =/  =update  [%full sites]
+      =/  =update  act
       :_  state
       :~  [%pass /eyre %arvo %e %disconnect old]
           [%pass /eyre %arvo %e %connect new dap.bowl]
@@ -108,7 +108,7 @@
             [%pass wire %agent [our.bowl %mailer] %poke %mailer-action !>(del)]
           cad
         ==
-      =/  =update  [%full sites]
+      =/  =update  act
       :_  state
       :*  [%pass /eyre %arvo %e %disconnect binding.u.site]
           [%give %fact [/update]~ %switchboard-update !>(update)]
@@ -128,7 +128,7 @@
       =.  plugins.u.site  (~(put by plugins.u.site) path.act plugin-state)
       =.  sites           (~(put by sites) name.act u.site)
       =.  by-plugin       (~(put by by-plugin) plugin.act [name.act path.act])
-      =/  =update  [%full sites]
+      =/  =update  act
       :_  state
       ?-   -.plugin.act
           %pipe
@@ -158,7 +158,7 @@
       =.  plugins.u.site  (~(del by plugins.u.site) path.act)
       =.  sites           (~(put by sites) name.act u.site)
       =.  by-plugin       (~(del by by-plugin) plugin)
-      =/  =update  [%full sites]
+      =/  =update  act
       :_  state
       ?-   -.plugin
           %pipe
