@@ -53,7 +53,7 @@
       %-  pairs
       :~  name+s+name.u
           path+s+(spat path.u)
-          plugin+(pairs type+s+-.plugin.u name+s+name.plugin.u)
+          plugin+(pairs type+s+-.plugin.u name+s+name.plugin.u ~)
       ==
     ::
         %del-plugin
