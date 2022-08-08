@@ -298,13 +298,8 @@
       =.  flows  (~(put by flows) name.action new)
       ?~  site.new
         `state
-      ::
-      =^  cards  state
-        (update-site:pc name.action fl)
       :_  state
-      :*  give-flows:pc
-          cards
-      ==
+      [give-flows:pc ~]
       ::
       ++  site-edit
         |=  [=edit-site f=flow]

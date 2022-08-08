@@ -1,11 +1,12 @@
 ::  switchboard [tirrel]
 ::
-/-  *switchboard, pipe, mailer
+/-  *switchboard, pipe, mailer, meta=metadata-store, *resource
 /+  server,
     default-agent,
     dbug,
     verb,
-    grate
+    grate,
+    pages=switchboard-pages
 |%
 +$  card  $+(card card:agent:gall)
 --
@@ -202,10 +203,10 @@
       `not-found:gen:server
     =/  [name=term =site =path]  u.details
     ?~  plugins.site
-      =/  =manx  ;div: site has not been configured yet
-      `(manx-response:gen:server manx)
+      `(manx-response:gen:server not-configured:pages)
     ?~  plugin=(get-plugin plugins.site path)
       `not-found:gen:server
+    ~|  -.plugin-state.u.plugin
     ?-  -.plugin-state.u.plugin
         %pipe
       =/  webpage=(unit webpage:pipe)
@@ -234,10 +235,9 @@
       =/  details=(unit [name=term email=@t @uv ?])
         (scry %mailer ,(unit [term @t @uv ?]) /ship-token/[u.token]/noun)
       ?~  details  `not-found:gen:server
-      =/  landing=manx
-        (scry %mailer manx /unsubscribe-landing/[name.u.details]/hymn)
+      =/  title=@t  (get-blog-title name.u.details)
       :-  (poke-mailer %del-recipients name.u.details (sy email.u.details ~))^~
-      (manx-response:gen:server landing)
+      (manx-response:gen:server (unsubscribe:pages title))
     ::
         [%subscribe ~]
       ?.  ?=(%'POST' method.request)
@@ -251,10 +251,9 @@
       =/  book=(unit @t)  (get-header:http 'book' u.parsed-body)
       ?:  ?|(?=(~ who) ?=(~ book))
         `not-found:gen:server
-      =/  landing=manx
-        (scry %mailer manx /subscribe-landing/[u.book]/hymn)
+      =/  title=@t  (get-blog-title u.book)
       :-  (poke-mailer %add-recipients u.book (sy u.who ~) %.n)^~
-      (manx-response:gen:server landing)
+      (manx-response:gen:server (subscribe:pages title))
     ::
         [%confirm ~]
       =/  token=(unit @t)  (get-header:http 'token' args)
@@ -263,12 +262,23 @@
       =/  det=(unit [name=term email=@t @uv ?])
         (scry %mailer ,(unit [term @t @uv ?]) /ship-token/[u.token]/noun)
       ?~  det  `not-found:gen:server
-      =/  landing=manx
-        (scry %mailer manx /confirm-landing/[name.u.det]/hymn)
+      =/  title=@t  (get-blog-title name.u.det)
       :-  (poke-mailer %add-recipients name.u.det (sy email.u.det ~) %.y)^~
-      (manx-response:gen:server landing)
+      (manx-response:gen:server (confirm:pages title))
     ==
   ::
+  ++  get-blog-title
+    |=  name=term
+    ^-  @t
+    =/  res=resource
+      %-  need
+      (scry %pipe (unit resource) /resource/[name]/noun)
+    =/  assoc=association:meta
+      %-  need
+      %^  scry  %metadata-store
+        (unit association:meta)
+      /metadata/graph/ship/(scot %p our.bowl)/[name.res]/noun
+    title.metadatum.assoc
   ::
   ++  scry
     |*  [=term =mold =path]
@@ -284,12 +294,22 @@
     |=  [plugins=(map path plugin-state) req-path=path]
     ^-  (unit [=sub=path =plugin-state])
     =/  plug-list  ~(tap by plugins)
+    =|  possible=(list [path path plugin-state])
     |-
     =*  loop  $
-    ?~  plug-list  ~
+    ?~  plug-list
+      =/  sorted=(list [path path plugin-state])
+        %+  sort  possible
+        |=  [[a=path path plugin-state] [b=path path plugin-state]]
+        (gth (lent a) (lent b))
+      ?~  sorted  ~
+      `+.i.sorted
     =/  suf  (get-suffix -.i.plug-list req-path)
     ?^  suf
-      `[u.suf +.i.plug-list]
+      %=  loop
+        possible   [[-.i.plug-list u.suf +.i.plug-list] possible]
+        plug-list  t.plug-list
+      ==
     loop(plug-list t.plug-list)
   ::
   ++  get-suffix

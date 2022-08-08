@@ -60,8 +60,10 @@
       sub-path.input
       [%mailer plugin-name.input]
   ==
+=/  rebuild=action:pipe  [%build plugin-name.input]
 ;<  ~  bind:m  (poke-our:strandio %pipe %pipe-action !>(pa))
 ;<  ~  bind:m  (poke-our:strandio %mailer %mailer-action !>(set-creds))
 ;<  ~  bind:m  (poke-our:strandio %mailer %mailer-action !>(add-list))
 ;<  ~  bind:m  (poke-our:strandio %switchboard %switchboard-action !>(sa))
+;<  ~  bind:m  (poke-our:strandio %pipe %pipe-action !>(rebuild))
 (pure:m !>(~))

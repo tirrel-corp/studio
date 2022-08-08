@@ -39,7 +39,9 @@
       site-name.input
       sub-path.input
   ==
+=/  rebuild=action:pipe  [%build plugin-name.input]
 ;<  ~  bind:m  (poke-our:strandio %pipe %pipe-action !>(pa))
 ;<  ~  bind:m  (poke-our:strandio %mailer %mailer-action !>(del-list))
 ;<  ~  bind:m  (poke-our:strandio %switchboard %switchboard-action !>(sa))
+;<  ~  bind:m  (poke-our:strandio %pipe %pipe-action !>(rebuild))
 (pure:m !>(~))
