@@ -2,7 +2,13 @@
 ::
 ::
 /-  *mailer, pipe, meta=metadata-store, *resource
-/+  default-agent, dbug, verb, server, mailer, multipart
+/+  default-agent,
+    dbug,
+    verb,
+    server,
+    mailer,
+    multipart,
+    pages=switchboard-pages
 |%
 +$  card  card:agent:gall
 +$  mailing-list-0  (map @t @uv)
@@ -232,17 +238,6 @@
     =*  token  i.t.t.path
     ``noun+!>((get-user-by-token:do token))
   ::
-      [%x %subscribe-landing @ ~]
-    =*  name  i.t.t.path
-    ``hymn+!>((subscribe-landing:do name))
-  ::
-      [%x %unsubscribe-landing @ ~]
-    =*  name  i.t.t.path
-    ``hymn+!>((unsubscribe-landing:do name))
-  ::
-      [%x %confirm-landing @ ~]
-    =*  name  i.t.t.path
-    ``hymn+!>((confirm-landing:do name))
   ==
 ::
 ++  on-agent
@@ -438,55 +433,21 @@
   |=  [a=@t b=@t]
   [a %s b]
 ::
-++  subscribe-landing
-  |=  name=term
-  ^-  manx
-  ;div: Subscribed to {(trip (get-title name))}, check your email for confirmation
-::
-++  unsubscribe-landing
-  |=  name=term
-  ^-  manx
-  ;div: Unsubscribed from {(trip (get-title name))}
-::
-++  confirm-landing
-  |=  name=term
-  ^-  manx
-  ;div: Confirmed subscription to {(trip (get-title name))}
-::
-++  confirm-body
-  |=  [title=@t token=@uv =binding:eyre]
-  ^-  (list content-field)
-  =/  link=@t
-    %:  rap  3
-        (need site.binding)
-        (spat path.binding)
-        '/confirm?token='
-        (encode-token token)
-        ~
-    ==
-  :_  ~
-  :-  'text/html'
-  =<  q
-  %-  as-octt:mimes:html
-  %-  en-xml:html
-  ^-  manx
-  ;div
-    ;p: Please confirm your subscription to {(trip title)}, if you did not subscribe you can ignore this email.
-    ;a(href (trip link)): Confirm Subscription
-  ==
-::
 ++  confirm-email
   |=  [email-address=@t name=term token=@uv]
   ^-  card
   =/  title  (get-title name)
   ?~  email.creds  !!
-  =/  =binding:eyre
+  =/  mailer-binding=binding:eyre
     %-  need
     (scry %switchboard (unit binding:eyre) /site-by-plugin/mailer/[name]/noun)
+  =/  pipe-binding=binding:eyre
+    %-  need
+    (scry %switchboard (unit binding:eyre) /site-by-plugin/pipe/[name]/noun)
   =/  =email
     :*  [u.email.creds (scot %p our.bowl)]
         (cat 3 'Confirm your subscription to ' title)
-        (confirm-body title token binding)
+        (confirm-email-body:pages title (encode-token token) pipe-binding mailer-binding)
         [[email-address]~ ~ ~]~
     ==
   =-  [%pass /send-email/(scot %uv eny.bowl) %arvo %i %request -]

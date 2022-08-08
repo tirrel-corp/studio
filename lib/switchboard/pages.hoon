@@ -1,3 +1,4 @@
+/-  *mailer
 |%
 ++  frame
   |=  inner=manx
@@ -31,6 +32,7 @@
       ;h1(class "tc"): Subscribed to {(trip title)}, check your email for confirmation
     ==
   ==
+::
 ++  confirm
   |=  title=@t
   ^-  manx
@@ -40,6 +42,7 @@
       ;h1(class "tc"): Confirmed subscribtion to {(trip title)}
     ==
   ==
+::
 ++  unsubscribe
   |=  title=@t
   ^-  manx
@@ -48,5 +51,36 @@
     ;div(class "dtc v-mid tc")
       ;h1(class "tc"): Unsubscribed from {(trip title)}
     ==
+  ==
+::
+++  confirm-email-body
+  |=  [title=@t token=@t pipe=binding:eyre mailer=binding:eyre]
+  ^-  (list content-field)
+  =/  blog-link=@t
+    %:  rap  3
+        (need site.pipe)
+        (spat path.pipe)
+        ~
+    ==
+  =/  confirm-link=@t
+    %:  rap  3
+        (need site.mailer)
+        (spat path.mailer)
+        '/confirm?token='
+        token
+        ~
+    ==
+  :_  ~
+  :-  'text/html'
+  =<  q
+  %-  as-octt:mimes:html
+  %-  en-xml:html
+  ^-  manx
+  ;div
+    ;a(href (trip blog-link), style "color:black; text-decoration-color:black;")
+      ;h1(style "color:black; text-decoration-color:black;"): You've subscribed to {(trip title)}!
+    ==
+    ;p: Please confirm your subscription, if you did not subscribe you can ignore this email.
+    ;a(href (trip confirm-link), style "color:black;"): Confirm Subscription
   ==
 --
