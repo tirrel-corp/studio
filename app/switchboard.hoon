@@ -195,6 +195,10 @@
     ^-  (quip card simple-payload:http)
     =/  req-line=request-line:server
       (parse-request-line:server url.request.req)
+    =?  site.req-line  ?=(^ ext.req-line)
+      %+  snoc
+        (scag (dec (lent site.req-line)) site.req-line)
+      (rap 3 (rear site.req-line) '.' u.ext.req-line ~)
     =/  host=(unit @t)
       (get-header:http 'host' header-list.request.req)
     ?~  host
