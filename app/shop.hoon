@@ -29,7 +29,7 @@
       =star-configs
       =pending-txs
       =for-sale
-      pending-sales=(map @t [star=@p metadata=(unit metadata:circle) =time])
+      pending-sales=(map @t [star=@p metadata=(unit metadata:circle) =time ship=@p])
       =sold-ships
       =sold-ship-to-date
       session-to-time=(map @t time)
@@ -180,16 +180,22 @@
     =/  req-line  (parse-request-line:server url.request.req)
     ?+  site.req-line  [`this not-found:gen:server]
     ::
-        [%shop %session @ *]
+        [%shop %session @ @ *]
       ?>  ?=(%'POST' method.request.req)
-      =/  star=@p  (slav %p i.t.t.site.req-line)
-      =?  pending-sales  ?=([@ ~] t.t.t.site.req-line)
-        (~(del by pending-sales) i.t.t.t.site.req-line)
+      =/  star=@p    (slav %p i.t.t.site.req-line)
+      =/  planet=@p  (slav %p i.t.t.t.site.req-line)
+      =?  pending-sales  ?=([@ ~] t.t.t.t.site.req-line)
+        (~(del by pending-sales) i.t.t.t.t.site.req-line)
       ?~  price
         [`this [[400 ~] ~]]
       ?~  fs=(~(get by for-sale) star)
         [`this [[400 ~] ~]]
-      ?:  (gte ~(wyt by pending-sales) ~(wyt by u.fs))
+      =/  available=?
+        %+  roll  ~(tap by pending-sales)
+        |=  [[@t [star=@p metadata=(unit metadata:circle) =time ship=@p]] out=_&]
+        ?:  =(ship planet)  %|
+        out
+      ?.  available
         [`this [[400 ~] ~]]
       =/  total=amount:circle
         [amount.u.price 0 currency.u.price]
@@ -197,7 +203,7 @@
       =/  act
         [%add-session our.bowl sess-id total]
       :_  [[200 ~] `(json-to-octs:server s+sess-id)]
-      =.  pending-sales  (~(put by pending-sales) sess-id [star ~ now.bowl])
+      =.  pending-sales  (~(put by pending-sales) sess-id [star ~ now.bowl planet])
       :_  this
       [%pass / %agent [provider %gateway] %poke %noun !>(act)]^~
     ::
@@ -216,6 +222,25 @@
         ==
       :-  `this
       [[200 ~] `(json-to-octs:server jon)]
+    ::
+        [%shop %inventory @ ~]
+      ?>  ?=(%'GET' method.request.req)
+      =*  who  (slav %p i.t.t.site.req-line)
+      ?~  for-sale-ships=(~(get by for-sale) who)
+        [`this [[400 ~] ~]]
+      =/  ships=(set @p)  ~(key by u.for-sale-ships)
+      =/  available-ships=(set @p)
+        %-  ~(rep by pending-sales)
+        |=  [[@t @p (unit metadata:circle) time ship=@p] out=_ships]
+        (~(del in out) ship)
+      =/  result=json
+        :-  %a
+        %+  turn  (scag 20 ~(tap in available-ships))
+        |=  who=@p
+        ^-  json
+        [%s (scot %p who)]
+      :-  `this
+      [[200 ~] `(json-to-octs:server result)]
     ==
   ::
   ::
@@ -372,7 +397,6 @@
       =*  sess   session.update
       ?>  ?=(^ price)
       |^
-      =/  c=config  (~(got by star-configs) who)
       =/  sold=(map ship @q)
         (~(gas by *(map ship @q)) select-ships)
       =/  for-sale-who  (~(got by for-sale) who)
@@ -479,6 +503,7 @@
   |=  =path
   ^-  (unit (unit cage))
   ?+    path  (on-peek:def path)
+  ::
     [%x %export ~]  ``noun+!>(state)
     [%x %price ~]   ``noun+!>(price)
   ::
@@ -517,7 +542,7 @@
           =/  =update
             :*  %sell-ships
                 star.u.pend
-                [%.n 1]
+                [%.y (sy ship.u.pend ~)]
                 now.bowl
                 email.u.metadata.u.pend
                 p.upd
@@ -615,12 +640,12 @@
     `this
   ?:  ?=([%behn %wake *] sign-arvo)
     =.  pending-sales
-      %-  ~(gas by *(map @t [@p (unit metadata:circle) time]))
+      %-  ~(gas by *(map @t [@p (unit metadata:circle) time @p]))
       %+  murn  ~(tap by pending-sales)
-      |=  [sess=@t star=@p metadata=(unit metadata:circle) =time]
+      |=  [sess=@t star=@p metadata=(unit metadata:circle) =time ship=@p]
       ?:  (lth (add time delay) now.bowl)
         ~
-      `[sess star metadata time]
+      `[sess star metadata time ship]
     :_  this
     [%pass /clear %arvo %b %wait (add now.bowl delay)]~
   (on-arvo:def wire sign-arvo)
