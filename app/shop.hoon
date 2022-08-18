@@ -45,6 +45,7 @@
       [%del-ship star=@p planet=@p]
       [%add-ships star=@p ships=(map @p @q)]
       [%send-ships star=@p moon=@p]
+      [%del-sale planet=@p]
   ==
 ::
 ++  delay  ~m15
@@ -157,6 +158,15 @@
       =/  new=local-action  [%add-ships star.act by-star]
       :_  this
       [%pass /send-ships %agent [moon.act %shop] %poke %noun !>(new)]~
+    ::
+        %del-sale
+      ?~  time=(~(get by sold-ship-to-date) planet.act)
+        `this
+      ?~  val=(get:his sold-ships u.time)
+        `this
+      =.  sold-ships  (del:his sold-ships u.time n.val)
+      =.  sold-ship-to-date  (~(del by sold-ship-to-date) planet.act)
+      `this
     ==
   ::
       %shop-update
