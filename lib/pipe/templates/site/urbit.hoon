@@ -224,12 +224,58 @@
       (scot %p author.p)
       ~
     ==
-  =/  body  (snag 0 contents.p)
-  ?>  ?=(%text -.body)
+  =/  body  (render-contents contents.p)
   ;div(class "flex flex-column w-100 ml3")
     ;p(class "gray f7 ma0 mt3", style "margin-block-end: 0;"): {deets}
-    ;p(class "f6 ma0 mt1"): {(trip text.body)}
+    ;p(class "f6 ma0 mt1"): {(trip body)}
   ==
+::
+++  render-contents
+  |=  c=(list content)
+  =|  out=@t
+  |-
+  ?~  c  out
+  %=  $
+    c  t.c
+    out  (append-content out i.c)
+  ==
+::
+++  append-content
+  |=  [str=@t c=content]
+  ^-  @t
+  ?-  -.c
+      %text       (cat 3 str text.c)
+      %mention    (cat 3 str (scot %p ship.c))
+      %reference
+    ?-  -.reference.c
+        %group
+      %:  rap  3
+          str
+          (scot %p entity.group.reference.c)
+          '/'
+          name.group.reference.c
+          ~
+      ==
+        %graph
+      %:  rap  3
+          str
+          (scot %p entity.group.reference.c)
+          '/'
+          name.group.reference.c
+          ~
+      ==
+        %app
+      %:  rap  3
+          str
+          (scot %p ship.reference.c)
+          '/'
+          desk.reference.c
+          ~
+      ==
+    ==
+      %url   (cat 3 str url.c)
+      %code  (cat 3 str expression.c)
+ ==
 ::
 ++  custom-style
   ^-  manx
