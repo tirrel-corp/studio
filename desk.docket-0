@@ -1,10 +1,10 @@
 :~  title+'Studio'
-    info+'Tools for making money.'
+    info+'Publish Content from Urbit'
     color+0xa0.e2a7
     base+'studio'
     image+'https://tirrel.io/assets/stool.svg'
-    glob-http+['https://tirrel.io/assets/globs/glob-0v7.q5ik8.1skun.tf290.6tigc.jmdtl.glob' 0v7.q5ik8.1skun.tf290.6tigc.jmdtl]
-    version+[1 0 14]
+    glob-http+['https://tirrel.io/assets/globs/latest.glob' 0v4.usae8.mno8i.l796p.k0p99.2a8l6]
+    version+[1 0 15]
     website+'https://tirrel.io'
     license+'MIT'
 ==
