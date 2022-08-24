@@ -286,15 +286,27 @@
           ~
           [['%unsubscribe-callback%' callback] ~]
       ==
-    =/  =email
-      :*  [u.email.creds (scot %p our.bowl)]
-          subject.email.update
-          content
-          person
+    =/  emails=(list email)
+      =|  em=(list email)
+      |-
+      ?:  =(~ person)  em
+      %=  $
+          em
+        :_  em
+        :*  [u.email.creds (scot %p our.bowl)]
+            subject.email.update
+            content
+            (scag 900 person)
+        ==
+      ::
+          person  (slag 900 person)
       ==
     :_  this
-    =-  [%pass /send-email/(scot %uv eny.bowl) %arvo %i %request -]~
-    [(send-email:do email) *outbound-config:iris]
+    %+  turn  emails
+    |=  e=email
+    ^-  card
+    =-  [%pass /send-email/(scot %uv (sham e eny.bowl)) %arvo %i %request -]
+    [(send-email:do e) *outbound-config:iris]
   ==
 ::
 ++  on-leave  on-leave:def
