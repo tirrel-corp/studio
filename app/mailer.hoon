@@ -203,6 +203,7 @@
         [%send-email @ ~]
       ?~  full-file.res
         `state
+      ~&  >>>  mailer+`@t`q.data.u.full-file.res
       [~ state]
     ==
   --
