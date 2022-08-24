@@ -1,5 +1,23 @@
 /-  *mailer
 |%
+++  validate-email
+  |=  email=@t
+  |^
+  ^-  ?
+  ?=(^ (rush email validate))
+  ::
+  ++  name
+    ;~  plug  aln
+      (star ;~(pose low hig nud dot lus hep cab))
+    ==
+  ++  validate
+    ;~  plug
+        name
+        pat
+        thos:de-purl:html
+    ==
+  --
+::
 ++  dejs
   =,  dejs:format
   |%

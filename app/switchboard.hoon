@@ -6,6 +6,7 @@
     dbug,
     verb,
     grate,
+    mailer,
     pages=switchboard-pages
 |%
 +$  card  $+(card card:agent:gall)
@@ -254,6 +255,8 @@
       =/  who=(unit @t)   (get-header:http 'who' u.parsed-body)
       =/  book=(unit @t)  (get-header:http 'book' u.parsed-body)
       ?:  ?|(?=(~ who) ?=(~ book))
+        `not-found:gen:server
+      ?.  (validate-email:mailer u.who)
         `not-found:gen:server
       =/  title=@t  (get-blog-title u.book)
       :-  (poke-mailer %add-recipients u.book (sy u.who ~) %.n)^~

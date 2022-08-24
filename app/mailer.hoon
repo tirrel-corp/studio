@@ -33,6 +33,11 @@
       [%1 state-1]
       [%2 state-1]
   ==
+::
++$  local-action
+  $%  [%print-invalid name=term]
+      [%purge-invalid name=term]
+  ==
 --
 ::
 =|  [%2 state-1]
@@ -94,6 +99,32 @@
   ?>  (team:title our.bowl src.bowl)
   |^
   ?+    mark  (on-poke:def mark vase)
+      %noun
+    =+  !<(act=local-action vase)
+    ?-  -.act
+        %print-invalid
+      ?~  l=(~(get by ml) name.act)
+        ~|("no such mailing list: {<name.act>}" !!)
+      ~&  %+  murn  ~(tap by u.l)
+        |=  [e=@t *]
+        ?:  (validate-email:mailer e)  ~
+        `e
+      `this
+    ::
+        %purge-invalid
+      ?~  l=(~(get by ml) name.act)
+        ~|("no such mailing list: {<name.act>}" !!)
+      =/  new=mailing-list
+        %-  ~(rep in u.l)
+        |=  [[e=@t @uv ?] out=_u.l]
+        ?:  (validate-email:mailer e)
+          out
+        (~(del by out) e)
+      =.  ml  (~(put by ml) name.act new)
+      :_  this
+      (give-update:do %lists ml)^~
+    ==
+  ::
       %mailer-action
     =^  cards  state
       (mailer-action !<(action vase))
