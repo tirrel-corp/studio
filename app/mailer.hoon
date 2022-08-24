@@ -28,19 +28,32 @@
       ==
       ml=(map term mailing-list)
   ==
+::
++$  state-2
+  $:  $=  creds
+      $:  api-key=(unit @t)
+          email=(unit @t)
+          ship-url=(unit @t)
+      ==
+      ml=(map term mailing-list)
+      sandbox-mode=_|
+  ==
+::
 +$  versioned-state
   $%  [%0 state-0]
       [%1 state-1]
       [%2 state-1]
+      [%3 state-2]
   ==
 ::
 +$  local-action
   $%  [%print-invalid name=term]
       [%purge-invalid name=term]
+      [%sandbox-mode w=?]
   ==
 --
 ::
-=|  [%2 state-1]
+=|  [%3 state-2]
 =*  state  -
 ::
 %-  agent:dbug
@@ -64,7 +77,8 @@
   =|  cards=(list card)
   |-
   ?-  -.old
-      %2  [cards this(state old)]
+      %3  [cards this(state old)]
+      %2  $(old (state-2-to-3 old))
       %1
     =/  new-cards=(list card)
       [%pass /eyre %arvo %e %disconnect [~ /'mailer']]^~
@@ -72,6 +86,15 @@
   ::
       %0  $(old (state-0-to-1 old))
   ==
+  ::
+  ++  state-2-to-3
+    |=  [%2 s=state-1]
+    ^-  [%3 state-2]
+    :*  %3
+        creds.s
+        ml.s
+        %.n
+    ==
   ++  state-1-to-2
     |=  [%1 s=state-1]
     ^-  [%2 state-1]
@@ -102,6 +125,9 @@
       %noun
     =+  !<(act=local-action vase)
     ?-  -.act
+        %sandbox-mode
+      `this(sandbox-mode w.act)
+    ::
         %print-invalid
       ?~  l=(~(get by ml) name.act)
         ~|("no such mailing list: {<name.act>}" !!)
@@ -407,6 +433,7 @@
 ::
 ++  send-email
   |=  =email
+  =,  enjs:format
   ^-  request:http
   ?>  ?=(^ api-key.creds)
   :^  %'POST'  'https://api.sendgrid.com/v3/mail/send'
@@ -416,13 +443,16 @@
   :-  ~
   %-  json-to-octs:server
   ^-  json
-  %-  pairs:enjs:format
-  :~  ['from' (from-to-json from.email)]
+  %-  pairs
+  :*  ['from' (from-to-json from.email)]
       ['subject' s+subject.email]
       ['content' a+(turn content.email content-to-json)]
     ::
       :-  'personalizations'
       a+(turn personalizations.email personalization-to-json)
+    ::
+    ?.  sandbox-mode  ~
+    ['mail_settings' (frond 'sandbox_mode' (frond 'enable' b+%.y))]^~
   ==
 ::
 ++  from-to-json
