@@ -44,6 +44,7 @@
       [%1 state-1]
       [%2 state-1]
       [%3 state-2]
+      [%4 state-2]
   ==
 ::
 +$  local-action
@@ -53,7 +54,7 @@
   ==
 --
 ::
-=|  [%3 state-2]
+=|  [%4 state-2]
 =*  state  -
 ::
 %-  agent:dbug
@@ -77,7 +78,8 @@
   =|  cards=(list card)
   |-
   ?-  -.old
-      %3  [cards this(state old)]
+      %4  [cards this(state old)]
+      %3  $(old (state-3-to-4 old))
       %2  $(old (state-2-to-3 old))
       %1
     =/  new-cards=(list card)
@@ -86,6 +88,27 @@
   ::
       %0  $(old (state-0-to-1 old))
   ==
+  ++  state-3-to-4
+    |=  [%3 s=state-2]
+    ^-  [%4 state-2]
+    :*  %4
+        creds.s
+        (ml-3-to-4 ml.s)
+        sandbox-mode.s
+    ==
+  ::
+  ++  ml-3-to-4
+    |=  ml=(map term mailing-list)
+    %-  ~(run by ml)
+    |=  m=mailing-list
+    ^-  mailing-list
+    %+  roll  ~(tap by m)
+    |=  [[e=@t t=@uv c=?] out=mailing-list]
+    =.  e  (crip (cass (trip e)))
+    ?:  (~(has by out) e)          out
+    ?:  =('' e)                    out
+    ?.  (validate-email:mailer e)  out
+    (~(put by out) e [t c])
   ::
   ++  state-2-to-3
     |=  [%2 s=state-1]
