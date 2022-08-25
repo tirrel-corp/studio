@@ -189,9 +189,12 @@
         ~|("mailing list already exists: {<name.act>}" !!)
       =/  recipients=mailing-list
         %-  ~(gas by *mailing-list)
-        %+  turn  ~(tap in mailing-list.act)
+        %+  murn  ~(tap in mailing-list.act)
         |=  email=@t
-        [email (sham email eny.bowl) %.y]
+        =.  email  (crip (cass (trip email)))
+        ?:  =('' email)  ~
+        ?.  (validate-email:mailer email)  ~
+        `[email (sham email eny.bowl) %.y]
       =.  ml  (~(put by ml) name.act recipients)
       :_  state
       :~  (give-update:do %lists ml)
@@ -214,12 +217,15 @@
         %-  ~(rep in mailing-list.act)
         |=  [email=@t cad=(list card) ml=mailing-list]
         ^-  [(list card) mailing-list]
+        =.  email  (crip (cass (trip email)))
         =/  token  (sham email eny.bowl)
+        ?:  (~(has by ml) email)  `ml
+        ?:  =('' email)  `ml
+        ?.  (validate-email:mailer email)  `ml
         ?:  confirm.act
-          :-  ~
-          (~(put in ml) email [token confirm.act])
+          `(~(put by ml) email [token confirm.act])
         :-  [(confirm-email:do email name.act token) cad]
-        (~(put in ml) email [token confirm.act])
+        (~(put by ml) email [token confirm.act])
       =/  new=mailing-list  (~(uni by u.old) recipients)
       =.  ml  (~(put by ml) name.act new)
       :_  state
