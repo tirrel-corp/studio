@@ -18,7 +18,7 @@
   ==
 ::
 +$  pending-data
-  $:  product-id=@t
+  $:  product-id=(list @t)
       count=@ud
       started=?
       metadata=(unit metadata:circle)
@@ -33,7 +33,7 @@
       token-to-session=(map @uv session-id=@t)
   ==
 ::
-++  provider  ~bus  :: hardcode tirrel gateway moon
+++  provider  ~zod  :: hardcode tirrel gateway moon
 ::
 +$  action
   $%  [%set-stock type=@t count=@ud =amount:circle]
@@ -59,7 +59,7 @@
   =/  buyer-auth=update:auth     [%add-service %ticket-buyer ~ ~]
   ::
   :_  this
-  :~  [%pass /eyre %arvo %e %connect [~ /merchant] dap.bowl]
+  :~  [%pass /eyre %arvo %e %connect [~ /shop] dap.bowl]
       [%pass gateway-wire %agent [provider %gateway] %watch gateway-wire]
   ==
 ::
@@ -68,7 +68,12 @@
   |=  old-vase=vase
   ^-  (quip card _this)
 ::  `this
-  `this(state !<(state-0 old-vase))
+  =/  gateway-wire=wire  /master/(scot %p our.bowl)
+  :_  this(state !<(state-0 old-vase))
+  ~
+::  :~  [%pass /eyre %arvo %e %connect [~ /shop] dap.bowl]
+::      [%pass gateway-wire %agent [provider %gateway] %watch gateway-wire]
+::  ==
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -125,7 +130,7 @@
     ^-  [(quip card _this) simple-payload:http]
     =/  req-line  (parse-request-line:server url.request.req)
     ?+    site.req-line  [`this not-found:gen:server]
-        [%merchant %ticket @ ~]
+        [%shop %ticket @ ~]
       ?>  ?=(%'GET' method.request.req)
       =*  sess-id  i.t.t.site.req-line
       :-  `this
@@ -141,7 +146,7 @@
           amount+(amount:enjs:req:circle amount.u.sto)
       ==
     ::
-        [%merchant %session ~]
+        [%shop %session ~]
       ?>  ?=(%'POST' method.request.req)
       =/  sess-id  (to-uuid:uuidv4 eny.bowl)
       ?~  body.request.req
@@ -152,8 +157,7 @@
       =/  params=[product-id=@t quantity=@ud]
         %.  u.jon
         %-  ot:dejs:format
-        :~  product-id+so:dejs:format
-            quantity+ni:dejs:format
+        :~  product-id+(ar:dejs:format so:dejs:format)
         ==
       ?~  prod=(~(get by stock) product-id.params)
         [`this [[404 ~] ~]]
@@ -172,11 +176,11 @@
       :_  this
       [%pass / %agent [provider %gateway] %poke %noun !>(act)]^~
     ::
-        [%merchant %remaining ~]
+        [%shop %remaining ~]
       [`this (json-response:gen:server (enjs-stock stock))]
     ::
     ::  list of tickets by session-id
-        [%merchant %group @ ~]
+        [%shop %group @ ~]
       =*  session-id  i.t.t.site.req-line
       =/  pur=(unit purchase)  (~(get by sold) session-id)
       ?~  pur
@@ -195,7 +199,7 @@
       [`this (json-response:gen:server [%a res])]
     ::
     ::  single ticket
-        [%merchant %individual @ ~]
+        [%shop %individual @ ~]
       =*  tok         i.t.t.site.req-line
       =/  token=(unit octs)  (~(de base64:mimes:html | &) tok)
       ?~  token
