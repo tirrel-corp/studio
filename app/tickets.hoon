@@ -6,7 +6,7 @@
 +$  ticket
   $:  token=@uv
       used=?
-      product-id=@t
+      product-id=(list @t)
       price=amount:circle
   ==
 ::
@@ -136,12 +136,16 @@
       :-  `this
       ?~  pen=(~(get by pending) sess-id)
         [[404 ~] ~]
-      ?~  sto=(~(get by stock) product-id.u.pen)
-        [[404 ~] ~]
       :-  [200 ~]
       =-  `(json-to-octs:server -)
+      :-  %a
+      %+  murn  product-id.u.pen
+      |=  i=@t
+      ?~  sto=(~(get by stock) i)
+        ~
+      :-  ~
       %-  pairs:enjs:format
-      :~  product+s+product-id.u.pen
+      :~  product+s+i
           count+(numb:enjs:format count.u.pen)
           amount+(amount:enjs:req:circle amount.u.sto)
       ==
@@ -154,25 +158,28 @@
       =/  jon  (de-json:html `@t`q.u.body.request.req)
       ?~  jon
         [`this [[400 ~] ~]]
-      =/  params=[product-id=@t quantity=@ud]
+      =/  params=(list [product-id=@t quantity=@ud])
         %.  u.jon
+        %-  ar:dejs:format
         %-  ot:dejs:format
-        :~  product-id+(ar:dejs:format so:dejs:format)
+        :~  product-id+so:dejs:format
+            quantity+ni:dejs:format
         ==
-      ?~  prod=(~(get by stock) product-id.params)
-        [`this [[404 ~] ~]]
-      ?.  (gte count.u.prod quantity.params)
-        [`this [[500 ~] ~]]
-      ::
-      :: put sold product in pending field, so that it can't be sold
-      =/  total=amount:circle
-        [(mul quantity.params integer.amount.u.prod) 0 %'USD']
       =/  sess-id  (to-uuid:uuidv4 eny.bowl)
+
+      =^  total  pending
+        %+  roll  params
+        |=  [[id=@t q=@ud] total=amount:circle p=_pending]
+        ?~  prod=(~(get by stock) id)
+          [total p]
+        ?.  (gte count.u.prod q)
+          [total p]
+        :-  [(add (mul q integer.amount.u.prod) integer.total) 0 %'USD']
+        (~(put by pending) sess-id [id^~ q %.n ~])
+      ::
       =/  act
         [%add-session our.bowl sess-id total]
       :_  [[200 ~] `(json-to-octs:server s+sess-id)]
-      =.  pending
-        (~(put by pending) sess-id [product-id.params quantity.params %.n ~])
       :_  this
       [%pass / %agent [provider %gateway] %poke %noun !>(act)]^~
     ::
@@ -180,23 +187,23 @@
       [`this (json-response:gen:server (enjs-stock stock))]
     ::
     ::  list of tickets by session-id
-        [%shop %group @ ~]
-      =*  session-id  i.t.t.site.req-line
-      =/  pur=(unit purchase)  (~(get by sold) session-id)
-      ?~  pur
-        [`this not-found:gen:server]
-      =/  res=(list json)
-        %-  ~(rep in tickets.u.pur)
-        |=  [tic=ticket out=(list json)]
-        =/  b64=@t
-          (~(en base64:mimes:html | &) [(met 3 token.tic) token.tic])
-        :_  out
-        %-  pairs:enjs:format
-        :~  token+s+b64
-            used+b+used.tic
-            %'productId'^s+product-id.tic
-        ==
-      [`this (json-response:gen:server [%a res])]
+::        [%shop %group @ ~]
+::      =*  session-id  i.t.t.site.req-line
+::      =/  pur=(unit purchase)  (~(get by sold) session-id)
+::      ?~  pur
+::        [`this not-found:gen:server]
+::      =/  res=(list json)
+::        %-  ~(rep in tickets.u.pur)
+::        |=  [tic=ticket out=(list json)]
+::        =/  b64=@t
+::          (~(en base64:mimes:html | &) [(met 3 token.tic) token.tic])
+::        :_  out
+::        %-  pairs:enjs:format
+::        :~  token+s+b64
+::            used+b+used.tic
+::            %'productId'^s+product-id.tic
+::        ==
+::      [`this (json-response:gen:server [%a res])]
     ::
     ::  single ticket
         [%shop %individual @ ~]
@@ -223,7 +230,7 @@
         %-  pairs:enjs:format
         :~  token+s+tok
             used+b+used.u.tic
-            %'productId'^s+product-id.u.tic
+            %'productId'^a+(turn product-id.u.tic |=(a=@t s+a))
         ==
       [`this (json-response:gen:server res)]
     ::
@@ -253,17 +260,27 @@
         `this
       =*  id  product-id.u.pend
       :: remove count in pending-stock
-      =/  pend-sto  (~(got by pending-stock) id)
       =.  pending-stock
-        %+  ~(put by pending-stock)  id
-        (sub count.pend-sto count.u.pend)
+        %+  roll  id
+        |=  [i=@ ps=_pending-stock]
+        =/  p  (~(got by pending-stock) i)
+        (~(put by ps) i (sub count.p count.u.pend))
+::      =/  pend-sto  (~(got by pending-stock) id)
+::      =.  pending-stock
+::        %+  ~(put by pending-stock)  id
+::        (sub count.pend-sto count.u.pend)
       :: delete pending transaction
       =.  pending  (~(del by pending) p.upd)
       ::
       ?:  ?=(?(%confirmed %paid) status.q.upd)
         :: remove count in stocks
-        =/  sto    (~(got by stock) id)
-        =.  stock  (~(put by stock) id sto(count (sub count.sto count.u.pend)))
+        =.  stock
+          %+  roll  id
+          |=  [i=@ s=_stock]
+          =/  sto  (~(got by stock) i)
+          (~(put by s) i sto(count (sub count.sto count.u.pend)))
+::        =/  sto    (~(got by stock) id)
+::        =.  stock  (~(put by stock) id sto(count (sub count.sto count.u.pend)))
         :: put in sold
         =^  cards  state
           %:  finalize-sale
@@ -283,13 +300,19 @@
       ?:  ?=(%complete status.q.upd)
         ?~  pend=(~(get by pending) p.upd)
           `this
-        =/  pend-stock  (~(got by pending-stock) product-id.u.pend)
-        =:  pending
-          (~(put by pending) p.upd u.pend(started %.y, metadata r.upd))
-            pending-stock
-          %+  ~(put by pending-stock)  product-id.u.pend
-          (add count.pend-stock count.u.pend)
-        ==
+        =/  [p=_pending ps=_pending-stock]
+          %+  roll  product-id.u.pend
+          |=  [i=@ p=_pending ps=_pending-stock]
+          =/  ex  (~(got by ps) i)
+          :-  (~(put by p) p.upd u.pend(started %.y, metadata r.upd))
+          (~(put by ps) i (add count.ex count.u.pend))
+::        =/  pend-stock  (~(got by pending-stock) product-id.u.pend)
+::        =:  pending
+::          (~(put by pending) p.upd u.pend(started %.y, metadata r.upd))
+::            pending-stock
+::          %+  ~(put by pending-stock)  product-id.u.pend
+::          (add count.pend-stock count.u.pend)
+::        ==
         `this
       ?:  ?=(%failed status.q.upd)
         =.  pending  (~(del by pending) p.upd)
@@ -304,16 +327,22 @@
   ==
   ::
   ++  gen-ticket
-    |=  [session-id=@t product-id=@t =metadata:circle salt=@]
+    |=  [session-id=@t product-id=(list @t) =metadata:circle salt=@]
     ^-  ticket
+    =/  amt=amount:circle
+      %+  roll  product-id
+      |=  [i=@ a=amount:circle]
+      =/  p  (~(got by stock) i)
+      :+  (add integer.a integer.amount.p)  0
+      %'USD'
     :*  (shas salt eny.bowl)
         %.n
         product-id
-        amount:(~(got by stock) product-id)
+        amt
     ==
   ::
   ++  finalize-sale
-    |=  [session-id=@t product-id=@t =metadata:circle num=@ud =amount:circle]
+    |=  [session-id=@t product-id=(list @t) =metadata:circle num=@ud =amount:circle]
     ^-  (quip card _state)
     =|  sold-tickets=(set ticket)
     |-
@@ -362,7 +391,7 @@
     ^-  manx
     ;tr
       ;td(style "width: 50%", align "left")
-        ;b: {(trip product-id.tic)}
+        ;b: {(trip (snag 0 product-id.tic))}  :: XX
       ==
       ;td(style "width: 50%", align "right"): {(amount-to-tape price.tic)}
     ==
