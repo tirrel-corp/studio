@@ -207,30 +207,31 @@
     ::
     ::  single ticket
         [%shop %individual @ ~]
-      =*  tok         i.t.t.site.req-line
-      =/  token=(unit octs)  (~(de base64:mimes:html | &) tok)
-      ?~  token
-        [`this not-found:gen:server]
-      ::
-      ?~  session-id=(~(get by token-to-session) q.u.token)
-        [`this not-found:gen:server]
-      ::
-      =/  pur=(unit purchase)  (~(get by sold) u.session-id)
+      =*  session-id  i.t.t.site.req-line
+      =/  pur=(unit purchase)  (~(get by sold) session-id)
       ?~  pur
+        ~&   %no-purchase
         [`this not-found:gen:server]
       =/  tic=(unit ticket)
         %-  ~(rep in tickets.u.pur)
         |=  [=ticket out=(unit ticket)]
-        ?.  =(q.u.token token.ticket)
-          out
         `ticket
       ?~  tic
+        ~&  %no-ticket
         [`this not-found:gen:server]
       =/  res=json
         %-  pairs:enjs:format
-        :~  token+s+tok
-            used+b+used.u.tic
-            %'productId'^a+(turn product-id.u.tic |=(a=@t s+a))
+        :~  [%total (numb:enjs:format integer.total.u.pur)]
+        ::
+          :-  %items
+          :-  %a
+          %+  turn  product-id.u.tic
+          |=  a=@t
+          =/  st  (~(got by stock) a)
+          %-  pairs:enjs:format
+          :~  %'productId'^s+a
+              price+(numb:enjs:format integer.amount.st)
+          ==
         ==
       [`this (json-response:gen:server res)]
     ::
@@ -254,8 +255,10 @@
   ?+    -.sign  (on-agent:def wire sign)
       %fact
     =+  !<(upd=update:circle q.cage.sign)
+    ~&  fact+-.upd
     ?+  -.upd  `this
         %payment
+      ~&  %payment-fact
       ?~  pend=(~(get by pending) p.upd)
         `this
       =*  id  product-id.u.pend
@@ -273,6 +276,7 @@
       =.  pending  (~(del by pending) p.upd)
       ::
       ?:  ?=(?(%confirmed %paid) status.q.upd)
+        ~&  %payment-confirmed
         :: remove count in stocks
         =.  stock
           %+  roll  id
@@ -306,6 +310,8 @@
           =/  ex  (~(got by ps) i)
           :-  (~(put by p) p.upd u.pend(started %.y, metadata r.upd))
           (~(put by ps) i (add count.ex count.u.pend))
+        =.  pending  p
+        =.  pending-stock  ps
 ::        =/  pend-stock  (~(got by pending-stock) product-id.u.pend)
 ::        =:  pending
 ::          (~(put by pending) p.upd u.pend(started %.y, metadata r.upd))
@@ -345,6 +351,7 @@
     |=  [session-id=@t product-id=(list @t) =metadata:circle num=@ud =amount:circle]
     ^-  (quip card _state)
     =|  sold-tickets=(set ticket)
+    ~&  %finalize-sale
     |-
     ?:  =(num 0)
       =/  =purchase
