@@ -98,7 +98,7 @@
         pending-stock  (~(del by pending-stock) +.act)
       ==
     ::
-      %add-verifier  !!
+        %add-verifier  !!
     ==
   ::
       %handle-http-request
@@ -362,7 +362,7 @@
     =.  sold              (~(put by sold) session-id purchase)
     =.  token-to-session  (~(put by token-to-session) token.ticket session-id)
     :_  state
-    (send-email session-id purchase)^~
+    (send-email purchase)^~
   ::
   ++  amount-to-tape
     |=  =amount:circle
@@ -383,18 +383,23 @@
   ++  ticket-rows
     |=  tickets=(set ticket)
     ^-  marl
-    =/  sorted-tickets=(list ticket)
-      %+  sort  ~(tap by tickets)
-      |=  [a=ticket b=ticket]
-      (gte integer.price.a integer.price.b)
-    %+  turn  sorted-tickets
-    |=  tic=ticket
+    =/  =ticket  (snag 0 ~(tap in tickets))
+    %+  murn  product-id.ticket
+    |=  [i=@t q=@ud]
+    ^-  (unit manx)
+    =/  item  (~(got by stock) i)
+    =/  price=amount:circle  [(mul q integer.amount.item) 0 %'USD']
+    ?:  =(q 0)  ~
+    :-  ~
     ^-  manx
     ;tr
       ;td(style "width: 50%", align "left")
-        ;b: {(trip -:(snag 0 product-id.tic))}  :: XX
+        ;p
+          ;b: {(trip i)} 
+          ; × {(trip (rsh [3 2] (scot %ui q)))}
+        ==
       ==
-      ;td(style "width: 50%", align "right"): {(amount-to-tape price.tic)}
+      ;td(style "width: 50%", align "right"): {(amount-to-tape price)}
     ==
   ::
   ++  gen-link
@@ -405,24 +410,19 @@
     (rap 3 host '/confirmation/' session-id ~)
   ::
   ++  make-email
-    |=  [session-id=@t =purchase]
+    |=  =purchase
     ^-  manx
-    =/  link  (gen-link session-id)
     ;div
       ;img(src "https://tirrel.io/assets/miami-header-big.png", width "800px");
       ;p: Hello!
-      ;p: Thank you for your purchase. Your tickets can be accessed here:
-      ;a(href link): {link}
-      ;p
-      ; We look forward to meeting you in Miami Beach! In the meantime you can join
-        ;b: ~rondev/assembly-miami 
-      ; to chat with other attendees.
-      ==
+      ;p: Thanks for your purchase at the Urbit Assembly Merch Store!
+      ;b: Please pick up your items at the merch table by Sunday at 4pm.
+      ;p: Please contact us at support@tirrel.io if there are any issues with your purchase, including returns and refunds
+
       ;p: See you on the network!
-      ;p: - The Urbit Foundation
+      ;p: Tirrel Corp. & The Urbit Assembly Team
       ;hr(style "margin:20px 0", color "grey", size "1", width "40%");
-      ;b: Receipt:
-      ;p: Transaction: {(trip session-id)}
+      ;b: Urbit Assembly Store Receipt:
       ;p: {(trip (print-date:pipe-render purchase-date.purchase))}
       ;p: Delivery to: {(trip email.metadata.purchase)}
       ;table(width "40%", style "margin-top: 30px")
@@ -445,12 +445,11 @@
           ==
         ==
       ==
-      ;p: Customer Support: support@tirrel.io
       ;p: Processed by Tirrel Corporation
     ==
   ::
   ++  send-email
-    |=  [session-id=@t =purchase]
+    |=  =purchase
     ^-  card
     =/  content=content-field:mailer
       :-  'text/html'
@@ -458,11 +457,11 @@
       %-  as-octt:mimes:html
       %-  en-xml:html
       ^-  manx
-      (make-email session-id purchase)
+      (make-email purchase)
     =/  =action:mailer
       :*  %send-email
-          ['isaac@tirrel.io' 'Urbit Foundation']
-          'Urbit Assembly Miami Tickets'
+          ['delivery@tirrel.io' 'Urbit Assembly Merch Store']
+          'Urbit Assembly Merch Store Receipt'
           [content ~]
           [email.metadata.purchase^~ ~ ~]^~
       ==
