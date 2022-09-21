@@ -6,7 +6,7 @@
 +$  ticket
   $:  token=@uv
       used=?
-      product-id=(list @t)
+      product-id=(list [@t @ud])
       price=amount:circle
   ==
 ::
@@ -18,8 +18,7 @@
   ==
 ::
 +$  pending-data
-  $:  product-id=(list @t)
-      count=@ud
+  $:  product-id=(list [@t @ud])
       started=?
       metadata=(unit metadata:circle)
   ==
@@ -68,7 +67,7 @@
   |=  old-vase=vase
   ^-  (quip card _this)
 ::  `this
-  =/  gateway-wire=wire  /master/(scot %p our.bowl)
+::  =/  gateway-wire=wire  /master/(scot %p our.bowl)
   :_  this(state !<(state-0 old-vase))
   ~
 ::  :~  [%pass /eyre %arvo %e %connect [~ /shop] dap.bowl]
@@ -140,14 +139,16 @@
       =-  `(json-to-octs:server -)
       :-  %a
       %+  murn  product-id.u.pen
-      |=  i=@t
+      |=  [i=@t q=@ud]
       ?~  sto=(~(get by stock) i)
         ~
+      =/  subtotal=amount:circle
+        [(mul q integer.amount.u.sto) 0 %'USD']
       :-  ~
       %-  pairs:enjs:format
       :~  product+s+i
-          count+(numb:enjs:format count.u.pen)
-          amount+(amount:enjs:req:circle amount.u.sto)
+          count+(numb:enjs:format q)
+          amount+(amount:enjs:req:circle subtotal)
       ==
     ::
         [%shop %session ~]
@@ -166,16 +167,16 @@
             quantity+ni:dejs:format
         ==
       =/  sess-id  (to-uuid:uuidv4 eny.bowl)
-
-      =^  total  pending
+      =/  [total=amount:circle pend=(list [@t @ud])]
         %+  roll  params
-        |=  [[id=@t q=@ud] total=amount:circle p=_pending]
+        |=  [[id=@t q=@ud] total=amount:circle p=(list [@t @ud])]
         ?~  prod=(~(get by stock) id)
           [total p]
         ?.  (gte count.u.prod q)
           [total p]
         :-  [(add (mul q integer.amount.u.prod) integer.total) 0 %'USD']
-        (~(put by pending) sess-id [id^~ q %.n ~])
+        [[id q] p]
+      =.  pending  (~(put by pending) sess-id [pend %.n ~])
       ::
       =/  act
         [%add-session our.bowl sess-id total]
@@ -221,16 +222,17 @@
         [`this not-found:gen:server]
       =/  res=json
         %-  pairs:enjs:format
-        :~  [%total (numb:enjs:format integer.total.u.pur)]
+        :~  [%total (amount:enjs:req:circle total.u.pur)]
         ::
           :-  %items
           :-  %a
           %+  turn  product-id.u.tic
-          |=  a=@t
-          =/  st  (~(got by stock) a)
+          |=  [i=@t q=@ud]
+          =/  st  (~(got by stock) i)
           %-  pairs:enjs:format
-          :~  %'productId'^s+a
-              price+(numb:enjs:format integer.amount.st)
+          :~  %'productId'^s+i
+              quantity+(numb:enjs:format q)
+              price+(amount:enjs:req:circle amount.st)
           ==
         ==
       [`this (json-response:gen:server res)]
@@ -262,12 +264,13 @@
       ?~  pend=(~(get by pending) p.upd)
         `this
       =*  id  product-id.u.pend
+      ~&  id+id
       :: remove count in pending-stock
       =.  pending-stock
         %+  roll  id
-        |=  [i=@ ps=_pending-stock]
+        |=  [[i=@t q=@ud] ps=_pending-stock]
         =/  p  (~(got by pending-stock) i)
-        (~(put by ps) i (sub count.p count.u.pend))
+        (~(put by ps) i (sub count.p q))
 ::      =/  pend-sto  (~(got by pending-stock) id)
 ::      =.  pending-stock
 ::        %+  ~(put by pending-stock)  id
@@ -280,9 +283,9 @@
         :: remove count in stocks
         =.  stock
           %+  roll  id
-          |=  [i=@ s=_stock]
+          |=  [[i=@t q=@ud] s=_stock]
           =/  sto  (~(got by stock) i)
-          (~(put by s) i sto(count (sub count.sto count.u.pend)))
+          (~(put by s) i sto(count (sub count.sto q)))
 ::        =/  sto    (~(got by stock) id)
 ::        =.  stock  (~(put by stock) id sto(count (sub count.sto count.u.pend)))
         :: put in sold
@@ -291,7 +294,6 @@
             p.upd
             id
             (need metadata.u.pend)
-            count.u.pend
             amount.q.upd
           ==
         [cards this]
@@ -306,10 +308,10 @@
           `this
         =/  [p=_pending ps=_pending-stock]
           %+  roll  product-id.u.pend
-          |=  [i=@ p=_pending ps=_pending-stock]
+          |=  [[i=@t q=@ud] p=_pending ps=_pending-stock]
           =/  ex  (~(got by ps) i)
           :-  (~(put by p) p.upd u.pend(started %.y, metadata r.upd))
-          (~(put by ps) i (add count.ex count.u.pend))
+          (~(put by ps) i (add count.ex q))
         =.  pending  p
         =.  pending-stock  ps
 ::        =/  pend-stock  (~(got by pending-stock) product-id.u.pend)
@@ -332,43 +334,35 @@
     /master/(scot %p our.bowl)
   ==
   ::
-  ++  gen-ticket
-    |=  [session-id=@t product-id=(list @t) =metadata:circle salt=@]
-    ^-  ticket
-    =/  amt=amount:circle
-      %+  roll  product-id
-      |=  [i=@ a=amount:circle]
-      =/  p  (~(got by stock) i)
-      :+  (add integer.a integer.amount.p)  0
-      %'USD'
-    :*  (shas salt eny.bowl)
-        %.n
-        product-id
-        amt
-    ==
+::  ++  gen-ticket
+::    |=  [session-id=@t product-id=(list @t) =metadata:circle salt=@]
+::    ^-  ticket
+::    =/  amt=amount:circle
+::      %+  roll  product-id
+::      |=  [i=@ a=amount:circle]
+::      =/  p  (~(got by stock) i)
+::      :+  (add integer.a integer.amount.p)  0
+::      %'USD'
+::    :*  (shas salt eny.bowl)
+::        %.n
+::        product-id
+::        amt
+::    ==
   ::
   ++  finalize-sale
-    |=  [session-id=@t product-id=(list @t) =metadata:circle num=@ud =amount:circle]
+    |=  [session-id=@t product-id=(list [@t @ud]) =metadata:circle =amount:circle]
     ^-  (quip card _state)
-    =|  sold-tickets=(set ticket)
-    ~&  %finalize-sale
-    |-
-    ?:  =(num 0)
-      =/  =purchase
-        :*  sold-tickets
-            amount
-            metadata
-            now.bowl
-        ==
-      =.  sold  (~(put by sold) session-id purchase)
-      :_  state
-      (send-email session-id purchase)^~
-    =/  =ticket  (gen-ticket session-id product-id metadata num)
-    %=  $
-      num               (dec num)
-      token-to-session  (~(put by token-to-session) token.ticket session-id)
-      sold-tickets      (~(put in sold-tickets) ticket)
-    ==
+    =/  =ticket  [eny.bowl %.n product-id amount]
+    =/  =purchase
+      :*  (sy ticket ~)
+          amount
+          metadata
+          now.bowl
+      ==
+    =.  sold              (~(put by sold) session-id purchase)
+    =.  token-to-session  (~(put by token-to-session) token.ticket session-id)
+    :_  state
+    (send-email session-id purchase)^~
   ::
   ++  amount-to-tape
     |=  =amount:circle
@@ -398,7 +392,7 @@
     ^-  manx
     ;tr
       ;td(style "width: 50%", align "left")
-        ;b: {(trip (snag 0 product-id.tic))}  :: XX
+        ;b: {(trip -:(snag 0 product-id.tic))}  :: XX
       ==
       ;td(style "width: 50%", align "right"): {(amount-to-tape price.tic)}
     ==
