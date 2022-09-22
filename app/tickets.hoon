@@ -15,6 +15,7 @@
       total=amount:circle
       =metadata:circle
       purchase-date=@da
+      delivered=?
   ==
 ::
 +$  pending-data
@@ -68,8 +69,7 @@
   ^-  (quip card _this)
 ::  `this
 ::  =/  gateway-wire=wire  /master/(scot %p our.bowl)
-  :_  this(state !<(state-0 old-vase))
-  ~
+  `this(state !<(state-0 old-vase))
 ::  :~  [%pass /eyre %arvo %e %connect [~ /shop] dap.bowl]
 ::      [%pass gateway-wire %agent [provider %gateway] %watch gateway-wire]
 ::  ==
@@ -129,6 +129,54 @@
     ^-  [(quip card _this) simple-payload:http]
     =/  req-line  (parse-request-line:server url.request.req)
     ?+    site.req-line  [`this not-found:gen:server]
+        [%shop %sold ~]
+      ?>  ?=(%'GET' method.request.req)
+      :-  `this
+      :-  [200 ~]
+      =-  `(json-to-octs:server -)
+      :-  %a
+      %+  turn  ~(tap by sold)
+      |=  [ses=@t =purchase]
+      ^-  json
+      =/  items=ticket  (snag 0 ~(tap in tickets.purchase))
+      %-  pairs:enjs:format
+      :~  session-id+s+ses
+          delivered+b+delivered.purchase
+          email+s+email.metadata.purchase
+          :+  %products  %a
+          %+  murn  product-id.items
+          |=  [id=@t q=@ud]
+          ^-  (unit json)
+          ?:  =(q 0)  ~
+          :-  ~
+          %-  pairs:enjs:format
+          :~  product-id+s+id
+              quantity+(numb:enjs:format q)
+          ==
+      ==
+    ::
+        [%shop %deliver ~]
+      ?>  ?=(%'POST' method.request.req)
+      ?~  body.request.req
+        [`this [[400 ~] ~]]
+      =/  jon  (de-json:html `@t`q.u.body.request.req)
+      ?~  jon
+        [`this [[400 ~] ~]]
+      =/  session-id=@t
+        %.  u.jon
+        %-  ot:dejs:format
+        :~  session-id+so:dejs:format
+        ==
+      ?~  purchase=(~(get by sold) session-id)
+        [`this [[400 ~] ~]]
+      ?:  delivered.u.purchase
+        [`this [[400 ~] ~]]
+      =.  delivered.u.purchase  %.y
+      =.  sold  (~(put by sold) session-id u.purchase)
+      :-  `this
+      :-  [200 ~]
+      `(json-to-octs:server [%s 'Delivered'])
+    ::
         [%shop %ticket @ ~]
       ?>  ?=(%'GET' method.request.req)
       =*  sess-id  i.t.t.site.req-line
@@ -211,14 +259,12 @@
       =*  session-id  i.t.t.site.req-line
       =/  pur=(unit purchase)  (~(get by sold) session-id)
       ?~  pur
-        ~&   %no-purchase
         [`this not-found:gen:server]
       =/  tic=(unit ticket)
         %-  ~(rep in tickets.u.pur)
         |=  [=ticket out=(unit ticket)]
         `ticket
       ?~  tic
-        ~&  %no-ticket
         [`this not-found:gen:server]
       =/  res=json
         %-  pairs:enjs:format
@@ -257,14 +303,11 @@
   ?+    -.sign  (on-agent:def wire sign)
       %fact
     =+  !<(upd=update:circle q.cage.sign)
-    ~&  fact+-.upd
     ?+  -.upd  `this
         %payment
-      ~&  %payment-fact
       ?~  pend=(~(get by pending) p.upd)
         `this
       =*  id  product-id.u.pend
-      ~&  id+id
       :: remove count in pending-stock
       =.  pending-stock
         %+  roll  id
@@ -279,7 +322,6 @@
       =.  pending  (~(del by pending) p.upd)
       ::
       ?:  ?=(?(%confirmed %paid) status.q.upd)
-        ~&  %payment-confirmed
         :: remove count in stocks
         =.  stock
           %+  roll  id
@@ -358,6 +400,7 @@
           amount
           metadata
           now.bowl
+          %.n
       ==
     =.  sold              (~(put by sold) session-id purchase)
     =.  token-to-session  (~(put by token-to-session) token.ticket session-id)
