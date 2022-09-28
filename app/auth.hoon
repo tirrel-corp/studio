@@ -130,21 +130,34 @@
   ++  make-email
     |=  [address=@tas cod=@q]
     ^-  email:mailer
-    :^    ['logan@tirrel.io' '~tirrel']
+    :^    ['isaac@tirrel.io' '~tirrel']
         'Your Studio login code'
-      (email-body cod)^~
+      (email-body cod address)^~
     [[address]~ ~ ~]~
   ::
   ++  email-body
-    |=  cod=@q
+    |=  [cod=@q address=@t]
     ^-  content-field:mailer
+    =.  address
+      %-  crip
+      %+  turn  (trip address)
+      |=  char=@t
+      ?:  =('@' char)
+        '%40'
+      char
+    =/  b64=@t
+      %-  en:base64:mimes:html
+      %-  as-octs:mimes:html
+      (rap 3 'code=' (rsh [3 2] (scot %q cod)) '&email=' address ~)
+    =/  url
+      (cat 3 'http://demo.urbit.studio:3000?token=' b64)
     :-  'text/html'
     =<  q
     %-  as-octt:mimes:html
     %-  en-xml:html
     ^-  manx
     ;div
-      ;p: Your Studio login code is: {(trip (rsh [3 2] (scot %q cod)))}
+      ;p: Your Planet One login link is {(trip url)}
     ==
   --
 ::
