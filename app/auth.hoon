@@ -115,6 +115,35 @@
             ~  ::  TODO: send DM?
           (send-email p.q.upd new-cod)^~
       ==
+    ::
+        %immediate-login
+      =/  srv=service  (~(got by services) p.upd)
+      ?<  (~(has by users.srv) q.upd)
+      =/  new-exp=(unit @da)
+        ?~  access-duration.srv  ~
+        `(add now.bowl u.access-duration.srv)
+      =/  usr=user   [`r.upd new-exp]
+      =.  users.srv  (~(put by users.srv) q.upd usr)
+      :_  state(services (~(put by services) p.upd srv))
+      =/  serial-id=path
+        ?@  q.upd
+          /ship/(scot %p q.upd)
+        /email/[p.q.upd]
+      =/  new-wire=wire
+        ^-  wire  ^-  (list @)
+        %-  zing
+        :~  /[p.upd]
+            serial-id
+            /(scot %q r.upd)
+        ==
+      =*  cod  access-code.usr
+      =*  exp  expiry-date.usr
+      =/  set-new-timer
+        ?~  new-exp  ~
+        [%pass new-wire %arvo %b %wait u.new-exp]^~
+      %-  zing
+      :~  set-new-timer
+      ==
     ==
   ::
   ++  send-email
@@ -150,7 +179,7 @@
       %-  as-octs:mimes:html
       (rap 3 'code=' (rsh [3 2] (scot %q cod)) '&email=' address ~)
     =/  url
-      (cat 3 'http://demo.urbit.studio:3000?token=' b64)
+      (cat 3 'http://ixv.cool:3000?token=' b64)
     :-  'text/html'
     =<  q
     %-  as-octt:mimes:html

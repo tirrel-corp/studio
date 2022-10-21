@@ -7,7 +7,7 @@
 ::
 +$  id
   $@  @p
-  [%email p=@tas]
+  [%email p=@t]
 ::      [%phone p=@ud q=@p]
 ::
 +$  user
@@ -22,5 +22,6 @@
       [%add-user p=@tas q=id r=user]
       [%del-user p=@tas q=id]
       [%ask-access p=@tas q=id]
+      [%immediate-login p=@tas q=id r=@q]
   ==
 --
