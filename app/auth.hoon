@@ -159,8 +159,8 @@
   ++  make-email
     |=  [address=@tas cod=@q]
     ^-  email:mailer
-    :^    ['isaac@tirrel.io' '~tirrel']
-        'Your Studio login code'
+    :^    ['delivery@tirrel.io' 'Planet One']
+        'Your Planet One Login Code'
       (email-body cod address)^~
     [[address]~ ~ ~]~
   ::
@@ -179,14 +179,17 @@
       %-  as-octs:mimes:html
       (rap 3 'code=' (rsh [3 2] (scot %q cod)) '&email=' address ~)
     =/  url
-      (cat 3 'http://ixv.cool:3000?token=' b64)
+      (cat 3 'https://planet.one?token=' b64)
     :-  'text/html'
     =<  q
     %-  as-octt:mimes:html
     %-  en-xml:html
     ^-  manx
     ;div
-      ;p: Your Planet One login link is {(trip url)}
+      ;img(src "https://tirrel.io/assets/planet-one-header.png", width "400px");
+      ;p: A login request to Planet One was made from this email address
+      ;p: Follow this link to log in: {(trip url)}
+      ;p: If you did not request this email, please ignore this.
     ==
   --
 ::
