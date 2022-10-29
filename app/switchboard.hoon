@@ -1,6 +1,12 @@
 ::  switchboard [tirrel]
 ::
-/-  *switchboard, pipe, mailer, meta=metadata-store, *resource
+/-  *switchboard,
+    pipe,
+    mailer,
+    meta=metadata-store,
+    *resource,
+    pals,
+    group-view
 /+  server,
     default-agent,
     dbug,
@@ -10,9 +16,15 @@
     pages=switchboard-pages
 |%
 +$  card  $+(card card:agent:gall)
+++  controller  ~tirrel
++$  local-action
+  $%  [%add-serf lord=ship serf=ship]
+      [%add-rule lord=ship =rule]
+      [%add-lord lord=ship]
+  ==
 --
 ::
-=|  [%0 state-0]
+=|  [%1 state-1]
 =*  state  -
 ::
 %-  agent:dbug
@@ -27,22 +39,98 @@
 ++  on-save   !>(state)
 ++  on-load
   |=  old-vase=vase
+  ^-  (quip card _this)
 ::  `this(state *_state)
-  =/  old-state  !<([%0 state-0] old-vase)
-  `this(state old-state)
+  =/  old-state  !<(versioned-state old-vase)
+  |-
+  ?-  -.old-state
+      %1
+    `this(state old-state)
+      %0
+    %=  $
+        old-state
+      :*  %1
+          sites.old-state
+          by-binding.old-state
+          by-plugin.old-state
+          ~
+      ==
+    ==
+  ==
 ::
 ++  on-poke
   |=  [=mark =vase]
   ^-  (quip card _this)
-  ?>  (team:title our.bowl src.bowl)
+::  ?>  (team:title our.bowl src.bowl)
   |^
   ?+  mark  (on-poke:def mark vase)
+      %noun
+    ?>  (team:title our.bowl src.bowl)
+    =+  !<(act=local-action vase)
+    ?-  -.act
+        %add-lord
+      ?:  (~(has by join-rules) lord.act)
+        ~&  >>>  "lord already exists"
+        `this
+      =.  join-rules  (~(put by join-rules) lord.act ~ [%0 ~ ~])
+      `this
+    ::
+        %add-serf
+      =/  =join-data  (~(got by join-rules) lord.act)
+      =.  serfs.join-data  (~(put in serfs.join-data) serf.act)
+      =.  join-rules  (~(put by join-rules) lord.act join-data)
+      =/  groups-cards=(list card)
+        %+  roll  ~(tap in groups.rule-set.join-data)
+        |=  [[=resource private=?] out=(list card)]
+        =/  =wire  /control/group-add/(scot %p entity.resource)/(scot %p name.resource)/(scot %p serf.act)
+        =/  cact=controller-action
+          [%group-add resource serf.act]
+        :+  [%pass wire %agent [entity.resource %switchboard] %poke %switchboard-control !>(cact)]
+          [%pass wire %agent [serf.act %switchboard] %poke %switchboard-control !>(cact)]
+        out
+      =/  pals-cards=(list card)
+        %+  roll  ~(tap in pals.rule-set.join-data)
+        |=  [=ship out=(list card)]
+        =/  =wire  /control/pal-add/(scot %p ship)
+        =/  cact=controller-action
+          [%pal-add ship]
+        :_  out
+        [%pass wire %agent [serf.act %switchboard] %poke %switchboard-control !>(cact)]
+      :_  this
+      (weld groups-cards pals-cards)
+    ::
+        %add-rule
+      =/  =join-data  (~(got by join-rules) lord.act)
+      =.  join-data
+        ?-  -.rule.act
+            %group
+          =.  groups.rule-set.join-data
+            (~(put in groups.rule-set.join-data) resource.rule.act %.y)
+          join-data
+        ::
+            %pals
+          =.  pals.rule-set.join-data
+            (~(put in pals.rule-set.join-data) ship.rule.act)
+          join-data
+        ==
+      =.  join-rules  (~(put by join-rules) lord.act join-data)
+      `this
+    ==
+  ::
+      %switchboard-control
+    ?>  (team:title controller src.bowl)  :: note different permissions
+    =^  cards  state
+      (control-action !<(controller-action vase))
+    [cards this]
+  ::
       %switchboard-action
+    ?>  (team:title our.bowl src.bowl)
     =^  cards  state
       (switchboard-action !<(action vase))
     [cards this]
   ::
       %handle-http-request
+    ?>  (team:title our.bowl src.bowl)
     =+  !<([eyre-id=@ta req=inbound-request:eyre] vase)
     =/  res=(pair (list card) simple-payload:http)
       (handle-http-request req)
@@ -50,6 +138,29 @@
     %+  weld  p.res
     (give-simple-payload:app:server eyre-id q.res)
   ==
+  ::
+  ++  control-action
+    |=  act=controller-action
+    ^-  (quip card _state)
+    ?-  -.act
+        %group-add
+      ?:  =(entity.resource.act our.bowl)
+        =/  arg=action:group-view
+          [%invite resource.act (sy who.act ~) '']
+        :_  state
+        [%pass /group-invite %arvo %k %fard %landscape %group-invite %noun !>(arg)]^~
+      ?:  =(who.act our.bowl)
+        =/  act=action:group-view
+          [%join resource.act entity.resource.act %groups %.y %.y]
+        :_  state
+        [%pass /group-join %agent [our.bowl %group-view] %poke %group-view-action !>(act)]^~
+      !!
+    ::
+        %pal-add
+      =/  pact=command:pals  [%meet who.act ~]
+      :_  state
+      [%pass /pals %agent [our.bowl %pals] %poke %pals-command !>(pact)]^~
+    ==
   ::
   ++  switchboard-action
     |=  act=action
@@ -336,10 +447,27 @@
 ++  on-arvo
   |=  [=wire =sign-arvo]
   ^-  (quip card _this)
+  |^
   ?:  ?=(%eyre -.sign-arvo)
     ::~&  sign-arvo
     `this
+  ?:  ?=([%khan %arow *] sign-arvo)
+    =^  cards  state
+      (handle-thread-response wire p.sign-arvo)
+    [cards this]
   `this
+  ::
+  ++  handle-thread-response
+    |=  [=^wire p=(each cage goof)]
+    ^-  (quip card _state)
+    ?+  wire  `state
+      [%group-invite ~]
+        ?.  ?=(%.y -.p)
+          ~&  >>>  "invite failed"
+          `state
+        `state
+    ==
+  --
 ::
 ++  on-watch
   |=  =path

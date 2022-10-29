@@ -3,7 +3,7 @@
     color+0xa0.e2a7
     base+'studio'
     image+'https://tirrel.io/assets/stool.svg'
-    glob-http+['https://tirrel.io/assets/globs/latest.glob' 0v2.8vfo4.qdodl.9jimc.kortb.9e5pl]
+    glob-http+['https://tirrel.io/assets/globs/glob-0v3.hpo5i.9sug7.a5g52.i1idp.rsv80.glob' 0v3.hpo5i.9sug7.a5g52.i1idp.rsv80]
     version+[1 0 17]
     website+'https://tirrel.io'
     license+'MIT'
