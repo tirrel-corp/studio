@@ -115,6 +115,35 @@
             ~  ::  TODO: send DM?
           (send-email p.q.upd new-cod)^~
       ==
+    ::
+        %immediate-login
+      =/  srv=service  (~(got by services) p.upd)
+      ?<  (~(has by users.srv) q.upd)
+      =/  new-exp=(unit @da)
+        ?~  access-duration.srv  ~
+        `(add now.bowl u.access-duration.srv)
+      =/  usr=user   [`r.upd new-exp]
+      =.  users.srv  (~(put by users.srv) q.upd usr)
+      :_  state(services (~(put by services) p.upd srv))
+      =/  serial-id=path
+        ?@  q.upd
+          /ship/(scot %p q.upd)
+        /email/[p.q.upd]
+      =/  new-wire=wire
+        ^-  wire  ^-  (list @)
+        %-  zing
+        :~  /[p.upd]
+            serial-id
+            /(scot %q r.upd)
+        ==
+      =*  cod  access-code.usr
+      =*  exp  expiry-date.usr
+      =/  set-new-timer
+        ?~  new-exp  ~
+        [%pass new-wire %arvo %b %wait u.new-exp]^~
+      %-  zing
+      :~  set-new-timer
+      ==
     ==
   ::
   ++  send-email
@@ -130,21 +159,37 @@
   ++  make-email
     |=  [address=@tas cod=@q]
     ^-  email:mailer
-    :^    ['logan@tirrel.io' '~tirrel']
-        'Your Studio login code'
-      (email-body cod)^~
+    :^    ['delivery@tirrel.io' 'Planet One']
+        'Your Planet One Login Code'
+      (email-body cod address)^~
     [[address]~ ~ ~]~
   ::
   ++  email-body
-    |=  cod=@q
+    |=  [cod=@q address=@t]
     ^-  content-field:mailer
+    =.  address
+      %-  crip
+      %+  turn  (trip address)
+      |=  char=@t
+      ?:  =('@' char)
+        '%40'
+      char
+    =/  b64=@t
+      %-  en:base64:mimes:html
+      %-  as-octs:mimes:html
+      (rap 3 'code=' (rsh [3 2] (scot %q cod)) '&email=' address ~)
+    =/  url
+      (cat 3 'https://planet.one?token=' b64)
     :-  'text/html'
     =<  q
     %-  as-octt:mimes:html
     %-  en-xml:html
     ^-  manx
     ;div
-      ;p: Your Studio login code is: {(trip (rsh [3 2] (scot %q cod)))}
+      ;img(src "https://tirrel.io/assets/planet-one-header.png", width "400px");
+      ;p: A login request to Planet One was made from this email address.
+      ;p: Follow this link to log in: {(trip url)}
+      ;p: If you did not request this email, please ignore this.
     ==
   --
 ::
