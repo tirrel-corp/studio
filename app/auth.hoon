@@ -182,7 +182,7 @@
       ?~  opt
         (cat 3 'https://planet.one?token=' b64)
       %+  rap  3
-      :~  'https://planet.one/'
+      :~  'https://planet.one/x/'
           -.u.opt
           '/'
           (scot %p +.u.opt)
