@@ -21,7 +21,7 @@
       [%mod-access-duration p=@tas q=(unit @dr)]
       [%add-user p=@tas q=id r=user]
       [%del-user p=@tas q=id]
-      [%ask-access p=@tas q=id]
+      [%ask-access p=@tas q=id r=(unit [@t @p])]
       [%immediate-login p=@tas q=id r=@q]
   ==
 --

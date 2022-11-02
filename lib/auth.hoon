@@ -11,8 +11,14 @@
         [%mod-access-duration (ot name+so duration+(mu ri) ~)]
         [%add-user (ot name+so id+id user+user ~)]
         [%del-user (ot name+so id+id ~)]
-        [%ask-access (ot name+so id+id ~)]
+        [%ask-access (ot name+so id+id opt+opt ~)]
     ==
+  ++  opt
+    |=  jon=json
+    ^-  (unit [@t @p])
+    ?~  jon  ~
+    :-  ~
+    ((ot ref+so patp+(se %p) ~) jon)
   ::
   ++  id
     |=  jon=json
@@ -81,6 +87,15 @@
           ?>  ?=(^ q.u)
           s+p.q.u
       ==
+    ==
+  ::
+  ++  opt
+    |=  o=(unit [@t @p])
+    ^-  json
+    ?~  o  ~
+    %-  pairs
+    :~  ref+s+-.u.o
+        patp+s+(scot %p +.u.o)
     ==
   ::
   ++  service

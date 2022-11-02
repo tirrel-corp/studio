@@ -74,7 +74,7 @@
     :-  =-  [%pass /auth %agent [our %auth] %poke -]^~
         :-  %auth-update
         !>  ^-  update:auth
-        [%ask-access service email+u.email]
+        [%ask-access service email+u.email ~]
     =-  [[303 -] ~]
     =/  email-segment=@t  (crip (en-urlt:html (trip u.email)))
     ['location' (rap 3 (spat site.req-line) '?action=login&email=' email-segment ~)]^~

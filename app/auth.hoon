@@ -113,7 +113,7 @@
           set-new-timer
           ?@  q.upd
             ~  ::  TODO: send DM?
-          (send-email p.q.upd new-cod)^~
+          (send-email p.q.upd new-cod r.upd)^~
       ==
     ::
         %immediate-login
@@ -147,25 +147,25 @@
     ==
   ::
   ++  send-email
-    |=  [email=@tas cod=@q]
+    |=  [email=@tas cod=@q opt=(unit [@t @p])]
     ^-  card
     =-  [%pass /email/[email] %agent [our.bowl %mailer] %poke -]
     :-  %mailer-action
     !>  ^-  action:mailer
-    [%send-email (make-email email cod)]
+    [%send-email (make-email email cod opt)]
   ::
   ::  TODO: add URL to email
   ::
   ++  make-email
-    |=  [address=@tas cod=@q]
+    |=  [address=@tas cod=@q opt=(unit [@t @p])]
     ^-  email:mailer
     :^    ['delivery@tirrel.io' 'Planet One']
         'Your Planet One Login Code'
-      (email-body cod address)^~
+      (email-body cod address opt)^~
     [[address]~ ~ ~]~
   ::
   ++  email-body
-    |=  [cod=@q address=@t]
+    |=  [cod=@q address=@t opt=(unit [@t @p])]
     ^-  content-field:mailer
     =.  address
       %-  crip
@@ -179,7 +179,16 @@
       %-  as-octs:mimes:html
       (rap 3 'code=' (rsh [3 2] (scot %q cod)) '&email=' address ~)
     =/  url
-      (cat 3 'https://planet.one?token=' b64)
+      ?~  opt
+        (cat 3 'https://planet.one?token=' b64)
+      %+  rap  3
+      :~  'https://planet.one/'
+          -.u.opt
+          '/'
+          (scot %p +.u.opt)
+          '?token='
+          b64
+      ==
     :-  'text/html'
     =<  q
     %-  as-octt:mimes:html
