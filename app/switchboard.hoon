@@ -6,7 +6,8 @@
     meta=metadata-store,
     *resource,
     pals,
-    group-view
+    group-view,
+    hark-store
 /+  server,
     default-agent,
     dbug,
@@ -93,11 +94,16 @@
         |=  [=ship out=(list card)]
         =/  =wire  /control/pal-add/(scot %p ship)
         =/  cact=controller-action
-          [%pal-add ship]
-        :_  out
-        [%pass wire %agent [serf.act %switchboard] %poke %switchboard-control !>(cact)]
+          [%pal-add lord.act serf.act]
+        :+  [%pass wire %agent [lord.act %switchboard] %poke %switchboard-control !>(cact)]
+          [%pass wire %agent [serf.act %switchboard] %poke %switchboard-control !>(cact)]
+        out
+      =/  cact=controller-action
+        [%notify serf.act]
+      =/  notify-card=(list card)
+        [%pass /notify %agent [lord.act %switchboard] %poke %switchboard-control !>(cact)]^~
       :_  this
-      (weld groups-cards pals-cards)
+      :(weld groups-cards pals-cards notify-card)
     ::
         %add-rule
       =/  =join-data  (~(got by join-rules) lord.act)
@@ -157,9 +163,29 @@
       !!
     ::
         %pal-add
-      =/  pact=command:pals  [%meet who.act ~]
+      ?:  =(lord.act our.bowl)
+        =/  pact=command:pals  [%meet who.act (sy 'hosting' ~)]
+        :_  state
+        [%pass /pals %agent [our.bowl %pals] %poke %pals-command !>(pact)]^~
+      =/  pact=command:pals  [%meet lord.act ~]
       :_  state
       [%pass /pals %agent [our.bowl %pals] %poke %pals-command !>(pact)]^~
+    ::
+        %notify
+      ~&  >>  %notify
+      =/  =body:hark-store
+        :*  :~  [%ship ship.act]
+                [%text ' has been hosted through your referral']
+            ==
+            ~
+            now.bowl
+            /
+            /pals
+        ==
+      =/  hact=action:hark-store
+        [%add-note [/pals %pals /(scot %p ship.act)/hosting] body]
+      :_  state
+      [%pass /hark %agent [our.bowl %hark-store] %poke %hark-action !>(hact)]^~
     ==
   ::
   ++  switchboard-action
