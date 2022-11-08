@@ -150,7 +150,7 @@
       %none       (frond %none ~)
       %all        (frond %all s+p.rul)
       %subpaths   (frond %subpaths s+p.rul)
-      %per-subpath  !!
+      %per-subpath  ~
     ==
   ::
   ++  site

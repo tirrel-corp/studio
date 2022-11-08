@@ -25,7 +25,7 @@
       [%email `@t`p.email]
     !!
   ::
-  ++  user  (ot access-code+ul expiry-date+ul ~)
+  ++  user  (ot access-code+ul expiry-date+ul security-clearance+bo ~)
   ::
   ++  ri                                           ::  number as relative date
     |=  jon=json

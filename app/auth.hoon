@@ -79,7 +79,7 @@
       =/  new-exp=(unit @da)
         ?~  access-duration.srv  ~
         `(add now.bowl u.access-duration.srv)
-      =.  users.srv  (~(put by users.srv) q.upd [`new-cod new-exp])
+      =.  users.srv  (~(put by users.srv) q.upd [`new-cod new-exp security-clearance.usr])
       :_  state(services (~(put by services) p.upd srv))
       =/  serial-id=path
         ?@  q.upd
@@ -162,14 +162,14 @@
     =/  =ship  (slav %p i.t.t.wire)
     ?.  (~(has by users.srv) ship)
       `this
-    =.  users.srv  (~(put by users.srv) ship [~ ~])
+    =.  users.srv  (~(put by users.srv) ship [~ ~ %.n])
     `this(services (~(put by services) i.wire srv))
   ::
       [%email @ @ ~]
     =/  email  `@tas`i.t.t.wire
     ?.  (~(has by users.srv) [%email email])
       `this
-    =.  users.srv  (~(put by users.srv) [%email email] [~ ~])
+    =.  users.srv  (~(put by users.srv) [%email email] [~ ~ %.n])
     `this(services (~(put by services) i.wire srv))
   ==
 ::

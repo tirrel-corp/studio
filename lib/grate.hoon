@@ -26,12 +26,15 @@
     ?~  cookie=(get:coo header-list.req)
       ::  ~&  %no-cookie
       request-email-page
-    ?.  (validate:coo -.u.cookie +.u.cookie u.service)
+    ?~  uauth=(validate:coo -.u.cookie +.u.cookie u.service)
       ::  ~&  %invalid-cookie
       request-email-page
+    ?.  security-clearance.user.u.uauth
+      request-clearance-page
     (content page)
   ::
       %'POST'
+    ~&  'POST'^action-arg
     ?:  ?&  ?=(^ action-arg)
             =(%login u.action-arg)
         ==
@@ -114,6 +117,24 @@
       ==
     ==
   ::
+  ++  request-clearance-page
+    =*  srv  server
+    ^-  simple-payload:http
+    :-  [200 ['content-type' 'text/html']^~]
+    :-  ~
+    %-  manx-to-octs:srv
+    ;html.sans-serif.f4
+      ;head
+        ;meta(charset "utf-8");
+        ;meta(name "viewport", content "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0");
+        ;link(rel "stylesheet", href "https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css");
+      ==
+      ;body.absolute.w-100.h-100.flex.flex-column.justify-center.items-center
+        ;h3.w-70-ns.w-100: You want to read secrets?
+        ;p: You do not have clerance.
+      ==
+    ==
+  ::
   ++  login-page
     =*  srv  server
     |=  email=@t
@@ -155,18 +176,18 @@
   ::
   ++  validate
     |=  [email=@t code=@q service=@tas]
-    ^-  ?
+    ^-  (unit [email=@t user=user:auth])
     =/  user=(unit user:auth)
       %^  scry-for  %auth  (unit user:auth)
       /user/[service]/email/[email]
     ?~  user
       ::  ~&  %no-such-user
-      %.n
+      ~
     ?~  access-code.u.user
-      %.n
+      ~
     ?.  =(u.access-code.u.user code)
-      %.n
-    %.y
+      ~
+    `[email u.user]
   ::
   ++  get
     |=  hed=header-list:http

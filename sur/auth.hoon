@@ -13,6 +13,7 @@
 +$  user
   $:  access-code=(unit @q)
       expiry-date=(unit @da)
+      security-clearance=?
   ==
 ::
 +$  update
