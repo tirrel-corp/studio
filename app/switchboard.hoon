@@ -6,7 +6,8 @@
     meta=metadata-store,
     *resource,
     pals,
-    group-view
+    group-view,
+    hark-store
 /+  server,
     default-agent,
     dbug,
@@ -21,6 +22,8 @@
   $%  [%add-serf lord=ship serf=ship]
       [%add-rule lord=ship =rule]
       [%add-lord lord=ship]
+      [%del-lord lord=ship]
+      [%wipe-rules lord=ship]
   ==
 --
 ::
@@ -40,7 +43,6 @@
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
-::  `this(state *_state)
   =/  old-state  !<(versioned-state old-vase)
   |-
   ?-  -.old-state
@@ -61,13 +63,28 @@
 ++  on-poke
   |=  [=mark =vase]
   ^-  (quip card _this)
-::  ?>  (team:title our.bowl src.bowl)
   |^
   ?+  mark  (on-poke:def mark vase)
       %noun
     ?>  (team:title our.bowl src.bowl)
     =+  !<(act=local-action vase)
     ?-  -.act
+        %wipe-rules
+      ?~  join-data=(~(get by join-rules) lord.act)
+        ~&  >>>  "lord doesn't exists"
+        `this
+      =.  rule-set.u.join-data  *rule-set
+      =.  join-rules
+        (~(put by join-rules) lord.act u.join-data)
+      `this
+    ::
+        %del-lord
+      ?.  (~(has by join-rules) lord.act)
+        ~&  >>>  "lord doesn't exists"
+        `this
+      =.  join-rules  (~(del by join-rules) lord.act)
+      `this
+    ::
         %add-lord
       ?:  (~(has by join-rules) lord.act)
         ~&  >>>  "lord already exists"
@@ -85,6 +102,9 @@
         =/  =wire  /control/group-add/(scot %p entity.resource)/(scot %p name.resource)/(scot %p serf.act)
         =/  cact=controller-action
           [%group-add resource serf.act]
+        ?.  private
+          :_  out
+          [%pass wire %agent [serf.act %switchboard] %poke %switchboard-control !>(cact)]
         :+  [%pass wire %agent [entity.resource %switchboard] %poke %switchboard-control !>(cact)]
           [%pass wire %agent [serf.act %switchboard] %poke %switchboard-control !>(cact)]
         out
@@ -93,11 +113,12 @@
         |=  [=ship out=(list card)]
         =/  =wire  /control/pal-add/(scot %p ship)
         =/  cact=controller-action
-          [%pal-add ship]
-        :_  out
-        [%pass wire %agent [serf.act %switchboard] %poke %switchboard-control !>(cact)]
+          [%pal-add lord.act serf.act]
+        :+  [%pass wire %agent [lord.act %switchboard] %poke %switchboard-control !>(cact)]
+          [%pass wire %agent [serf.act %switchboard] %poke %switchboard-control !>(cact)]
+        out
       :_  this
-      (weld groups-cards pals-cards)
+      :(weld groups-cards pals-cards)
     ::
         %add-rule
       =/  =join-data  (~(got by join-rules) lord.act)
@@ -105,7 +126,7 @@
         ?-  -.rule.act
             %group
           =.  groups.rule-set.join-data
-            (~(put in groups.rule-set.join-data) resource.rule.act %.y)
+            (~(put in groups.rule-set.join-data) resource.rule.act private.rule.act)
           join-data
         ::
             %pals
@@ -157,9 +178,14 @@
       !!
     ::
         %pal-add
-      =/  pact=command:pals  [%meet who.act ~]
+      ?:  =(lord.act our.bowl)
+        =/  pact=command:pals  [%meet who.act (sy 'hosting' ~)]
+        :_  state
+        [%pass /pals %agent [our.bowl %pals] %poke %pals-command !>(pact)]^~
+      =/  pact=command:pals  [%meet lord.act ~]
       :_  state
       [%pass /pals %agent [our.bowl %pals] %poke %pals-command !>(pact)]^~
+    ::
     ==
   ::
   ++  switchboard-action

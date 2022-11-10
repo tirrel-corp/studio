@@ -3,6 +3,8 @@
 +$  content-field  [type=cord value=cord]
 +$  personalization-field
   $:  to=(list cord)
+      cc=(list cord)
+      bcc=(list cord)
       headers=(map cord cord)
       substitutions=(list [cord cord])
   ==

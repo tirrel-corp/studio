@@ -162,7 +162,7 @@
     :^    ['delivery@tirrel.io' 'Planet One']
         'Your Planet One Login Code'
       (email-body cod address opt)^~
-    [[address]~ ~ ~]~
+    [[address]~ ~ ~ ~ ~]~
   ::
   ++  email-body
     |=  [cod=@q address=@t opt=(unit [@t @p])]

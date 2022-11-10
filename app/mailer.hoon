@@ -370,6 +370,8 @@
       :-  ~
       :*  [address]~
           ~
+          ~
+          ~
           [['%unsubscribe-callback%' callback] ~]
       ==
     =/  emails=(list email)
@@ -503,11 +505,16 @@
 ++  personalization-to-json
   |=  per=personalization-field
   ^-  json
-  %-  pairs:enjs:format
-  :~  to+(to-to-json to.per)
-      headers+(headers-to-json headers.per)
-      substitutions+(subs-to-json substitutions.per)
-  ==
+  =/  args=(list [@t json])
+    :~  to+(to-to-json to.per)
+        headers+(headers-to-json headers.per)
+        substitutions+(subs-to-json substitutions.per)
+    ==
+  =?  args  ?=(^ cc.per)
+     [cc+(to-to-json cc.per) args]
+  =?  args  ?=(^ bcc.per)
+     [bcc+(to-to-json bcc.per) args]
+  (pairs:enjs:format args)
 ::
 ++  to-to-json
   |=  to=(list cord)
@@ -551,7 +558,7 @@
     :*  [u.email.creds (scot %p our.bowl)]
         (cat 3 'Confirm your subscription to ' title)
         (confirm-email-body:pages title (encode-token token) pipe-binding mailer-binding)
-        [[email-address]~ ~ ~]~
+        [[email-address]~ ~ ~ ~ ~]~
     ==
   =-  [%pass /send-email/(scot %uv eny.bowl) %arvo %i %request -]
   [(send-email email) *outbound-config:iris]

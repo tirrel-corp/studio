@@ -33,13 +33,13 @@
   ==
 ::
 +$  rule
-  $%  [%group =resource]
+  $%  [%group =resource private=?]
       [%pals =ship]
   ==
 ::
 +$  controller-action
   $%  [%group-add =resource who=ship]
-      [%pal-add who=ship]
+      [%pal-add lord=ship who=ship]
   ==
 ::
 +$  site

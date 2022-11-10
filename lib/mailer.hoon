@@ -42,6 +42,8 @@
   ++  personalization
     %-  ot
     :~  to+(ar so)
+        cc+(ar so)
+        bcc+(ar so)
         headers+(as (at so so ~))
         substitutions+(ar (at so so ~))
     ==
