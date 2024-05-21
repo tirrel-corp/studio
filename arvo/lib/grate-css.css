@@ -1,0 +1,26 @@
+iframe[src*="paywall.tirrel.io"] {
+    border: none;
+    width: 100%;
+    max-width: 95vw;
+    min-height: 30rem;
+}
+@media (max-width: 320px) {
+    iframe[src*="paywall.tirrel.io"] {
+        min-height: 200vh;
+    }
+}
+@media (max-width: 500px) {
+    iframe[src*="paywall.tirrel.io"] {
+        min-height: 150vh;
+    }
+}
+@media (min-width: 501px) and (max-width: 1000px) {
+    iframe[src*="paywall.tirrel.io"] {
+        min-height: 150vh;
+    }
+}
+@media (min-width: 1001px) {
+    iframe[src*="paywall.tirrel.io"] {
+        min-height: 150vh;
+    }
+}

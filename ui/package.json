@@ -1,0 +1,40 @@
+{
+  "name": "studio-ui",
+  "version": "0.1.0",
+  "private": true,
+  "homepage": "/apps/studio",
+  "dependencies": {
+    "@passbase/button": "^4.4.0",
+    "@urbit/http-api": "^2.1.0",
+    "clsx": "^1.2.1",
+    "http-proxy-middleware": "^2.0.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-hook-form": "^7.43.1",
+    "react-router-dom": "^6.0.2",
+    "react-scripts": "5.0.1",
+    "urbit-ob": "^5.0.1"
+  },
+  "scripts": {
+    "start": "sed -i 's/compress: true/compress: false/' ./node_modules/react-scripts/config/webpackDevServer.config.js && react-scripts start",
+    "build": "react-scripts build",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+:~  title+'Studio'
+    info+'Publish Content from Urbit'
+    color+0xa0.e2a7
+    base+'studio'
+    image+'https://tirrel.io/assets/stool.svg'
+    glob-http+['https://tirrel.io/assets/globs/glob-0v1.kre30.t2iau.j93jo.7ht59.2gilm.glob' 0v1.kre30.t2iau.j93jo.7ht59.2gilm]
+    version+[1 1 14]
+    website+'https://tirrel.io'
+    license+'MIT'
+==
